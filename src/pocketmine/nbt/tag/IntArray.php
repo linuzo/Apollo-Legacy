@@ -22,22 +22,22 @@
 namespace pocketmine\nbt\tag;
 
 use pocketmine\nbt\NBT;
-
 use pocketmine\utils\Binary;
 
-class LongTag extends NamedTag{
+class IntArray extends NamedTag{
 
 	public function getType(){
-		return NBT::TAG_Long;
+		return NBT::TAG_IntArray;
 	}
 
 	public function read(NBT $nbt){
-//		$this->value = $nbt->endianness === 1 ? Binary::readLong($nbt->get(8)) : Binary::readLLong($nbt->get(8));
-		$this->value = $nbt->getLong();
+		$this->value = [];
+		$size = $nbt->endianness === 1 ? Binary::readInt($nbt->get(4)) : Binary::readLInt($nbt->get(4));
+		$this->value = unpack($nbt->endianness === NBT::LITTLE_ENDIAN ? "V*" : "N*", $nbt->get($size * 4));
 	}
 
 	public function write(NBT $nbt){
-//		$nbt->buffer .= $nbt->endianness === 1 ? Binary::writeLong($this->value) : Binary::writeLLong($this->value);
-		$nbt->putLong($this->value);
+		$nbt->buffer .= $nbt->endianness === 1 ? pack("N", \count($this->value)) : pack("V", \count($this->value));
+		$nbt->buffer .= pack($nbt->endianness === NBT::LITTLE_ENDIAN ? "V*" : "N*", ...$this->value);
 	}
 }

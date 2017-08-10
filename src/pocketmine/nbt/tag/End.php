@@ -23,21 +23,17 @@ namespace pocketmine\nbt\tag;
 
 use pocketmine\nbt\NBT;
 
-use pocketmine\utils\Binary;
-
-class LongTag extends NamedTag{
+class End extends Tag{
 
 	public function getType(){
-		return NBT::TAG_Long;
+		return NBT::TAG_End;
 	}
 
 	public function read(NBT $nbt){
-//		$this->value = $nbt->endianness === 1 ? Binary::readLong($nbt->get(8)) : Binary::readLLong($nbt->get(8));
-		$this->value = $nbt->getLong();
+
 	}
 
 	public function write(NBT $nbt){
-//		$nbt->buffer .= $nbt->endianness === 1 ? Binary::writeLong($this->value) : Binary::writeLLong($this->value);
-		$nbt->putLong($this->value);
+
 	}
 }
