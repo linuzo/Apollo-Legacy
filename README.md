@@ -5,7 +5,7 @@
 
 # Join us here! [Discord](https://discord.gg/PwVGfng)
 
-# Here is our twitter! [Our Twitter](https://mobile.twitter.com/TeamSpigotpe)
+# Here is our twitter! new twitter[Our Twitter](https://mobile.twitter.com/Spigot_PE)
 DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
 # NOTE FOR NEW PEOPLE YOU MUST USE SpigotPE.phar
 
