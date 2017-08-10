@@ -21,9 +21,11 @@
 
 namespace pocketmine\utils;
 
-class ReversePriorityQueue extends \SplPriorityQueue{
 
-	public function compare($priority1, $priority2){
-		return (int) -($priority1 - $priority2);
-	}
+/**
+ * All classes or interfaces (including plugins) that want to be able to be patched in runtime
+ * need to implement this interface
+ */
+interface Patchable{
+
 }
