@@ -10,7 +10,7 @@ DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg
 
 ## if you want to donate us for our team and coming server Click here ->> [Donate]( https://www.patreon.com/bePatron?c=1072120&rid=1895525)
 
-## Warning: all new alpha 3.0.0 alhpa X plugins will now work!!!
+## Warning: all new alpha 3.0.0 alhpa X plugins will not work!!!
 
 - ### soon we will be rewritten (11 August then we will start working on it)
 - ### but most plugin will break so ask if we need to support a broken plugin
