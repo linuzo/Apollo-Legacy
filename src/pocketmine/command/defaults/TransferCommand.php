@@ -21,19 +21,19 @@
 
 namespace pocketmine\command\defaults;
 
-use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\Player;
+use pocketmine\utils\TextFormat;
 
-
-class SaveOffCommand extends VanillaCommand{
+class TransferCommand extends VanillaCommand{
 
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Disables server autosaving",
-			"/save-off"
+			"Transfer player to server",
+			"/transfer <address> [port]"
 		);
-		$this->setPermission("pocketmine.command.save.disable");
+		$this->setPermission("pocketmine.command.transfer");
 	}
 
 	public function execute(CommandSender $sender, $currentAlias, array $args){
@@ -41,10 +41,21 @@ class SaveOffCommand extends VanillaCommand{
 			return true;
 		}
 
-		$sender->getServer()->setAutoSave(false);
+		if(count($args) < 1){
+			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
 
-		Command::broadcastCommandMessage($sender, "Disabled level saving");
+			return false;
+		}
+		
+		if(!($sender instanceof Player)){
+			$sender->sendMessage(TextFormat::RED . "Only for players");
+			return false;
+		}
 
-		return true;
+		$address = $args[0];
+		$port = isset($args[1]) ? (int) $args[1] : false;
+		
+		$sender->transfer($address, $port);
+		
 	}
 }

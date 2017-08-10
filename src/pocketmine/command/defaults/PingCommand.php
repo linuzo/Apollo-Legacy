@@ -21,30 +21,32 @@
 
 namespace pocketmine\command\defaults;
 
-use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\Player;
+use pocketmine\utils\TextFormat;
 
-
-class SaveOffCommand extends VanillaCommand{
+class PingCommand extends VanillaCommand{
 
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Disables server autosaving",
-			"/save-off"
+			"Return player ping",
+			"/ping"
 		);
-		$this->setPermission("pocketmine.command.save.disable");
+		$this->setPermission("pocketmine.command.ping");
 	}
 
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
+		
 
-		$sender->getServer()->setAutoSave(false);
-
-		Command::broadcastCommandMessage($sender, "Disabled level saving");
-
+		if(!($sender instanceof Player)){
+			$sender->sendMessage(TextFormat::RED . "Only for players");
+			return true;
+		}		
+		$sender->sendPing();
 		return true;
 	}
 }
