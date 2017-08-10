@@ -9,7 +9,8 @@
 DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
 
 ## if you want to donate us for our team and coming server Click here ->> [Donate]( https://www.patreon.com/bePatron?c=1072120&rid=1895525)
-## Warning: 32-Bit support is Deprecated!!!
+
+## Warning: all new alpha 3.0.0 alhpa X plugins will now work!!!
 
 - ### soon we will be rewritten (11 August then we will start working on it)
 - ### but most plugin will break so ask if we need to support a broken plugin
@@ -20,15 +21,15 @@ This is an Advanced & Feature Rich Server Software to hopefully Replace Tesserac
 This spoon is based off of PMMP (For Stability)  
 
 # ToDo:
-- [X] Fully Functional **Elytra Wings** and **SlimeBlocks**
-- [X] EnderChests
-- [X] **Full Tesseract & PMMP PluginAPI Compatibility not all plugins just ask and we will look at it**
-- [X] **CustomPotions**
+- [ ] Fully Functional **Elytra Wings** and **SlimeBlocks**
+- [ ] EnderChests
+- [ ] **Full Tesseract & PMMP PluginAPI Compatibility not all plugins just ask and we will look at it**
+- [ ] **CustomPotions**
 - [ ] **CustomEnchants**
-- [x] 1.0.x Blocks & Items
+- [ ] 1.0.x Blocks & Items
 - [ ] 1.1.x Blocks & Items
 - [ ] **CommandLogger**
-- [x] **Toggleable PluginAPI Version Checking**
+- [ ] **Toggleable PluginAPI Version Checking**
 - [ ] Fully Functional Nether
 - [ ] **Toggleable Built-In Devtools & FolderPluginLoader**
 - [ ] Toggleable PacketLogger (May be removed in the future and #wip)
@@ -37,7 +38,7 @@ This spoon is based off of PMMP (For Stability)
 - [ ] **Weather**  
 - [X] Spawn Eggs
 - [X] Working Mob Spawners (#WIP)
-- [X] Toggleable MobAI (very buggy but working)
-- [ ] support 32bit
-- [ ] stablety and speed imrovments
-- [X] mcpe 1.2 beta support #Wip (idk if it's working)
+- [X] Toggleable MobAI
+- [X] support 32bit
+- [ ]  speed and stable imrovments
+- [X] mcpe 1.2 beta support
