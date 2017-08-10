@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -19,31 +19,52 @@
  *
  */
 
-namespace pocketmine\event\entity;
+namespace pocketmine\event\player;
 
-use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
+use pocketmine\Player;
 
-class EntityCombustEvent extends EntityEvent implements Cancellable{
+/**
+ * Called when a player runs a command or chats, after it execution
+ *
+
+ * The message contains a slash at the start
+ */
+class PlayerCommandPostprocessEvent extends PlayerEvent implements Cancellable{
 	public static $handlerList = null;
 
-	protected $duration;
+	/** @var string */
+	protected $message;
+
 
 	/**
-	 * @param Entity $combustee
-	 * @param int    $duration
+	 * @param Player $player
+	 * @param string $message
 	 */
-	public function __construct(Entity $combustee, $duration){
-		$this->entity = $combustee;
-		$this->duration = $duration;
+	public function __construct(Player $player, $message){
+		$this->player = $player;
+		$this->message = $message;
 	}
 
-	public function getDuration(){
-		return $this->duration;
+	/**
+	 * @return string
+	 */
+	public function getMessage(){
+		return $this->message;
 	}
 
-	public function setDuration($duration){
-		$this->duration = (int) $duration;
+	/**
+	 * @param string $message
+	 */
+	public function setMessage($message){
+		$this->message = $message;
+	}
+
+	/**
+	 * @param Player $player
+	 */
+	public function setPlayer(Player $player){
+		$this->player = $player;
 	}
 
 }

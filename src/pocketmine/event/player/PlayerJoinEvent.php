@@ -14,16 +14,13 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 namespace pocketmine\event\player;
 
-use pocketmine\event\TextContainer;
 use pocketmine\Player;
 
 /**
@@ -32,7 +29,7 @@ use pocketmine\Player;
 class PlayerJoinEvent extends PlayerEvent{
 	public static $handlerList = null;
 
-	/** @var string|TextContainer */
+	/** @var string */
 	protected $joinMessage;
 
 	public function __construct(Player $player, $joinMessage){
@@ -41,15 +38,12 @@ class PlayerJoinEvent extends PlayerEvent{
 	}
 
 	/**
-	 * @param string|TextContainer $joinMessage
+	 * @param string $joinMessage
 	 */
 	public function setJoinMessage($joinMessage){
 		$this->joinMessage = $joinMessage;
 	}
 
-	/**
-	 * @return string|TextContainer
-	 */
 	public function getJoinMessage(){
 		return $this->joinMessage;
 	}

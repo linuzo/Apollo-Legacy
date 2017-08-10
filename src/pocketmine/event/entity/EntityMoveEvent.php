@@ -22,28 +22,27 @@
 namespace pocketmine\event\entity;
 
 use pocketmine\entity\Entity;
+use pocketmine\Event;
 use pocketmine\event\Cancellable;
+use pocketmine\math\Vector3;
 
-class EntityCombustEvent extends EntityEvent implements Cancellable{
+/**
+ * @deprecated
+ */
+class EntityMoveEvent extends EntityEvent implements Cancellable{
 	public static $handlerList = null;
 
-	protected $duration;
+	/** @var \pocketmine\math\Vector3 */
+	private $pos;
 
-	/**
-	 * @param Entity $combustee
-	 * @param int    $duration
-	 */
-	public function __construct(Entity $combustee, $duration){
-		$this->entity = $combustee;
-		$this->duration = $duration;
+	public function __construct(Entity $entity, Vector3 $pos){
+		$this->entity = $entity;
+		$this->pos = $pos;
 	}
 
-	public function getDuration(){
-		return $this->duration;
+	public function getVector(){
+		return $this->pos;
 	}
 
-	public function setDuration($duration){
-		$this->duration = (int) $duration;
-	}
 
 }
