@@ -8,6 +8,8 @@
 # Here is our twitter! [Our Twitter](https://mobile.twitter.com/TeamSpigotpe)
 DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
 # NOTE FOR NEW PEOPLE YOU MUST USE SpigotPE.phar
+
+## if you want to donate us for our team and coming server Click here ->> [![Donate]( https://www.patreon.com/bePatron?c=1072120&rid=1895525)
 ## Warning: 32-Bit support is Deprecated!!!
 
 - ### soon we will be rewritten (11 August then we will start working on it)
