@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\level\generator\normal\biome;
 
 class SwampBiome extends GrassyBiome{
@@ -34,7 +32,11 @@ class SwampBiome extends GrassyBiome{
 		$this->rainfall = 0.9;
 	}
 
-	public function getName() : string{
+	public function getName(){
 		return "Swamp";
+	}
+
+	public function getColor(){
+		return 0x6a7039;
 	}
 }
