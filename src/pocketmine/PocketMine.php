@@ -452,7 +452,7 @@ namespace pocketmine {
 	}
 
 	if(\Phar::running(true) === ""){
-		$logger->warning("Non-packaged PocketMine-Steadfast installation detected, do not use on production.");
+		$logger->warning("Non-packaged SpigotPE installation detected, do not use on production.");
 	}
 
 	ThreadManager::init();
