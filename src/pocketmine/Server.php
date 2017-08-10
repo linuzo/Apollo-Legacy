@@ -1513,9 +1513,9 @@ class Server{
 			"max-players" => 20,
 			"allow-flight" => false,
 			"spawn-animals" => true,
-			"animals-limit" => 0,
+			"animals-limit" => 20,
 			"spawn-mobs" => true,
-			"mobs-limit" => 0,
+			"mobs-limit" => 10,
 			"gamemode" => 0,
 			"force-gamemode" => false,
 			"hardcore" => false,
@@ -1529,8 +1529,8 @@ class Server{
 			"enable-rcon" => false,
 			"rcon.password" => substr(base64_encode(@Utils::getRandomBytes(20, false)), 3, 10),
 			"auto-save" => true,
-			"auto-generate" => false,
-			"save-player-data" => false,
+			"auto-generate" => true,
+			"save-player-data" => true,
 			"time-update" => true,
 			"use-encrypt" => false
 		]);
