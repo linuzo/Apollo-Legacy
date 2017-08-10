@@ -21,15 +21,12 @@
 
 namespace pocketmine;
 
-abstract class Collectable extends \Threaded implements \Collectable{
-	
-	private $isGarbage = false;
-	
-	public function isGarbage() : bool{
-		return $this->isGarbage;
-	}
-	
-	public function setGarbage(){
-		$this->isGarbage = true;
+class CompatibleClassLoader extends \BaseClassLoader{
+
+	/**
+	 * @deprecated
+	 */
+	public function add($namespace, $paths){
+		$this->addPath(array_shift($paths));
 	}
 }
