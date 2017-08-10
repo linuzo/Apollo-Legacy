@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,21 +15,20 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- *
+ * 
  *
 */
-
-declare(strict_types=1);
 
 namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
+use pocketmine\level\format\FullChunk;
 use pocketmine\level\Level;
-use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
+use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\FloatTag;
-use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\Player;
 
@@ -43,18 +42,25 @@ class SpawnEgg extends Item{
 	}
 
 	public function onActivate(Level $level, Player $player, Block $block, Block $target, $face, $fx, $fy, $fz){
-		$nbt = new CompoundTag("", [
-			new ListTag("Pos", [
+		$entity = null;
+		$chunk = $level->getChunk($block->getX() >> 4, $block->getZ() >> 4);
+
+		if(!($chunk instanceof FullChunk)){
+			return false;
+		}
+
+		$nbt = new Compound("", [
+			"Pos" => new Enum("Pos", [
 				new DoubleTag("", $block->getX() + 0.5),
 				new DoubleTag("", $block->getY()),
 				new DoubleTag("", $block->getZ() + 0.5)
 			]),
-			new ListTag("Motion", [
+			"Motion" => new Enum("Motion", [
 				new DoubleTag("", 0),
 				new DoubleTag("", 0),
 				new DoubleTag("", 0)
 			]),
-			new ListTag("Rotation", [
+			"Rotation" => new Enum("Rotation", [
 				new FloatTag("", lcg_value() * 360),
 				new FloatTag("", 0)
 			]),
@@ -64,7 +70,7 @@ class SpawnEgg extends Item{
 			$nbt->CustomName = new StringTag("CustomName", $this->getCustomName());
 		}
 
-		$entity = Entity::createEntity($this->meta, $level, $nbt);
+		$entity = Entity::createEntity($this->meta, $chunk, $nbt);
 
 		if($entity instanceof Entity){
 			if($player->isSurvival()){
