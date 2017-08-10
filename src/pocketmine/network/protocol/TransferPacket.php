@@ -17,36 +17,28 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
-namespace pocketmine\network;
+namespace pocketmine\network\protocol;
 
-use pocketmine\scheduler\AsyncTask;
-use pocketmine\Server;
+#include <rules/DataPacket.h>
 
-class CompressBatchedTask extends AsyncTask{
+class TransferPacket extends PEPacket {
 
-	public $level = 7;
-	public $data;
-	public $final;
-	public $targets = [];
+	const NETWORK_ID = Info::TRANSFER_PACKET;
+	const PACKET_NAME = "TRANSFER_PACKET";
 
-	public function __construct($data, array $targets, $level = 7){
-		$this->data = $data;
-		$this->targets = $targets;
-		$this->level = $level;
+	public $ip;
+	public $port = 19132;
+
+	public function decode($playerProtocol) {
+		
 	}
 
-	public function onRun(){
-		try{
-			$this->final = zlib_encode($this->data, ZLIB_ENCODING_DEFLATE, $this->level);
-			$this->data = null;
-		}catch(\Exception $e){
-
-		}
+	public function encode($playerProtocol) {
+		$this->reset($playerProtocol);
+		$this->putString($this->ip);
+		$this->putLShort($this->port);
 	}
 
-	public function onCompletion(Server $server){
-		$server->broadcastPacketsCallback($this->final, $this->targets);
-	}
 }
