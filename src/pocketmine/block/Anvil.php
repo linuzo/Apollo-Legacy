@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,11 +15,9 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- *
+ * 
  *
 */
-
-declare(strict_types=1);
 
 namespace pocketmine\block;
 
@@ -29,10 +27,6 @@ use pocketmine\item\Tool;
 use pocketmine\Player;
 
 class Anvil extends Fallable{
-
-	const TYPE_NORMAL = 0;
-	const TYPE_SLIGHTLY_DAMAGED = 4;
-	const TYPE_VERY_DAMAGED = 8;
 
 	protected $id = self::ANVIL;
 
@@ -57,12 +51,7 @@ class Anvil extends Fallable{
 	}
 
 	public function getName(){
-		static $names = [
-			self::TYPE_NORMAL => "Anvil",
-			self::TYPE_SLIGHTLY_DAMAGED => "Slightly Damaged Anvil",
-			self::TYPE_VERY_DAMAGED => "Very Damaged Anvil"
-		];
-		return $names[$this->meta & 0x0c] ?? "Anvil";
+		return "Anvil";
 	}
 
 	public function getToolType(){
@@ -71,22 +60,20 @@ class Anvil extends Fallable{
 
 	public function onActivate(Item $item, Player $player = null){
 		if($player instanceof Player){
+			if($player->isCreative()){
+				return true;
+			}
+
 			$player->addWindow(new AnvilInventory($this));
 		}
 
 		return true;
 	}
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		$direction = ($player !== null ? $player->getDirection() : 0) & 0x03;
-		$this->meta = ($this->meta & 0x0c) | $direction;
-		$this->getLevel()->setBlock($block, $this, true, true);
-	}
-
 	public function getDrops(Item $item){
-		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+		if($item->isPickaxe() >= 1){
 			return [
-				[$this->id, $this->meta & 0x0c, 1],
+				[$this->id, 0, 1], //TODO break level
 			];
 		}else{
 			return [];
