@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine;
 
 /**
@@ -30,7 +28,7 @@ abstract class Worker extends \Worker{
 
 	/** @var \ClassLoader */
 	protected $classLoader;
-
+	
 	protected $isKilled = false;
 
 	public function getClassLoader(){
@@ -48,6 +46,7 @@ abstract class Worker extends \Worker{
 		if(!interface_exists("ClassLoader", false)){
 			require(\pocketmine\PATH . "src/spl/ClassLoader.php");
 			require(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
+			require(\pocketmine\PATH . "src/pocketmine/CompatibleClassLoader.php");
 		}
 		if($this->classLoader !== null){
 			$this->classLoader->register(true);
@@ -74,15 +73,11 @@ abstract class Worker extends \Worker{
 		$this->isKilled = true;
 
 		$this->notify();
-
+		
 		if($this->isRunning()){
 			$this->shutdown();
 			$this->notify();
 			$this->unstack();
-		}elseif(!$this->isJoined()){
-			if(!$this->isTerminated()){
-				$this->join();
-			}
 		}
 
 		ThreadManager::getInstance()->remove($this);

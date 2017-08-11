@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,43 +15,17 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- *
+ * 
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\utils;
 
+
 /**
- * XorShift128Engine Random Number Noise, used for fast seeded values
- * Most of the code in this class was adapted from the XorShift128Engine in the php-random library.
+ * Unsecure Random Number Noise, used for fast seeded values
  */
 class Random{
-	const X = 123456789;
-	const Y = 362436069;
-	const Z = 521288629;
-	const W = 88675123;
-
-	/**
-	 * @var int
-	 */
-	private $x;
-
-	/**
-	 * @var int
-	 */
-	private $y;
-
-	/**
-	 * @var int
-	 */
-	private $z;
-
-	/**
-	 * @var int
-	 */
-	private $w;
 
 	protected $seed;
 
@@ -59,7 +33,7 @@ class Random{
 	 * @param int $seed Integer to be used as seed.
 	 */
 	public function __construct($seed = -1){
-		if($seed === -1){
+		if($seed == -1){
 			$seed = time();
 		}
 
@@ -70,15 +44,7 @@ class Random{
 	 * @param int $seed Integer to be used as seed.
 	 */
 	public function setSeed($seed){
-		$this->seed = $seed;
-		$this->x = self::X ^ $seed;
-		$this->y = self::Y ^ ($seed << 17) | (($seed >> 15) & 0x7fffffff) & 0xffffffff;
-		$this->z = self::Z ^ ($seed << 31) | (($seed >> 1) & 0x7fffffff) & 0xffffffff;
-		$this->w = self::W ^ ($seed << 18) | (($seed >> 14) & 0x7fffffff) & 0xffffffff;
-	}
-
-	public function getSeed(){
-		return $this->seed;
+		$this->seed = crc32(pack("N", $seed));
 	}
 
 	/**
@@ -96,15 +62,14 @@ class Random{
 	 * @return int
 	 */
 	public function nextSignedInt(){
-		$t = ($this->x ^ ($this->x << 11)) & 0xffffffff;
+		$t = crc32(pack("N", $this->seed));
+		$this->seed ^= $t;
 
-		$this->x = $this->y;
-		$this->y = $this->z;
-		$this->z = $this->w;
-		$this->w = ($this->w ^ (($this->w >> 19) & 0x7fffffff)
-		                     ^ ($t ^ (($t >> 8) & 0x7fffffff))) & 0xffffffff;
-
-		return $this->w;
+		if(PHP_INT_SIZE === 8){
+			return $t << 32 >> 32;
+		}else{
+			return $t;
+		}
 	}
 
 	/**

@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,32 +15,35 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- *
+ * 
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\entity;
 
+
 use pocketmine\block\Block;
+use pocketmine\block\Flowable;
+use pocketmine\block\Liquid;
 use pocketmine\event\entity\EntityBlockChangeEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\item\Item as ItemItem;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\IntTag;
-use pocketmine\network\mcpe\protocol\AddEntityPacket;
+use pocketmine\network\Network;
+use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Player;
 
 class FallingSand extends Entity{
 	const NETWORK_ID = 66;
 
+	const DATA_BLOCK_INFO = 20;
+
 	public $width = 0.98;
 	public $length = 0.98;
 	public $height = 0.98;
-
-	protected $baseOffset = 0.49;
 
 	protected $gravity = 0.04;
 	protected $drag = 0.02;
@@ -67,7 +70,7 @@ class FallingSand extends Entity{
 			return;
 		}
 
-		$this->setDataProperty(self::DATA_VARIANT, self::DATA_TYPE_INT, $this->getBlock() | ($this->getDamage() << 8));
+		$this->setDataProperty(self::DATA_BLOCK_INFO, self::DATA_TYPE_INT, $this->getBlock() | ($this->getDamage() << 8));
 	}
 
 	public function canCollideWith(Entity $entity){
@@ -75,9 +78,7 @@ class FallingSand extends Entity{
 	}
 
 	public function attack($damage, EntityDamageEvent $source){
-		if($source->getCause() === EntityDamageEvent::CAUSE_VOID){
-			parent::attack($damage, $source);
-		}
+
 	}
 
 	public function onUpdate($currentTick){
@@ -86,18 +87,24 @@ class FallingSand extends Entity{
 			return false;
 		}
 
-		$this->timings->startTiming();
+		//$this->timings->startTiming();
 
-		$tickDiff = $currentTick - $this->lastUpdate;
-		if($tickDiff <= 0 and !$this->justCreated){
-			return true;
-		}
-
+		$tickDiff = max(1, $currentTick - $this->lastUpdate);
 		$this->lastUpdate = $currentTick;
 
 		$hasUpdate = $this->entityBaseTick($tickDiff);
 
-		if($this->isAlive()){
+		if(!$this->dead){
+			if($this->ticksLived === 1){
+				$block = $this->level->getBlock($pos = (new Vector3($this->x, $this->y, $this->z))->floor());
+				if($block->getId() != $this->blockId){
+					$this->kill();
+					return true;
+				}
+				$this->level->setBlock($pos, Block::get(0), true);
+
+			}
+
 			$this->motionY -= $this->gravity;
 
 			$this->move($this->motionX, $this->motionY, $this->motionZ);
@@ -107,14 +114,19 @@ class FallingSand extends Entity{
 			$this->motionX *= $friction;
 			$this->motionY *= 1 - $this->drag;
 			$this->motionZ *= $friction;
-
-			$pos = (new Vector3($this->x - 0.5, $this->y, $this->z - 0.5))->floor();
-
+			if($this->y < 1) {
+				$this->kill();
+			}
+			$pos = (new Vector3($this->x, $this->y - 1, $this->z))->floor();
+			$bottomBlock = $this->level->getBlock($pos);
+			if($bottomBlock->getId() > 0 && !($bottomBlock instanceof Liquid)){
+				$this->onGround = true;
+			}
 			if($this->onGround){
 				$this->kill();
+				$pos = (new Vector3($this->x, $this->y, $this->z))->floor();
 				$block = $this->level->getBlock($pos);
-				if($block->getId() > 0 and $block->isTransparent() and !$block->canBeReplaced()){
-					//FIXME: anvils are supposed to destroy torches
+				if($block->getId() > 0 and !$block->isSolid() and !($block instanceof Liquid)){
 					$this->getLevel()->dropItem($this, ItemItem::get($this->getBlock(), $this->getDamage(), 1));
 				}else{
 					$this->server->getPluginManager()->callEvent($ev = new EntityBlockChangeEvent($this, $block, Block::get($this->getBlock(), $this->getDamage())));
@@ -128,7 +140,7 @@ class FallingSand extends Entity{
 			$this->updateMovement();
 		}
 
-		return $hasUpdate or !$this->onGround or abs($this->motionX) > 0.00001 or abs($this->motionY) > 0.00001 or abs($this->motionZ) > 0.00001;
+		return $hasUpdate or !$this->onGround or $this->motionX != 0 or $this->motionY != 0 or $this->motionZ != 0;
 	}
 
 	public function getBlock(){
@@ -147,7 +159,7 @@ class FallingSand extends Entity{
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();
 		$pk->type = FallingSand::NETWORK_ID;
-		$pk->entityRuntimeId = $this->getId();
+		$pk->eid = $this->getId();
 		$pk->x = $this->x;
 		$pk->y = $this->y;
 		$pk->z = $this->z;
@@ -156,7 +168,7 @@ class FallingSand extends Entity{
 		$pk->speedZ = $this->motionZ;
 		$pk->yaw = $this->yaw;
 		$pk->pitch = $this->pitch;
-		$pk->metadata = $this->dataProperties;
+//		$pk->metadata = $this->dataProperties;
 		$player->dataPacket($pk);
 
 		parent::spawnTo($player);

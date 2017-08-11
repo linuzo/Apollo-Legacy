@@ -22,105 +22,75 @@
 namespace raklib\server;
 
 class UDPServerSocket{
-	/** @var \Logger */
-	protected $logger;
-	protected $socket;
-	protected $sockets;
+    /** @var \Logger */
+    protected $logger;
+    protected $socket;
 
-	public function __construct(\ThreadedLogger $logger, $port = 19132, $interface = "0.0.0.0"){
-		$interfaces = explode(",", $interface);
-		foreach($interfaces as $socket_id => $inet_addr){
-			$inet_addr = trim($inet_addr);
-			if($inet_addr != ""){
-				$this->sockets[$socket_id] = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-				//socket_set_option($this->sockets[$socket_id], SOL_SOCKET, SO_BROADCAST, 1); //Allow sending broadcast messages
-				if(@socket_bind($this->sockets[$socket_id], $inet_addr, $port) === true){
-					socket_set_option($this->sockets[$socket_id], SOL_SOCKET, SO_REUSEADDR, 0);
-					$this->setSendBuffer(1024 * 1024 * 8, $socket_id)->setRecvBuffer(1024 * 1024 * 8, $socket_id);
-				}else{
-					$logger->critical("**** FAILED TO BIND TO " . $inet_addr . ":" . $port . "!");
-					$logger->critical("Perhaps a server is already running on that port?");
-					exit(1);
-				}
-				socket_set_nonblock($this->sockets[$socket_id]);
-			}
-		}
-		$this->socket = $this->sockets[0];
-	}
+    public function __construct(\ThreadedLogger $logger, $port = 19132, $interface = "0.0.0.0"){
+        $this->socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+        //socket_set_option($this->socket, SOL_SOCKET, SO_BROADCAST, 1); //Allow sending broadcast messages
+        if(@socket_bind($this->socket, $interface, $port) === true){
+            socket_set_option($this->socket, SOL_SOCKET, SO_REUSEADDR, 0);
+            $this->setSendBuffer(1024 * 1024 * 8)->setRecvBuffer(1024 * 1024 * 8);
+        }else{
+            $logger->critical("**** FAILED TO BIND TO " . $interface . ":" . $port . "!", true, true, 0);
+            $logger->critical("Perhaps a server is already running on that port?", true, true, 0);
+            exit(1);
+        }
+        socket_set_nonblock($this->socket);
+    }
 
-	public function getSocket($id = 0){
-		return $this->sockets[$id];
-	}
+    public function getSocket(){
+        return $this->socket;
+    }
 
-	public function close($id = 0){
-		if($id = -1){
-			foreach($this->sockets as $socket_id => $socket){
-				socket_close($socket);
-			}
-		}else{
-			socket_close($this->sockets[$id]);
-		}
-	}
+    public function close(){
+        socket_close($this->socket);
+    }
 
-	/**
-	 * @param string &$buffer
-	 * @param string &$source
-	 * @param int    &$port
-	 *
-	 * @return int
-	 */
-	public function readPacket(&$buffer, &$source, &$port, $id = 0){
-		return socket_recvfrom($this->sockets[$id], $buffer, 65535, 0, $source, $port);
-	}
+    /**
+     * @param string &$buffer
+     * @param string &$source
+     * @param int    &$port
+     *
+     * @return int
+     */
+    public function readPacket(&$buffer, &$source, &$port){
+        return socket_recvfrom($this->socket, $buffer, 65535, 0, $source, $port);
+    }
 
-	public function readPackets(){
-		$packets = [];
-		foreach($this->sockets as $socket_id => $socket){
-			if($len = socket_recvfrom($socket, $buffer, 65535, 0, $source, $port)){
-				if($buffer != null){
-					$client_id = "{$source}:{$port}";
-					$this->interface_map[$client_id] = $socket_id;
-					$packets[$client_id] = [$source, $port, $len, $buffer];
-				}
-			}
-		}
-		return $packets;
-	}
+    /**
+     * @param string $buffer
+     * @param string $dest
+     * @param int    $port
+     *
+     * @return int
+     */
+    public function writePacket($buffer, $dest, $port){
+        return socket_sendto($this->socket, $buffer, strlen($buffer), 0, $dest, $port);
+    }
 
-	/**
-	 * @param string $buffer
-	 * @param string $dest
-	 * @param int    $port
-	 *
-	 * @return int
-	 */
-	public function writePacket($buffer, $dest, $port){
-		$client_id = "{$dest}:{$port}";
-		$socket_id = $this->interface_map[$client_id] ?? 0;
-		return socket_sendto($this->sockets[$socket_id], $buffer, strlen($buffer), 0, $dest, $port);
-	}
+    /**
+     * @param int $size
+     *
+     * @return $this
+     */
+    public function setSendBuffer($size){
+        @socket_set_option($this->socket, SOL_SOCKET, SO_SNDBUF, $size);
 
-	/**
-	 * @param int $size
-	 *
-	 * @return $this
-	 */
-	public function setSendBuffer($size, $id = 0){
-		@socket_set_option($this->sockets[$id], SOL_SOCKET, SO_SNDBUF, $size);
+        return $this;
+    }
 
-		return $this;
-	}
+    /**
+     * @param int $size
+     *
+     * @return $this
+     */
+    public function setRecvBuffer($size){
+        @socket_set_option($this->socket, SOL_SOCKET, SO_RCVBUF, $size);
 
-	/**
-	 * @param int $size
-	 *
-	 * @return $this
-	 */
-	public function setRecvBuffer($size, $id = 0){
-		@socket_set_option($this->sockets[$id], SOL_SOCKET, SO_RCVBUF, $size);
-
-		return $this;
-	}
+        return $this;
+    }
 
 }
 

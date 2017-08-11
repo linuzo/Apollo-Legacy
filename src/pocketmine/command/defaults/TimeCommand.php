@@ -19,16 +19,11 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\command\utils\InvalidCommandSyntaxException;
-use pocketmine\event\TranslationContainer;
 use pocketmine\level\Level;
-use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
 class TimeCommand extends VanillaCommand{
@@ -36,20 +31,22 @@ class TimeCommand extends VanillaCommand{
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"%pocketmine.command.time.description",
-			"%pocketmine.command.time.usage"
+			"Changes the time on each world",
+			"/time set <value>\n/time add <value>\n/time start|stop"
 		);
 		$this->setPermission("pocketmine.command.time.add;pocketmine.command.time.set;pocketmine.command.time.start;pocketmine.command.time.stop");
 	}
 
-	public function execute(CommandSender $sender, string $commandLabel, array $args){
+	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(count($args) < 1){
-			throw new InvalidCommandSyntaxException();
+			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
+
+			return false;
 		}
 
 		if($args[0] === "start"){
 			if(!$sender->hasPermission("pocketmine.command.time.start")){
-				$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.permission"));
+				$sender->sendMessage(TextFormat::RED . "You don't have permission to restart the time");
 
 				return true;
 			}
@@ -62,7 +59,7 @@ class TimeCommand extends VanillaCommand{
 			return true;
 		}elseif($args[0] === "stop"){
 			if(!$sender->hasPermission("pocketmine.command.time.stop")){
-				$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.permission"));
+				$sender->sendMessage(TextFormat::RED . "You don't have permission to stop the time");
 
 				return true;
 			}
@@ -73,29 +70,18 @@ class TimeCommand extends VanillaCommand{
 			}
 			Command::broadcastCommandMessage($sender, "Stopped the time");
 			return true;
-		}elseif($args[0] === "query"){
-			if(!$sender->hasPermission("pocketmine.command.time.query")){
-				$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.permission"));
-
-				return true;
-			}
-			if($sender instanceof Player){
-				$level = $sender->getLevel();
-			}else{
-				$level = $sender->getServer()->getDefaultLevel();
-			}
-			$sender->sendMessage(new TranslationContainer("commands.time.query", [$level->getTime()]));
-			return true;
 		}
 
 
 		if(count($args) < 2){
-			throw new InvalidCommandSyntaxException();
+			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
+
+			return false;
 		}
 
 		if($args[0] === "set"){
 			if(!$sender->hasPermission("pocketmine.command.time.set")){
-				$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.permission"));
+				$sender->sendMessage(TextFormat::RED . "You don't have permission to set the time");
 
 				return true;
 			}
@@ -113,10 +99,10 @@ class TimeCommand extends VanillaCommand{
 				$level->setTime($value);
 				$level->checkTime();
 			}
-			Command::broadcastCommandMessage($sender, new TranslationContainer("commands.time.set", [$value]));
+			Command::broadcastCommandMessage($sender, "Set time to " . $value);
 		}elseif($args[0] === "add"){
 			if(!$sender->hasPermission("pocketmine.command.time.add")){
-				$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.permission"));
+				$sender->sendMessage(TextFormat::RED . "You don't have permission to add the time");
 
 				return true;
 			}
@@ -127,9 +113,9 @@ class TimeCommand extends VanillaCommand{
 				$level->setTime($level->getTime() + $value);
 				$level->checkTime();
 			}
-			Command::broadcastCommandMessage($sender, new TranslationContainer("commands.time.added", [$value]));
+			Command::broadcastCommandMessage($sender, "Added " . $value . " to time");
 		}else{
-			throw new InvalidCommandSyntaxException();
+			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
 		}
 
 		return true;

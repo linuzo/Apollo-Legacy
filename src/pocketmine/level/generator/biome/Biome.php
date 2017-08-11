@@ -19,12 +19,11 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\level\generator\biome;
 
 use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
+use pocketmine\level\generator\normal\biome\SwampBiome;
 use pocketmine\level\generator\normal\biome\DesertBiome;
 use pocketmine\level\generator\normal\biome\ForestBiome;
 use pocketmine\level\generator\normal\biome\IcePlainsBiome;
@@ -33,7 +32,6 @@ use pocketmine\level\generator\normal\biome\OceanBiome;
 use pocketmine\level\generator\normal\biome\PlainBiome;
 use pocketmine\level\generator\normal\biome\RiverBiome;
 use pocketmine\level\generator\normal\biome\SmallMountainsBiome;
-use pocketmine\level\generator\normal\biome\SwampBiome;
 use pocketmine\level\generator\normal\biome\TaigaBiome;
 use pocketmine\level\generator\populator\Populator;
 use pocketmine\utils\Random;
@@ -65,30 +63,24 @@ abstract class Biome{
 	/** @var Biome[] */
 	private static $biomes = [];
 
-	/** @var int */
 	private $id;
-	/** @var bool */
 	private $registered = false;
-
 	/** @var Populator[] */
 	private $populators = [];
 
-	/** @var int */
 	private $minElevation;
-	/** @var int */
 	private $maxElevation;
 
-	/** @var Block[] */
 	private $groundCover = [];
 
-	/** @var float */
 	protected $rainfall = 0.5;
-	/** @var float */
 	protected $temperature = 0.5;
+	protected $grassColor = 0;
 
-	protected static function register(int $id, Biome $biome){
-		self::$biomes[$id] = $biome;
-		$biome->setId($id);
+	protected static function register($id, Biome $biome){
+		self::$biomes[(int) $id] = $biome;
+		$biome->setId((int) $id);
+		$biome->grassColor = self::generateBiomeColor($biome->getTemperature(), $biome->getRainfall());
 	}
 
 	public static function init(){
@@ -110,12 +102,12 @@ abstract class Biome{
 	}
 
 	/**
-	 * @param int $id
+	 * @param $id
 	 *
 	 * @return Biome
 	 */
-	public static function getBiome(int $id) : Biome{
-		return self::$biomes[$id] ?? self::$biomes[self::OCEAN];
+	public static function getBiome($id){
+		return isset(self::$biomes[$id]) ? self::$biomes[$id] : self::$biomes[self::OCEAN];
 	}
 
 	public function clearPopulators(){
@@ -126,47 +118,38 @@ abstract class Biome{
 		$this->populators[] = $populator;
 	}
 
-	/**
-	 * @param ChunkManager $level
-	 * @param int          $chunkX
-	 * @param int          $chunkZ
-	 * @param Random       $random
-	 */
-	public function populateChunk(ChunkManager $level, int $chunkX, int $chunkZ, Random $random){
+	public function populateChunk(ChunkManager $level, $chunkX, $chunkZ, Random $random){
 		foreach($this->populators as $populator){
 			$populator->populate($level, $chunkX, $chunkZ, $random);
 		}
 	}
 
-	/**
-	 * @return Populator[]
-	 */
-	public function getPopulators() : array{
+	public function getPopulators(){
 		return $this->populators;
 	}
 
-	public function setId(int $id){
+	public function setId($id){
 		if(!$this->registered){
 			$this->registered = true;
 			$this->id = $id;
 		}
 	}
 
-	public function getId() : int{
+	public function getId(){
 		return $this->id;
 	}
 
-	abstract public function getName() : string;
+	public abstract function getName();
 
-	public function getMinElevation() : int{
+	public function getMinElevation(){
 		return $this->minElevation;
 	}
 
-	public function getMaxElevation() : int{
+	public function getMaxElevation(){
 		return $this->maxElevation;
 	}
 
-	public function setElevation(int $min, int $max){
+	public function setElevation($min, $max){
 		$this->minElevation = $min;
 		$this->maxElevation = $max;
 	}
@@ -174,7 +157,7 @@ abstract class Biome{
 	/**
 	 * @return Block[]
 	 */
-	public function getGroundCover() : array{
+	public function getGroundCover(){
 		return $this->groundCover;
 	}
 
@@ -185,11 +168,37 @@ abstract class Biome{
 		$this->groundCover = $covers;
 	}
 
-	public function getTemperature() : float{
+	public function getTemperature(){
 		return $this->temperature;
 	}
 
-	public function getRainfall() : float{
+	public function getRainfall(){
 		return $this->rainfall;
 	}
+
+	private static function generateBiomeColor($temperature, $rainfall){
+		$x = (1 - $temperature) * 255;
+		$z = (1 - $rainfall * $temperature) * 255;
+		$c = self::interpolateColor(256, $x, $z, [0x47, 0xd0, 0x33], [0x6c, 0xb4, 0x93], [0xbf, 0xb6, 0x55], [0x80, 0xb4, 0x97]);
+		return ((int) ($c[0] << 16)) | (int) (($c[1] << 8)) | (int) ($c[2]);
+	}
+
+
+	private static function interpolateColor($size, $x, $z, $c1, $c2, $c3, $c4){
+		$l1 = self::lerpColor($c1, $c2, $x / $size);
+		$l2 = self::lerpColor($c3, $c4, $x / $size);
+
+		return self::lerpColor($l1, $l2, $z / $size);
+	}
+
+	private static function lerpColor($a, $b, $s){
+		$invs = 1 - $s;
+		return [$a[0] * $invs + $b[0] * $s, $a[1] * $invs + $b[1] * $s, $a[2] * $invs + $b[2] * $s];
+	}
+
+
+	/**
+	 * @return int (Red|Green|Blue)
+	 */
+	abstract public function getColor();
 }

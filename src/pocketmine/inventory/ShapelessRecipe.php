@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
@@ -89,7 +87,7 @@ class ShapelessRecipe implements Recipe{
 			if($item->getCount() <= 0){
 				break;
 			}
-			if($ingredient->equals($item, !$item->hasAnyDamageValue(), $item->hasCompoundTag())){
+			if($ingredient->equals($item, $item->getDamage() === null ? false : true, $item->getCompound() === null ? false : true)){
 				unset($this->ingredients[$index]);
 				$item->setCount($item->getCount() - 1);
 			}

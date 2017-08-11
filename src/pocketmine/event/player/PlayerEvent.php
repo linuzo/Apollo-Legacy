@@ -14,12 +14,10 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 /**
  * Player-only related events
@@ -27,10 +25,9 @@ declare(strict_types=1);
 namespace pocketmine\event\player;
 
 use pocketmine\event\Event;
-use pocketmine\Player;
 
 abstract class PlayerEvent extends Event{
-	/** @var Player */
+	/** @var \pocketmine\Player */
 	protected $player;
 
 	public function getPlayer(){

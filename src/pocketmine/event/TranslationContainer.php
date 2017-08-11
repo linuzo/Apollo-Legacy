@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\event;
 
 class TranslationContainer extends TextContainer{
@@ -48,7 +46,7 @@ class TranslationContainer extends TextContainer{
 	/**
 	 * @param int $i
 	 *
-	 * @return string|null
+	 * @return string
 	 */
 	public function getParameter($i){
 		return isset($this->params[$i]) ? $this->params[$i] : null;

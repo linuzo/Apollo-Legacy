@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine;
 
 /**
@@ -47,6 +45,7 @@ abstract class Thread extends \Thread{
 		if(!interface_exists("ClassLoader", false)){
 			require(\pocketmine\PATH . "src/spl/ClassLoader.php");
 			require(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
+			require(\pocketmine\PATH . "src/pocketmine/CompatibleClassLoader.php");
 		}
 		if($this->classLoader !== null){
 			$this->classLoader->register(true);
@@ -73,13 +72,11 @@ abstract class Thread extends \Thread{
 		$this->isKilled = true;
 
 		$this->notify();
-
-		if(!$this->isJoined()){
-			if(!$this->isTerminated()){
-				$this->join();
-			}
+		
+		if(!$this->isJoined() and !$this->isTerminated()){
+			$this->join();
 		}
-
+		
 		ThreadManager::getInstance()->remove($this);
 	}
 

@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -14,17 +14,14 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 namespace pocketmine\event\server;
 
-use pocketmine\Player;
-use pocketmine\plugin\Plugin;
+use pocketmine\event;
 use pocketmine\Server;
 use pocketmine\utils\Binary;
 
@@ -36,9 +33,9 @@ class QueryRegenerateEvent extends ServerEvent{
 	private $timeout;
 	private $serverName;
 	private $listPlugins;
-	/** @var Plugin[] */
+	/** @var \pocketmine\plugin\Plugin[] */
 	private $plugins;
-	/** @var Player[] */
+	/** @var \pocketmine\Player[] */
 	private $players;
 
 	private $gametype;
@@ -56,7 +53,7 @@ class QueryRegenerateEvent extends ServerEvent{
 
 	public function __construct(Server $server, $timeout = 5){
 		$this->timeout = $timeout;
-		$this->serverName = $server->getMotd();
+		$this->serverName = $server->getServerName();
 		$this->listPlugins = $server->getProperty("settings.query-plugins", true);
 		$this->plugins = $server->getPluginManager()->getPlugins();
 		$this->players = [];
@@ -108,28 +105,28 @@ class QueryRegenerateEvent extends ServerEvent{
 	}
 
 	/**
-	 * @return Plugin[]
+	 * @return \pocketmine\plugin\Plugin[]
 	 */
 	public function getPlugins(){
 		return $this->plugins;
 	}
 
 	/**
-	 * @param Plugin[] $plugins
+	 * @param \pocketmine\plugin\Plugin[] $plugins
 	 */
 	public function setPlugins(array $plugins){
 		$this->plugins = $plugins;
 	}
 
 	/**
-	 * @return Player[]
+	 * @return \pocketmine\Player[]
 	 */
 	public function getPlayerList(){
 		return $this->players;
 	}
 
 	/**
-	 * @param Player[] $players
+	 * @param \pocketmine\Player[] $players
 	 */
 	public function setPlayerList(array $players){
 		$this->players = $players;

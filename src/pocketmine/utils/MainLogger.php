@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\utils;
 
 use LogLevel;
@@ -47,9 +45,6 @@ class MainLogger extends \AttachableThreadedLogger{
 			throw new \RuntimeException("MainLogger has been already created");
 		}
 		static::$logger = $this;
-		touch($logFile);
-		$this->logFile = $logFile;
-		$this->logDebug = (bool) $logDebug;
 		$this->logStream = new \Threaded;
 		$this->start();
 	}
@@ -135,11 +130,13 @@ class MainLogger extends \AttachableThreadedLogger{
 		}else{
 			$type = ($errno === E_ERROR or $errno === E_USER_ERROR) ? LogLevel::ERROR : (($errno === E_USER_WARNING or $errno === E_WARNING) ? LogLevel::WARNING : LogLevel::NOTICE);
 		}
-		$errno = $errorConversion[$errno] ?? $errno;
-		$errstr = preg_replace('/\s+/', ' ', trim($errstr));
+		$errno = isset($errorConversion[$errno]) ? $errorConversion[$errno] : $errno;
+		if(($pos = strpos($errstr, "\n")) !== false){
+			$errstr = substr($errstr, 0, $pos);
+		}
 		$errfile = \pocketmine\cleanPath($errfile);
 		$this->log($type, get_class($e) . ": \"$errstr\" ($errno) in \"$errfile\" at line $errline");
-		foreach(\pocketmine\getTrace(0, $trace) as $i => $line){
+		foreach(@\pocketmine\getTrace(1, $trace) as $i => $line){
 			$this->debug($line);
 		}
 	}
@@ -180,7 +177,16 @@ class MainLogger extends \AttachableThreadedLogger{
 	protected function send($message, $level, $prefix, $color){
 		$now = time();
 
-		$message = TextFormat::toANSI(TextFormat::BOLD . TextFormat::GRAY . "[" . TextFormat::GREEN . "SpigotPE" . TextFormat::GRAY . "] " . TextFormat::RESET . TextFormat::AQUA . "[" . date("H:i:s", $now) . "] " . TextFormat::RESET . $color . "[" . $prefix . "]:" . " " . $message . TextFormat::RESET);
+		$thread = \Thread::getCurrentThread();
+		if($thread === null){
+			$threadName = "Server thread";
+		}elseif($thread instanceof Thread or $thread instanceof Worker){
+			$threadName = $thread->getThreadName() . " thread";
+		}else{
+			$threadName = (new \ReflectionClass($thread))->getShortName() . " thread";
+		}
+
+		$message = TextFormat::toANSI(TextFormat::AQUA . "[" . date("H:i:s", $now) . "] ". TextFormat::RESET . $color ."[" . $threadName . "/" . $prefix . "]:" . " " . $message . TextFormat::RESET);
 		$cleanMessage = TextFormat::clean($message);
 
 		if(!Terminal::hasFormattingCodes()){
@@ -203,29 +209,5 @@ class MainLogger extends \AttachableThreadedLogger{
 
 	public function run(){
 		$this->shutdown = false;
-		$this->logResource = fopen($this->logFile, "a+b");
-		if(!is_resource($this->logResource)){
-			throw new \RuntimeException("Couldn't open log file");
-		}
-
-		while($this->shutdown === false){
-			$this->synchronized(function(){
-				while($this->logStream->count() > 0){
-					$chunk = $this->logStream->shift();
-					fwrite($this->logResource, $chunk);
-				}
-
-				$this->wait(25000);
-			});
-		}
-
-		if($this->logStream->count() > 0){
-			while($this->logStream->count() > 0){
-				$chunk = $this->logStream->shift();
-				fwrite($this->logResource, $chunk);
-			}
-		}
-
-		fclose($this->logResource);
 	}
 }

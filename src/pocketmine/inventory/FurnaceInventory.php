@@ -19,9 +19,8 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\inventory;
+
 
 use pocketmine\item\Item;
 use pocketmine\tile\Furnace;
@@ -86,8 +85,8 @@ class FurnaceInventory extends ContainerInventory{
 		return $this->setItem(0, $item);
 	}
 
-	public function onSlotChange($index, $before){
-		parent::onSlotChange($index, $before);
+	public function onSlotChange($index, $before, $sendPacket = true){
+		parent::onSlotChange($index, $before, $sendPacket);
 
 		$this->getHolder()->scheduleUpdate();
 	}

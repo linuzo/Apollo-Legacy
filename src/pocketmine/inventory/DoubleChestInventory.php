@@ -19,14 +19,15 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
 use pocketmine\level\Level;
-use pocketmine\network\mcpe\protocol\BlockEventPacket;
+use pocketmine\network\Network;
+use pocketmine\network\protocol\TileEventPacket;
 use pocketmine\Player;
+
+use pocketmine\Server;
 use pocketmine\tile\Chest;
 
 class DoubleChestInventory extends ChestInventory implements InventoryHolder{
@@ -39,7 +40,7 @@ class DoubleChestInventory extends ChestInventory implements InventoryHolder{
 		$this->left = $left->getRealInventory();
 		$this->right = $right->getRealInventory();
 		$items = array_merge($this->left->getContents(), $this->right->getContents());
-		BaseInventory::__construct($this, InventoryType::get(InventoryType::DOUBLE_CHEST), $items);
+		BaseInventory::__construct($left, InventoryType::get(InventoryType::DOUBLE_CHEST), $items);
 	}
 
 	public function getInventory(){
@@ -82,7 +83,7 @@ class DoubleChestInventory extends ChestInventory implements InventoryHolder{
 
 		for($i = 0; $i < $this->size; ++$i){
 			if(!isset($items[$i])){
-				if($i < $this->left->size){
+				if ($i < $this->left->size){
 					if(isset($this->left->slots[$i])){
 						$this->clear($i);
 					}
@@ -99,28 +100,28 @@ class DoubleChestInventory extends ChestInventory implements InventoryHolder{
 		parent::onOpen($who);
 
 		if(count($this->getViewers()) === 1){
-			$pk = new BlockEventPacket();
+			$pk = new TileEventPacket();
 			$pk->x = $this->right->getHolder()->getX();
 			$pk->y = $this->right->getHolder()->getY();
 			$pk->z = $this->right->getHolder()->getZ();
 			$pk->case1 = 1;
 			$pk->case2 = 2;
 			if(($level = $this->right->getHolder()->getLevel()) instanceof Level){
-				$level->addChunkPacket($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4, $pk);
+				Server::broadcastPacket($level->getUsingChunk($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4), $pk);
 			}
 		}
 	}
 
 	public function onClose(Player $who){
 		if(count($this->getViewers()) === 1){
-			$pk = new BlockEventPacket();
+			$pk = new TileEventPacket();
 			$pk->x = $this->right->getHolder()->getX();
 			$pk->y = $this->right->getHolder()->getY();
 			$pk->z = $this->right->getHolder()->getZ();
 			$pk->case1 = 1;
 			$pk->case2 = 0;
 			if(($level = $this->right->getHolder()->getLevel()) instanceof Level){
-				$level->addChunkPacket($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4, $pk);
+				Server::broadcastPacket($level->getUsingChunk($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4), $pk);
 			}
 		}
 		parent::onClose($who);

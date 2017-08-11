@@ -19,13 +19,11 @@
  *
 */
 
-declare(strict_types=1);
+/*IMPORTANT NOTE: this command is owerridden inside lbcore, please do not update code here*/
 
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
-use pocketmine\command\utils\InvalidCommandSyntaxException;
-use pocketmine\event\TranslationContainer;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
@@ -34,37 +32,34 @@ class TellCommand extends VanillaCommand{
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"%pocketmine.command.tell.description",
-			"%commands.message.usage",
+			"Sends a private message to the given player",
+			"/tell <player> <message>",
 			["w", "msg"]
 		);
 		$this->setPermission("pocketmine.command.tell");
 	}
 
-	public function execute(CommandSender $sender, string $commandLabel, array $args){
+	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) < 2){
-			throw new InvalidCommandSyntaxException();
+			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
+
+			return false;
 		}
 
 		$name = strtolower(array_shift($args));
 
 		$player = $sender->getServer()->getPlayer($name);
 
-		if($player === $sender){
-			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.message.sameTarget"));
-			return true;
-		}
-
 		if($player instanceof Player){
-			$sender->sendMessage("[{$sender->getName()} -> {$player->getDisplayName()}] " . implode(" ", $args));
-			$name = $sender instanceof Player ? $sender->getDisplayName() : $sender->getName();
-			$player->sendMessage("[$name -> {$player->getName()}] " . implode(" ", $args));
+			$player->setLastMessageFrom($sender->getName());
+			$sender->sendMessage("[me -> " . $player->getName() . "] " . implode(" ", $args));
+			$player->sendMessage("[" . $sender->getName() . " -> me] " . implode(" ", $args));
 		}else{
-			$sender->sendMessage(new TranslationContainer("commands.generic.player.notFound"));
+			$sender->sendMessage("There's no player by that name online.");
 		}
 
 		return true;

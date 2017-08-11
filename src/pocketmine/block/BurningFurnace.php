@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,24 +15,23 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- *
+ * 
  *
 */
-
-declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
 use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\IntTag;
-use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\Player;
-use pocketmine\tile\Furnace as TileFurnace;
+use pocketmine\tile\Furnace;
 use pocketmine\tile\Tile;
+use pocketmine\network\protocol\UpdateBlockPacket;
 
 class BurningFurnace extends Solid{
 
@@ -71,8 +70,8 @@ class BurningFurnace extends Solid{
 		];
 		$this->meta = $faces[$player instanceof Player ? $player->getDirection() : 0];
 		$this->getLevel()->setBlock($block, $this, true, true);
-		$nbt = new CompoundTag("", [
-			new ListTag("Items", []),
+		$nbt = new Compound("", [
+			new Enum("Items", []),
 			new StringTag("id", Tile::FURNACE),
 			new IntTag("x", $this->x),
 			new IntTag("y", $this->y),
@@ -90,7 +89,7 @@ class BurningFurnace extends Solid{
 			}
 		}
 
-		Tile::createTile("Furnace", $this->getLevel(), $nbt);
+		Tile::createTile("Furnace", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), $nbt);
 
 		return true;
 	}
@@ -103,23 +102,37 @@ class BurningFurnace extends Solid{
 
 	public function onActivate(Item $item, Player $player = null){
 		if($player instanceof Player){
-			$furnace = $this->getLevel()->getTile($this);
-			if(!($furnace instanceof TileFurnace)){
-				$nbt = new CompoundTag("", [
-					new ListTag("Items", []),
+			$pk = new UpdateBlockPacket();
+			$pk->records[] = [$this->x, $this->z, $this->y, 0, 0, UpdateBlockPacket::FLAG_ALL];
+			$player->dataPacket($pk);
+			$pk = new UpdateBlockPacket();
+			$pk->records[] = [$this->x, $this->z, $this->y, $this->getId(), $this->getDamage(), UpdateBlockPacket::FLAG_ALL];
+			$player->dataPacket($pk);		
+			$t = $this->getLevel()->getTile($this);
+			$furnace = false;
+			if($t instanceof Furnace){
+				$furnace = $t;
+			}else{
+				$nbt = new Compound("", [
+					new Enum("Items", []),
 					new StringTag("id", Tile::FURNACE),
 					new IntTag("x", $this->x),
 					new IntTag("y", $this->y),
 					new IntTag("z", $this->z)
 				]);
 				$nbt->Items->setTagType(NBT::TAG_Compound);
-				$furnace = Tile::createTile("Furnace", $this->getLevel(), $nbt);
+				$furnace = Tile::createTile("Furnace", $this->getLevel()->getChunk($this->x >> 4, $this->z >> 4), $nbt);
 			}
 
-			if(isset($furnace->namedtag->Lock) and $furnace->namedtag->Lock instanceof StringTag){
-				if($furnace->namedtag->Lock->getValue() !== $item->getCustomName()){
+			if(isset($furnace->namedtag->Lock) and $furnace->namedtag->Lock instanceof String){
+				$furnaceName = $furnace->namedtag->Lock->getValue() ;
+				if (!empty($furnaceName) && $furnaceName !== $item->getCustomName()){
 					return true;
 				}
+			}
+
+			if($player->isCreative()){
+				return true;
 			}
 
 			$player->addWindow($furnace->getInventory());
@@ -130,7 +143,7 @@ class BurningFurnace extends Solid{
 
 	public function getDrops(Item $item){
 		$drops = [];
-		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+		if($item->isPickaxe() >= 1){
 			$drops[] = [Item::FURNACE, 0, 1];
 		}
 

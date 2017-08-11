@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,60 +15,41 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- *
+ * 
  *
 */
 
 namespace pocketmine\block;
 
+use pocketmine\item\Item;
+use pocketmine\Player;
 
-use pocketmine\entity\Entity;
-use pocketmine\math\AxisAlignedBB;
-
-class SlimeBlock extends Transparent { //Partial (does not block light, mob spawning possible)
+class SlimeBlock extends Solid{
 
 	protected $id = self::SLIME_BLOCK;
 
-	public function __construct() {	}
+	public function __construct(){
+		
+	}
 
-	public function getName() {
+	public function getHardness(){
+		return 0;
+	}
+
+	public function getName(){
 		return "Slime Block";
 	}
 
-	public function getHardness() {
-		return 0;
+	public function getDrops(Item $item){
+		return [
+			[Item::SLIME_BLOCK, 0, 1],
+		];
+	}
+	
+	public function onUpdate($type){
 	}
 
-	public function getResistance() {
-		return 0;
-	}
-
-	public function hasEntityCollision() {
-		return true;
-	}
-
-	public function isSolid(){
-		return false; //todo check
-	}
-
-	public function onEntityCollide(Entity $entity) {
-		if (!$entity->isSneaking()) {
-			$entity->resetFallDistance();
-			$entity->onGround = true;
-		} else parent::onEntityCollide($entity);
-	}
-
-	/**
-	 * @return AxisAlignedBB
-	 */
-	protected function recalculateBoundingBox() { //Temporary fix for fall damage
-		return new AxisAlignedBB(
-			$this->x,
-			$this->y,
-			$this->z,
-			$this->x + 1,
-			$this->y + 0.99,
-			$this->z + 1
-		);
+	public function onActivate(Item $item, Player $player = null){
+		return false;
 	}
 }

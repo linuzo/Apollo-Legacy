@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\utils;
 
 use pocketmine\block\Block;
@@ -179,15 +177,15 @@ class BlockIterator implements \Iterator{
 	}
 
 	private function getXFace(Vector3 $direction){
-		return ($direction->x > 0) ? Vector3::SIDE_EAST : Vector3::SIDE_WEST;
+		return (($direction->x) > 0) ? Vector3::SIDE_EAST : Vector3::SIDE_WEST;
 	}
 
 	private function getYFace(Vector3 $direction){
-		return ($direction->y > 0) ? Vector3::SIDE_UP : Vector3::SIDE_DOWN;
+		return (($direction->y) > 0) ? Vector3::SIDE_UP : Vector3::SIDE_DOWN;
 	}
 
 	private function getZFace(Vector3 $direction){
-		return ($direction->z > 0) ? Vector3::SIDE_SOUTH : Vector3::SIDE_NORTH;
+		return (($direction->z) > 0) ? Vector3::SIDE_SOUTH : Vector3::SIDE_NORTH;
 	}
 
 	private function getXLength(Vector3 $direction){
@@ -254,16 +252,12 @@ class BlockIterator implements \Iterator{
 	}
 
 	private function scan(){
-		if($this->currentBlock >= 0){
+		if ($this->currentBlock >= 0 || $this->end) {
 			return;
 		}
 
 		if($this->maxDistance !== 0 and $this->currentDistance > $this->maxDistanceInt){
 			$this->end = true;
-			return;
-		}
-
-		if($this->end){
 			return;
 		}
 

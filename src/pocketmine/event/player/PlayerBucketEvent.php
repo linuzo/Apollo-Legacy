@@ -14,12 +14,10 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 namespace pocketmine\event\player;
 
@@ -84,12 +82,5 @@ abstract class PlayerBucketEvent extends PlayerEvent implements Cancellable{
 	 */
 	public function getBlockClicked(){
 		return $this->blockClicked;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getBlockFace(){
-		return $this->blockFace;
 	}
 }
