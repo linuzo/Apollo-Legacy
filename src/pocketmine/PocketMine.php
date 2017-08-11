@@ -75,8 +75,8 @@ namespace pocketmine {
 	const VERSION = '1.0';
 	const API_VERSION = "1.12.0";
 	const CODENAME = "Rare-Diamond";
-	const MINECRAFT_VERSION = "v1.1.x and 1.2.x.x";
-	const MINECRAFT_VERSION_NETWORK = "v1.1.x and 1.2.x.x";
+	const MINECRAFT_VERSION = "v1.1.5";
+	const MINECRAFT_VERSION_NETWORK = "v1.1.5";
 
 	/*
 	 * Startup code. Do not look at it, it may harm you.
