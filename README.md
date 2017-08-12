@@ -8,7 +8,7 @@
 # Here is our twitter! new [Twitter](https://mobile.twitter.com/Spigot_PE)
 DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
 
-## if you want to donate us for our team and coming server Click here ->> [Donate]( https://www.patreon.com/bePatron?c=1072120&rid=1895525)
+## If you wanna Donate for the Software and Upcoming Server! Click here ->> [Donate]( https://www.patreon.com/bePatron?c=1072120&rid=1895525)
 
 ## Warning: all new alpha 3.0.0 alhpa X plugins will not work!!!
 
