@@ -19,19 +19,17 @@
  *
 */
 
-declare(strict_types=1);
-
 /**
  * Saves extra data on runtime for different items
  */
 namespace pocketmine\metadata;
 
 use pocketmine\plugin\Plugin;
-use pocketmine\plugin\PluginException;
+use pocketmine\utils\PluginException;
 
 abstract class MetadataStore{
 	/** @var \WeakMap[] */
-	private $metadataMap;
+	private $metadataMap = [];
 
 	/**
 	 * Adds a metadata value to an object.
@@ -50,8 +48,8 @@ abstract class MetadataStore{
 
 		$key = $this->disambiguate($subject, $metadataKey);
 		if(!isset($this->metadataMap[$key])){
-			//$entry = new \WeakMap();
-			$this->metadataMap[$key] = new \SplObjectStorage();//$entry;
+			$entry = new \WeakMap();
+			$this->metadataMap[$key] = $entry;
 		}else{
 			$entry = $this->metadataMap[$key];
 		}
@@ -138,5 +136,5 @@ abstract class MetadataStore{
 	 *
 	 * @throws \InvalidArgumentException
 	 */
-	abstract public function disambiguate(Metadatable $subject, $metadataKey);
+	public abstract function disambiguate(Metadatable $subject, $metadataKey);
 }
