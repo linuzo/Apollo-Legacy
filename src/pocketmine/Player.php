@@ -3663,7 +3663,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
         return $this->xuid;
     }
 	
-	public function setTitle($text, $subtext = '', $time = 36000) {
+	public function addTitle($text, $subtext = '', $time = 2) {
 		if ($this->protocol >= Info::PROTOCOL_105) {		
 			$pk = new SetTitlePacket();
 			$pk->type = SetTitlePacket::TITLE_TYPE_TIMES;
