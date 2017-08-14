@@ -1789,6 +1789,13 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false);
 				//Timings::$timerMobEqipmentPacket->stopTiming();
 				break;
+			case 'LEVEL_SOUND_EVENT_PACKET':
+				$viewers = $this->getViewers();
+				foreach ($viewers as $viewer) {
+					$viewer->dataPacket($packet);
+				}
+				$this->dataPacket($packet);
+				break;
 			case 'USE_ITEM_PACKET':
 				//Timings::$timerUseItemPacket->startTiming();
 				if($this->spawned === false or $this->dead === true or $this->blocked){
@@ -4170,6 +4177,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$recipients = $this->getViewers();
 		$recipients[] = $this;
 		$blockId = $this->level->getBlockIdAt($packet->x, $packet->y, $packet->z);
+		$blockData = $this->level->getBlockDataAt($packet->x, $packet->y, $packet->z);
 		$blockPos = [
 			'x' => $packet->x,
 			'y' => $packet->y,
@@ -4184,7 +4192,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 		$pk->x = $packet->x;
 		$pk->y = $packet->y + 1;
 		$pk->z = $packet->z;
-		$pk->data = $blockId;
+		$pk->data = $blockId | ($blockData << 8);
 		
 		foreach ($recipients as $recipient) {
 			$recipient->dataPacket($pk);
@@ -4410,7 +4418,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 			return;
 		}		
 		$distanceSquared = ($this->newPosition->x - $this->x) ** 2 + ($this->newPosition->z - $this->z) ** 2;
-		if (($distanceSquared / ($tickDiff ** 2)) > $this->movementSpeed * 100) {
+		if (($distanceSquared / ($tickDiff ** 2)) > $this->movementSpeed * 200) {
 			$this->revertMovement($this, $this->lastYaw, $this->lastPitch);
 			return;
 		}
