@@ -3,7 +3,7 @@
 
 ### We accept pull request so what are you waiting for
 
-# Join us here! [Discord](https://discord.gg/PwVGfng)
+# Join us here! [Discord](https://discord.gg/GYCnkM2)
 
 # Here is our twitter! new [Twitter](https://mobile.twitter.com/Spigot_PE)
 DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
