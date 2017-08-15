@@ -19,9 +19,12 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 use pocketmine\utils\TextFormat;
 
 class PluginsCommand extends VanillaCommand{
@@ -29,24 +32,22 @@ class PluginsCommand extends VanillaCommand{
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Gets a list of plugins running on the server",
-			"/plugins",
+			"%pocketmine.command.plugins.description",
+			"%pocketmine.command.plugins.usage",
 			["pl"]
 		);
 		$this->setPermission("pocketmine.command.plugins");
 	}
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
-
-		$sender->sendMessage("Plugins " . $this->getPluginList($sender));
-
+		$this->sendPluginList($sender);
 		return true;
 	}
 
-	private function getPluginList(CommandSender $sender){
+	private function sendPluginList(CommandSender $sender){
 		$list = "";
 		foreach(($plugins = $sender->getServer()->getPluginManager()->getPlugins()) as $plugin){
 			if(strlen($list) > 0){
@@ -56,6 +57,6 @@ class PluginsCommand extends VanillaCommand{
 			$list .= $plugin->getDescription()->getFullName();
 		}
 
-		return "(" . count($plugins) . "): $list";
+		$sender->sendMessage(new TranslationContainer("pocketmine.command.plugins.success", [count($plugins), $list]));
 	}
 }

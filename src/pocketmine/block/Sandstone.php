@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,9 +15,11 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
@@ -25,7 +27,7 @@ use pocketmine\item\Item;
 use pocketmine\item\Tool;
 
 class Sandstone extends Solid{
-	
+
 	const NORMAL = 0;
 	const CHISELED = 1;
 	const SMOOTH = 2;
@@ -42,9 +44,9 @@ class Sandstone extends Solid{
 
 	public function getName(){
 		static $names = [
-			0 => "Sandstone",
-			1 => "Chiseled Sandstone",
-			2 => "Smooth Sandstone",
+			self::NORMAL => "Sandstone",
+			self::CHISELED => "Chiseled Sandstone",
+			self::SMOOTH => "Smooth Sandstone",
 			3 => "",
 		];
 		return $names[$this->meta & 0x03];
@@ -55,7 +57,7 @@ class Sandstone extends Solid{
 	}
 
 	public function getDrops(Item $item){
-		if($item->isPickaxe() >= 1){
+		if($item->isPickaxe() >= Tool::TIER_WOODEN){
 			return [
 				[Item::SANDSTONE, $this->meta & 0x03, 1],
 			];

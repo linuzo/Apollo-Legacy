@@ -14,10 +14,12 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\block;
 
@@ -29,22 +31,25 @@ use pocketmine\Player;
 class BlockBreakEvent extends BlockEvent implements Cancellable{
 	public static $handlerList = null;
 
-	/** @var \pocketmine\Player */
+	/** @var Player */
 	protected $player;
 
-	/** @var \pocketmine\item\Item */
+	/** @var Item */
 	protected $item;
 
 	/** @var bool */
 	protected $instaBreak = false;
-	protected $drop = [];
+	protected $blockDrops = [];
 
-	public function __construct(Player $player, Block $block, Item $item, $instaBreak = false, $drop = []){
+	public function __construct(Player $player, Block $block, Item $item, $instaBreak = false){
 		$this->block = $block;
 		$this->item = $item;
 		$this->player = $player;
 		$this->instaBreak = (bool) $instaBreak;
-		$this->drop = $drop;
+		$drops = $player->isSurvival() ? $block->getDrops($item) : [];
+		foreach($drops as $i){
+			$this->blockDrops[] = Item::get($i[0], $i[1], $i[2]);
+		}
 	}
 
 	public function getPlayer(){
@@ -60,17 +65,23 @@ class BlockBreakEvent extends BlockEvent implements Cancellable{
 	}
 
 	/**
-	 * @param boolean $instaBreak
+	 * @return Item[]
+	 */
+	public function getDrops(){
+		return $this->blockDrops;
+	}
+
+	/**
+	 * @param Item[] $drops
+	 */
+	public function setDrops(array $drops){
+		$this->blockDrops = $drops;
+	}
+
+	/**
+	 * @param bool $instaBreak
 	 */
 	public function setInstaBreak($instaBreak){
 		$this->instaBreak = (bool) $instaBreak;
-	}
-	
-	public function getDrops() {
-		return $this->drop;
-	}
-	
-	public function setDrops($drop = []) {
-		$this->drop = $drop;
 	}
 }

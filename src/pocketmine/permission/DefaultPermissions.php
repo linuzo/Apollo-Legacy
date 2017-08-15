@@ -19,6 +19,8 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\permission;
 
 use pocketmine\Server;
@@ -32,7 +34,7 @@ abstract class DefaultPermissions{
 	 *
 	 * @return Permission
 	 */
-	public static function registerPermission(Permission $perm, Permission $parent = null){
+	public static function registerPermission(Permission $perm, Permission $parent = null) : Permission{
 		if($parent instanceof Permission){
 			$parent->getChildren()[$perm->getName()] = true;
 
@@ -47,11 +49,12 @@ abstract class DefaultPermissions{
 		$parent = self::registerPermission(new Permission(self::ROOT, "Allows using all PocketMine commands and utilities"));
 
 		$broadcasts = self::registerPermission(new Permission(self::ROOT . ".broadcast", "Allows the user to receive all broadcast messages"), $parent);
-
 		self::registerPermission(new Permission(self::ROOT . ".broadcast.admin", "Allows the user to receive administrative broadcasts", Permission::DEFAULT_OP), $broadcasts);
 		self::registerPermission(new Permission(self::ROOT . ".broadcast.user", "Allows the user to receive user broadcasts", Permission::DEFAULT_TRUE), $broadcasts);
-
 		$broadcasts->recalculatePermissibles();
+
+		$spawnprotect = self::registerPermission(new Permission(self::ROOT . ".spawnprotect.bypass", "Allows the user to edit blocks within the protected spawn radius", Permission::DEFAULT_OP), $parent);
+		$spawnprotect->recalculatePermissibles();
 
 		$commands = self::registerPermission(new Permission(self::ROOT . ".command", "Allows using all PocketMine commands"), $parent);
 
@@ -117,13 +120,14 @@ abstract class DefaultPermissions{
 		self::registerPermission(new Permission(self::ROOT . ".command.defaultgamemode", "Allows the user to change the default gamemode", Permission::DEFAULT_OP), $commands);
 		self::registerPermission(new Permission(self::ROOT . ".command.seed", "Allows the user to view the seed of the world", Permission::DEFAULT_OP), $commands);
 		self::registerPermission(new Permission(self::ROOT . ".command.status", "Allows the user to view the server performance", Permission::DEFAULT_OP), $commands);
+		self::registerPermission(new Permission(self::ROOT . ".command.gc", "Allows the user to fire garbage collection tasks", Permission::DEFAULT_OP), $commands);
+		self::registerPermission(new Permission(self::ROOT . ".command.dumpmemory", "Allows the user to dump memory contents", Permission::DEFAULT_OP), $commands);
 		self::registerPermission(new Permission(self::ROOT . ".command.timings", "Allows the user to records timings for all plugin events", Permission::DEFAULT_OP), $commands);
 		self::registerPermission(new Permission(self::ROOT . ".command.spawnpoint", "Allows the user to change player's spawnpoint", Permission::DEFAULT_OP), $commands);
 		self::registerPermission(new Permission(self::ROOT . ".command.setworldspawn", "Allows the user to change the world spawn", Permission::DEFAULT_OP), $commands);
+		self::registerPermission(new Permission(self::ROOT . ".command.transferserver", "Allows the user to transfer self to another server", Permission::DEFAULT_OP), $commands);
+		self::registerPermission(new Permission(self::ROOT . ".command.title", "Allows the user to send a title to the specified player", Permission::DEFAULT_OP), $commands);
 
-		self::registerPermission(new Permission(self::ROOT . ".command.transfer", "Allows the user transfer", Permission::DEFAULT_OP), $commands);
-		self::registerPermission(new Permission(self::ROOT . ".command.ping", "Allows get player ping", Permission::DEFAULT_TRUE), $commands);
-		
 		$commands->recalculatePermissibles();
 
 		$parent->recalculatePermissibles();

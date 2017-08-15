@@ -37,7 +37,7 @@ class BaseLang{
 		}
 
 		if(is_dir($path)){
-			$allFiles = scandir($path);
+			$allFiles = scandir($path, SCANDIR_SORT_NONE);
 
 			if($allFiles !== false){
 				$files = array_filter($allFiles, function($filename){
@@ -61,12 +61,15 @@ class BaseLang{
 		return [];
 	}
 
+	/** @var string */
 	protected $langName;
 
+	/** @var string[] */
 	protected $lang = [];
+	/** @var string[] */
 	protected $fallbackLang = [];
 
-	public function __construct($lang, $path = null, $fallback = self::FALLBACK_LANGUAGE){
+	public function __construct(string $lang, string $path = null, string $fallback = self::FALLBACK_LANGUAGE){
 
 		$this->langName = strtolower($lang);
 
@@ -82,15 +85,15 @@ class BaseLang{
 		}
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return $this->get("language.name");
 	}
 
-	public function getLang(){
+	public function getLang() : string{
 		return $this->langName;
 	}
 
-	protected static function loadLang($path, array &$d){
+	protected static function loadLang(string $path, array &$d){
 		if(file_exists($path)){
 			$d = parse_ini_file($path, false, INI_SCANNER_RAW);
 			return true;
@@ -106,9 +109,9 @@ class BaseLang{
 	 *
 	 * @return string
 	 */
-	public function translateString($str, array $params = [], $onlyPrefix = null){
+	public function translateString(string $str, array $params = [], string $onlyPrefix = null) : string{
 		$baseText = $this->get($str);
-		$baseText = $this->parseTranslation(($baseText !== null and (empty($onlyPrefix) or strpos($str, $onlyPrefix) === 0)) ? (string)$baseText : (string)$str, (string)$onlyPrefix);
+		$baseText = $this->parseTranslation(($baseText !== null and ($onlyPrefix === null or strpos($str, $onlyPrefix) === 0)) ? $baseText : $str, $onlyPrefix);
 
 		foreach($params as $i => $p){
 			$baseText = str_replace("{%$i}", $this->parseTranslation((string) $p), $baseText, $onlyPrefix);
@@ -120,19 +123,24 @@ class BaseLang{
 	public function translate(TextContainer $c){
 		if($c instanceof TranslationContainer){
 			$baseText = $this->internalGet($c->getText());
-			$baseText = $this->parseTranslation($baseText !== null ? (string)$baseText : (string)$c->getText());
+			$baseText = $this->parseTranslation($baseText ?? $c->getText());
 
 			foreach($c->getParameters() as $i => $p){
-				$baseText = str_replace("{%$i}", $this->parseTranslation((string) $p), $baseText);
+				$baseText = str_replace("{%$i}", $this->parseTranslation($p), $baseText);
 			}
 		}else{
-			$baseText = $this->parseTranslation((string) $c->getText());
+			$baseText = $this->parseTranslation($c->getText());
 		}
 
 		return $baseText;
 	}
 
-	public function internalGet($id){
+	/**
+	 * @param string $id
+	 *
+	 * @return string|null
+	 */
+	public function internalGet(string $id){
 		if(isset($this->lang[$id])){
 			return $this->lang[$id];
 		}elseif(isset($this->fallbackLang[$id])){
@@ -142,7 +150,12 @@ class BaseLang{
 		return null;
 	}
 
-	public function get($id){
+	/**
+	 * @param string $id
+	 *
+	 * @return string
+	 */
+	public function get(string $id) : string{
 		if(isset($this->lang[$id])){
 			return $this->lang[$id];
 		}elseif(isset($this->fallbackLang[$id])){
@@ -152,7 +165,13 @@ class BaseLang{
 		return $id;
 	}
 
-	protected function parseTranslation(string $text, $onlyPrefix = null){
+	/**
+	 * @param string      $text
+	 * @param string|null $onlyPrefix
+	 *
+	 * @return string
+	 */
+	protected function parseTranslation(string $text, string $onlyPrefix = null) : string{
 		$newString = "";
 
 		$replaceString = null;
@@ -170,7 +189,7 @@ class BaseLang{
 				){
 					$replaceString .= $c;
 				}else{
-					if(($t = $this->internalGet(substr($replaceString, 1))) !== null and (empty($onlyPrefix) or strpos($replaceString, $onlyPrefix) === 1)){
+					if(($t = $this->internalGet(substr($replaceString, 1))) !== null and ($onlyPrefix === null or strpos($replaceString, $onlyPrefix) === 1)){
 						$newString .= $t;
 					}else{
 						$newString .= $replaceString;
@@ -191,7 +210,7 @@ class BaseLang{
 		}
 
 		if($replaceString !== null){
-			if(($t = $this->internalGet(substr($replaceString, 1))) !== null and (empty($onlyPrefix) or strpos($replaceString, $onlyPrefix) === 1)){
+			if(($t = $this->internalGet(substr($replaceString, 1))) !== null and ($onlyPrefix === null or strpos($replaceString, $onlyPrefix) === 1)){
 				$newString .= $t;
 			}else{
 				$newString .= $replaceString;

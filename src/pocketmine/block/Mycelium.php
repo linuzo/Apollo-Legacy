@@ -15,9 +15,11 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
@@ -32,8 +34,8 @@ class Mycelium extends Solid{
 
 	protected $id = self::MYCELIUM;
 
-	public function __construct(){
-
+	public function __construct($meta = 0){
+		$this->meta = $meta;
 	}
 
 	public function getName(){
@@ -62,7 +64,7 @@ class Mycelium extends Solid{
 			$z = mt_rand($this->z - 1, $this->z + 1);
 			$block = $this->getLevel()->getBlock(new Vector3($x, $y, $z));
 			if($block->getId() === Block::DIRT){
-				if($block->getSide(1) instanceof Transparent){
+				if($block->getSide(Vector3::SIDE_UP) instanceof Transparent){
 					Server::getInstance()->getPluginManager()->callEvent($ev = new BlockSpreadEvent($block, $this, new Mycelium()));
 					if(!$ev->isCancelled()){
 						$this->getLevel()->setBlock($block, $ev->getNewState());

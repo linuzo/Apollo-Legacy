@@ -19,10 +19,13 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
-use pocketmine\network\protocol\Info;
+use pocketmine\event\TranslationContainer;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\plugin\Plugin;
 use pocketmine\utils\TextFormat;
 
@@ -31,54 +34,50 @@ class VersionCommand extends VanillaCommand{
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Gets the version of this server including any plugins in use",
-			"/version",
+			"%pocketmine.command.version.description",
+			"%pocketmine.command.version.usage",
 			["ver", "about"]
 		);
 		$this->setPermission("pocketmine.command.version");
 	}
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
-		$version = $sender->getServer()->getConfigString("game-version", "");
-		$output = "";
-		if (!empty($version)) {
-			$output .= $version . ". ";
-		}
-		$output .= "This server is running " . $sender->getServer()->getName() . " " . $sender->getServer()->getPocketMineVersion();
 
-		$sender->sendMessage($output);
-//		if(count($args) === 0){
-//			$output = "This server is running " . $sender->getServer()->getName() . " version " . $sender->getServer()->getPocketMineVersion() . " 「" . $sender->getServer()->getCodename() . "」 (Implementing API version " . $sender->getServer()->getApiVersion() . " for Minecraft: PE " . $sender->getServer()->getVersion() . " protocol version " . Info::CURRENT_PROTOCOL . ")";
-//			if(\pocketmine\GIT_COMMIT !== str_repeat("00", 20)){
-//				$output .= " [git " . \pocketmine\GIT_COMMIT . "]";
-//			}
-//			$sender->sendMessage($output);
-//		}else{
-//			$pluginName = implode(" ", $args);
-//			$exactPlugin = $sender->getServer()->getPluginManager()->getPlugin($pluginName);
-//
-//			if($exactPlugin instanceof Plugin){
-//				$this->describeToSender($exactPlugin, $sender);
-//
-//				return true;
-//			}
-//
-//			$found = false;
-//			$pluginName = strtolower($pluginName);
-//			foreach($sender->getServer()->getPluginManager()->getPlugins() as $plugin){
-//				if(stripos($plugin->getName(), $pluginName) !== false){
-//					$this->describeToSender($plugin, $sender);
-//					$found = true;
-//				}
-//			}
-//
-//			if(!$found){
-//				$sender->sendMessage("This server is not running any plugin by that name.\nUse /plugins to get a list of plugins.");
-//			}
-//		}
+		if(count($args) === 0){
+			$sender->sendMessage(new TranslationContainer("pocketmine.server.info.extended", [
+				$sender->getServer()->getName(),
+				$sender->getServer()->getPocketMineVersion(),
+				$sender->getServer()->getCodename(),
+				$sender->getServer()->getApiVersion(),
+				$sender->getServer()->getVersion(),
+				ProtocolInfo::CURRENT_PROTOCOL
+			]));
+		}else{
+			$pluginName = implode(" ", $args);
+			$exactPlugin = $sender->getServer()->getPluginManager()->getPlugin($pluginName);
+
+			if($exactPlugin instanceof Plugin){
+				$this->describeToSender($exactPlugin, $sender);
+
+				return true;
+			}
+
+			$found = false;
+			$pluginName = strtolower($pluginName);
+			foreach($sender->getServer()->getPluginManager()->getPlugins() as $plugin){
+				if(stripos($plugin->getName(), $pluginName) !== false){
+					$this->describeToSender($plugin, $sender);
+					$found = true;
+				}
+			}
+
+			if(!$found){
+				$sender->sendMessage(new TranslationContainer("pocketmine.command.version.noSuchPlugin"));
+			}
+		}
 
 		return true;
 	}

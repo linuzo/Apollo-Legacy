@@ -19,10 +19,14 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\command\utils\InvalidCommandSyntaxException;
+use pocketmine\event\TranslationContainer;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
@@ -31,21 +35,19 @@ class KickCommand extends VanillaCommand{
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Removes the specified player from the server",
-			"/kick <player> [reason...]"
+			"%pocketmine.command.kick.description",
+			"%commands.kick.usage"
 		);
 		$this->setPermission("pocketmine.command.kick");
 	}
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) === 0){
-			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
-
-			return false;
+			throw new InvalidCommandSyntaxException();
 		}
 
 		$name = array_shift($args);
@@ -53,13 +55,13 @@ class KickCommand extends VanillaCommand{
 
 		if(($player = $sender->getServer()->getPlayer($name)) instanceof Player){
 			$player->kick($reason);
-			if(strlen($reason) >= 1){
-				Command::broadcastCommandMessage($sender, "Kicked " . $player->getName() . " from the game: '{$reason}'");
+			if($reason !== ""){
+				Command::broadcastCommandMessage($sender, new TranslationContainer("commands.kick.success.reason", [$player->getName(), $reason]));
 			}else{
-				Command::broadcastCommandMessage($sender, "Kicked " . $player->getName() . " from the game.");
+				Command::broadcastCommandMessage($sender, new TranslationContainer("commands.kick.success", [$player->getName()]));
 			}
 		}else{
-			$sender->sendMessage($name . " not found.");
+			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.player.notFound"));
 		}
 
 

@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,17 +15,17 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\entity;
 
-
-use pocketmine\level\format\FullChunk;
-use pocketmine\nbt\tag\Compound;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\AddEntityPacket;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\Player;
 
 class Snowball extends Projectile{
@@ -38,8 +38,8 @@ class Snowball extends Projectile{
 	protected $gravity = 0.03;
 	protected $drag = 0.01;
 
-	public function __construct(FullChunk $chunk, Compound $nbt, Entity $shootingEntity = null){
-		parent::__construct($chunk, $nbt, $shootingEntity);
+	public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null){
+		parent::__construct($level, $nbt, $shootingEntity);
 	}
 
 	public function onUpdate($currentTick){
@@ -47,7 +47,7 @@ class Snowball extends Projectile{
 			return false;
 		}
 
-		//$this->timings->startTiming();
+		$this->timings->startTiming();
 
 		$hasUpdate = parent::onUpdate($currentTick);
 
@@ -56,7 +56,7 @@ class Snowball extends Projectile{
 			$hasUpdate = true;
 		}
 
-		//$this->timings->stopTiming();
+		$this->timings->stopTiming();
 
 		return $hasUpdate;
 	}
@@ -64,14 +64,14 @@ class Snowball extends Projectile{
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();
 		$pk->type = Snowball::NETWORK_ID;
-		$pk->eid = $this->getId();
+		$pk->entityRuntimeId = $this->getId();
 		$pk->x = $this->x;
 		$pk->y = $this->y;
 		$pk->z = $this->z;
 		$pk->speedX = $this->motionX;
 		$pk->speedY = $this->motionY;
 		$pk->speedZ = $this->motionZ;
-//		$pk->metadata = $this->dataProperties;
+		$pk->metadata = $this->dataProperties;
 		$player->dataPacket($pk);
 
 		parent::spawnTo($player);

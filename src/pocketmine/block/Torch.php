@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,14 +15,17 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\level\Level;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 
 class Torch extends Flowable{
@@ -34,7 +37,7 @@ class Torch extends Flowable{
 	}
 
 	public function getLightLevel(){
-		return 15;
+		return 14;
 	}
 
 	public function getName(){
@@ -44,19 +47,18 @@ class Torch extends Flowable{
 
 	public function onUpdate($type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
-			$below = $this->getSide(0);
+			$below = $this->getSide(Vector3::SIDE_DOWN);
 			$side = $this->getDamage();
 			$faces = [
+				0 => 0,
 				1 => 4,
 				2 => 5,
 				3 => 2,
 				4 => 3,
-				5 => 0,
-				6 => 0,
-				0 => 0,
+				5 => 0
 			];
 
-			if($this->getSide($faces[$side])->isTransparent() === true and !($side === 0 and ($below->getId() === self::FENCE or $below->getId() === self::COBBLE_WALL))){
+			if($this->getSide($faces[$side])->isTransparent() === true and !($side === 0 and ($below->getId() === self::FENCE or $below->getId() === self::COBBLESTONE_WALL))){
 				$this->getLevel()->useBreakOn($this);
 
 				return Level::BLOCK_UPDATE_NORMAL;
@@ -67,7 +69,7 @@ class Torch extends Flowable{
 	}
 
 	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		$below = $this->getSide(0);
+		$below = $this->getSide(Vector3::SIDE_DOWN);
 
 		if($target->isTransparent() === false and $face !== 0){
 			$faces = [
@@ -81,7 +83,7 @@ class Torch extends Flowable{
 			$this->getLevel()->setBlock($block, $this, true, true);
 
 			return true;
-		}elseif($below->isTransparent() === false or $below->getId() === self::FENCE or $below->getId() === self::COBBLE_WALL){
+		}elseif($below->isTransparent() === false or $below->getId() === self::FENCE or $below->getId() === self::COBBLESTONE_WALL){
 			$this->meta = 0;
 			$this->getLevel()->setBlock($block, $this, true, true);
 

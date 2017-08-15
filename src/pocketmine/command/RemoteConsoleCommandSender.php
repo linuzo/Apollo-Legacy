@@ -19,8 +19,11 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command;
 
+use pocketmine\event\TextContainer;
 
 class RemoteConsoleCommandSender extends ConsoleCommandSender{
 
@@ -28,6 +31,12 @@ class RemoteConsoleCommandSender extends ConsoleCommandSender{
 	private $messages = "";
 
 	public function sendMessage($message){
+		if($message instanceof TextContainer){
+			$message = $this->getServer()->getLanguage()->translate($message);
+		}else{
+			$message = $this->getServer()->getLanguage()->translateString($message);
+		}
+
 		$this->messages .= trim($message, "\r\n") . "\n";
 	}
 

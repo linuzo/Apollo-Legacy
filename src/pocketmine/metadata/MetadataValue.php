@@ -19,13 +19,15 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\metadata;
 
 use pocketmine\plugin\Plugin;
 
 abstract class MetadataValue{
-	/** @var \WeakRef<Plugin> */
-	protected $owningPlugin;
+	/** @var Plugin */
+	private $owningPlugin;
 
 	protected function __construct(Plugin $owningPlugin){
 		$this->owningPlugin = $owningPlugin;
@@ -35,7 +37,7 @@ abstract class MetadataValue{
 	 * @return Plugin
 	 */
 	public function getOwningPlugin(){
-		return $this->owningPlugin->get();
+		return $this->owningPlugin;
 	}
 
 	/**
@@ -43,11 +45,11 @@ abstract class MetadataValue{
 	 *
 	 * @return mixed
 	 */
-	public abstract function value();
+	abstract public function value();
 
 	/**
 	 * Invalidates this metadata item, forcing it to recompute when next
 	 * accessed.
 	 */
-	public abstract function invalidate();
+	abstract public function invalidate();
 }
