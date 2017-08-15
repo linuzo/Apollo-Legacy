@@ -1,16 +1,18 @@
 #Circle-CI
 
-machine:
-  php:
-    version: 7.0.4
+#machine:
+ # php:
+   # version: 7.0.4
 
 dependencies:
  override:
   - mkdir plugins
   - finalCMD=$(printf "s/CuttingEdge/$CIRCLE_BUILD_NUM/g"); printf ${finalCMD}; sed -i -e ${finalCMD} src/pocketmine/PocketMine.php;
-  - pecl install channel://pecl.php.net/pthreads-3.1.6
-  - pecl install channel://pecl.php.net/weakref-0.3.3
-  - echo | pecl install channel://pecl.php.net/yaml-2.0.0
+ # - pecl install channel://pecl.php.net/pthreads-3.1.6
+ # - pecl install channel://pecl.php.net/weakref-0.3.3
+ # - echo | pecl install channel://pecl.php.net/yaml-2.0.0
+  - wget -O PHP7.tar.gz https://dl.bintray.com/pocketmine/PocketMine/PHP_7.0.6_x86-64_Linux.tar.gz --no-check-certificate
+  - tar -xf PHP7.tar.gz
   - chmod +x ./tests/travis.sh
   - chmod +x ./tests/lint.sh
 
