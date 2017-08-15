@@ -11,6 +11,8 @@ dependencies:
   - pecl install channel://pecl.php.net/pthreads-3.1.6
   - pecl install channel://pecl.php.net/weakref-0.3.3
   - echo | pecl install channel://pecl.php.net/yaml-2.0.0
+  pre:
+    - chmod +x ./tests/travis.sh
 
 test:
  override:
