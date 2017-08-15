@@ -21,10 +21,12 @@
 
 namespace pmmp\TesterPlugin;
 
+use pocketmine\event\Listener;
+use pocketmine\event\server\ServerCommandEvent;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
 
-class Main extends PluginBase{
+class Main extends PluginBase implements Listener{
 
 	/** @var Test[] */
 	protected $waitingTests = [];
@@ -36,8 +38,25 @@ class Main extends PluginBase{
 	protected $currentTestNumber = 0;
 
 	public function onEnable(){
+		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		$this->getServer()->getScheduler()->scheduleRepeatingTask(new CheckTestCompletionTask($this), 10);
 		$this->waitingTests[] = new tests\AsyncTaskMemoryLeakTest($this);
+		$this->waitingTests[] = new tests\Issue1145_ItemEqualsTest($this);
+		$this->waitingTests[] = new tests\AsyncTaskMainLoggerTest($this);
+		$this->waitingTests[] = new tests\RegisterNewBlockTest($this);
+		$this->waitingTests[] = new tests\RegisterCustomBlockTest($this);
+		$this->waitingTests[] = new tests\BlockGetTest($this);
+		$this->waitingTests[] = new tests\LightFilterMinimumFreezeTest($this);
+	}
+
+	public function onServerCommand(ServerCommandEvent $event){
+		//The CI will send this command as a failsafe to prevent the build from hanging if the tester plugin failed to
+		//run. However, if the plugin loaded successfully we don't want to allow this to stop the server as there may
+		//be asynchronous tests running. Instead we cancel this and stop the server of our own accord once all tests
+		//have completed.
+		if($event->getCommand() === "stop"){
+			$event->setCancelled();
+		}
 	}
 
 	/**

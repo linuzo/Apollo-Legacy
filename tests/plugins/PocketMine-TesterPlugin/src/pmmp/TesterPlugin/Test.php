@@ -35,7 +35,7 @@ abstract class Test{
 	public function __construct(Main $plugin){
 		$this->plugin = $plugin;
 	}
-	
+
 	public function getPlugin() : Main{
 		return $this->plugin;
 	}
@@ -44,20 +44,25 @@ abstract class Test{
 		$this->startTime = time();
 		try{
 			$this->run();
+		}catch(TestFailedException $e){
+			$this->getPlugin()->getLogger()->error($e->getMessage());
+			$this->setResult(Test::RESULT_FAILED);
 		}catch(\Throwable $e){
 			$this->getPlugin()->getLogger()->logException($e);
 			$this->setResult(Test::RESULT_ERROR);
 		}
 	}
 
-	abstract public function tick();
+	public function tick(){
+
+	}
 
 	abstract public function run();
-	
+
 	public function isFinished() : bool{
 		return $this->result !== Test::RESULT_WAITING;
 	}
-	
+
 	public function isTimedOut() : bool{
 		return !$this->isFinished() and time() - $this->timeout > $this->startTime;
 	}

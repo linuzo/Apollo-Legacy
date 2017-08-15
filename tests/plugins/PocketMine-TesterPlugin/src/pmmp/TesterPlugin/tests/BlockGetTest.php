@@ -19,40 +19,46 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pmmp\TesterPlugin\tests;
 
 use pmmp\TesterPlugin\Test;
-use pocketmine\scheduler\AsyncTask;
+use pmmp\TesterPlugin\TestFailedException;
+use pocketmine\block\Block;
+use pocketmine\block\Planks;
+use pocketmine\block\Stone;
 
-class AsyncTaskMemoryLeakTest extends Test{
+class BlockGetTest extends Test{
 
 	public function run(){
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new TestAsyncTask());
-	}
+		$list = [
+			[Block::STONE, Stone::ANDESITE],
+			[Block::STONE, 15],
+			[Block::GOLD_BLOCK, 5],
+			[Block::WOODEN_PLANKS, Planks::DARK_OAK],
+			[Block::SAND, 0]
+		];
 
-	public function tick(){
-		if(TestAsyncTask::$destroyed === true){
-			$this->setResult(Test::RESULT_OK);
+		foreach($list as list($id, $meta)){
+			$block = Block::get($id, $meta);
+
+			if($block->getId() !== $id){
+				throw new TestFailedException("Expected id $id, got " . $block->getId());
+
+			}elseif($block->getDamage() !== $meta){
+				throw new TestFailedException("Expected meta $meta, got " . $block->getDamage());
+			}
 		}
+
+		$this->setResult(Test::RESULT_OK);
 	}
 
 	public function getName() : string{
-		return "AsyncTask memory leak after completion";
+		return "Test Block::get() behaviour";
 	}
 
 	public function getDescription() : string{
-		return "Regression test for AsyncTasks objects not being destroyed after completion";
-	}
-}
-
-class TestAsyncTask extends AsyncTask{
-	public static $destroyed = false;
-
-	public function onRun(){
-		usleep(50 * 1000); //1 server tick
-	}
-
-	public function __destruct(){
-		self::$destroyed = true;
+		return "Verifies that Block::get() return values have the correct id and meta";
 	}
 }

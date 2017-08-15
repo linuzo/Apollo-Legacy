@@ -19,40 +19,34 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pmmp\TesterPlugin\tests;
 
+use pmmp\TesterPlugin\Main;
 use pmmp\TesterPlugin\Test;
-use pocketmine\scheduler\AsyncTask;
+use pmmp\TesterPlugin\TestFailedException;
+use pocketmine\block\Block;
 
-class AsyncTaskMemoryLeakTest extends Test{
+class LightFilterMinimumFreezeTest extends Test{
 
 	public function run(){
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new TestAsyncTask());
-	}
+		Block::init(true); //clear any previous test stuff
 
-	public function tick(){
-		if(TestAsyncTask::$destroyed === true){
-			$this->setResult(Test::RESULT_OK);
+		foreach(Block::$lightFilter as $id => $lightFilter){
+			if($lightFilter < 1){
+				throw new TestFailedException("Light filter must be minimum 1, got $lightFilter for ID $id");
+			}
 		}
+
+		$this->setResult(Test::RESULT_OK);
 	}
 
 	public function getName() : string{
-		return "AsyncTask memory leak after completion";
+		return "Check for invalid block light filter levels";
 	}
 
 	public function getDescription() : string{
-		return "Regression test for AsyncTasks objects not being destroyed after completion";
-	}
-}
-
-class TestAsyncTask extends AsyncTask{
-	public static $destroyed = false;
-
-	public function onRun(){
-		usleep(50 * 1000); //1 server tick
-	}
-
-	public function __destruct(){
-		self::$destroyed = true;
+		return "Tests that block light filters all have a minimum value of 1";
 	}
 }

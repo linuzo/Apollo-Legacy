@@ -18,6 +18,7 @@
 namespace DevTools;
 
 use DevTools\commands\ExtractPluginCommand;
+use DevTools\commands\GeneratePluginCommand;
 use FolderPluginLoader\FolderPluginLoader;
 use pocketmine\command\Command;
 use pocketmine\command\CommandExecutor;
@@ -33,7 +34,9 @@ use pocketmine\utils\TextFormat;
 class DevTools extends PluginBase implements CommandExecutor{
 
 	public function onLoad(){
-		$this->getServer()->getCommandMap()->register("devtools", new ExtractPluginCommand($this));
+		$map = $this->getServer()->getCommandMap();
+		$map->register("devtools", new ExtractPluginCommand($this));
+		$map->register("devtools", new GeneratePluginCommand($this));
 	}
 
 	public function onEnable(){
@@ -46,7 +49,7 @@ class DevTools extends PluginBase implements CommandExecutor{
 
 	}
 
-	public function onCommand(CommandSender $sender, Command $command, $label, array $args){
+	public function onCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
 		switch($command->getName()){
 			case "makeplugin":
 				if(isset($args[0]) and $args[0] === "FolderPluginLoader"){
@@ -63,7 +66,7 @@ class DevTools extends PluginBase implements CommandExecutor{
 		}
 	}
 
-	private function permissionCheckCommand(CommandSender $sender, Command $command, $label, array $args){
+	private function permissionCheckCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
 		$target = $sender;
 		if(!isset($args[0])){
 			return false;
@@ -101,11 +104,11 @@ class DevTools extends PluginBase implements CommandExecutor{
 		}
 	}
 
-	private function makePluginLoader(CommandSender $sender, Command $command, $label, array $args){
+	private function makePluginLoader(CommandSender $sender, Command $command, string $label, array $args) : bool{
 		$pharPath = $this->getDataFolder() . DIRECTORY_SEPARATOR . "FolderPluginLoader.phar";
 		if(file_exists($pharPath)){
 			$sender->sendMessage("Phar plugin already exists, overwriting...");
-			@unlink($pharPath);
+			\Phar::unlinkArchive($pharPath);
 		}
 		$phar = new \Phar($pharPath);
 		$phar->setMetadata([
@@ -138,7 +141,7 @@ class DevTools extends PluginBase implements CommandExecutor{
 		return true;
 	}
 
-	private function makePluginCommand(CommandSender $sender, Command $command, $label, array $args){
+	private function makePluginCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
 		$pluginName = trim(implode(" ", $args));
 		if($pluginName === "" or !(($plugin = Server::getInstance()->getPluginManager()->getPlugin($pluginName)) instanceof Plugin)){
 			$sender->sendMessage(TextFormat::RED . "Invalid plugin name, check the name case.");
@@ -154,7 +157,7 @@ class DevTools extends PluginBase implements CommandExecutor{
 		$pharPath = $this->getDataFolder() . DIRECTORY_SEPARATOR . $description->getName() . "_v" . $description->getVersion() . ".phar";
 		if(file_exists($pharPath)){
 			$sender->sendMessage("Phar plugin already exists, overwriting...");
-			@unlink($pharPath);
+			\Phar::unlinkArchive($pharPath);
 		}
 		$phar = new \Phar($pharPath);
 		$phar->setMetadata([
@@ -199,12 +202,12 @@ class DevTools extends PluginBase implements CommandExecutor{
 		return true;
 	}
 
-	private function makeServerCommand(CommandSender $sender, Command $command, $label, array $args){
+	private function makeServerCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
 		$server = $sender->getServer();
 		$pharPath = $this->getDataFolder() . DIRECTORY_SEPARATOR . $server->getName() . "_" . $server->getPocketMineVersion() . ".phar";
 		if(file_exists($pharPath)){
 			$sender->sendMessage("Phar file already exists, overwriting...");
-			@unlink($pharPath);
+			\Phar::unlinkArchive($pharPath);
 		}
 		$phar = new \Phar($pharPath);
 
@@ -224,15 +227,15 @@ class DevTools extends PluginBase implements CommandExecutor{
 
 		$phar->setMetadata($metadata);
 
-		$phar->setStub('<?php define("pocketmine\\\\PATH", "phar://". __FILE__ ."/"); require_once("phar://". __FILE__ ."/src/pocketmine/PocketMine.php");  __HALT_COMPILER();');
+		$phar->setStub('<?php require_once("phar://". __FILE__ ."/src/pocketmine/PocketMine.php");  __HALT_COMPILER();');
 		$phar->setSignatureAlgorithm(\Phar::SHA1);
 		$phar->startBuffering();
 
 		$filePath = substr(\pocketmine\PATH, 0, 7) === "phar://" ? \pocketmine\PATH : realpath(\pocketmine\PATH) . "/";
 		$filePath = rtrim(str_replace("\\", "/", $filePath), "/") . "/";
-		foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($filePath . "src")) as $file){
+		foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($filePath)) as $file){
 			$path = ltrim(str_replace(["\\", $filePath], ["/", ""], $file), "/");
-			if($path{0} === "." or strpos($path, "/.") !== false or substr($path, 0, 4) !== "src/"){
+			if($path{0} === "." or strpos($path, "/.") !== false or (substr($path, 0, 4) !== "src/" and substr($path, 0, 7) !== "vendor/")){
 				continue;
 			}
 			$phar->addFile($file, $path);

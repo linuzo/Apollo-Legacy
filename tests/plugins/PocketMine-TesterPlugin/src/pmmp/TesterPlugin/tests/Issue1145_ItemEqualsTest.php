@@ -21,38 +21,27 @@
 
 namespace pmmp\TesterPlugin\tests;
 
-use pmmp\TesterPlugin\Test;
-use pocketmine\scheduler\AsyncTask;
 
-class AsyncTaskMemoryLeakTest extends Test{
+use pmmp\TesterPlugin\Test;
+use pocketmine\item\Item;
+
+class Issue1145_ItemEqualsTest extends Test{
 
 	public function run(){
-		$this->getPlugin()->getServer()->getScheduler()->scheduleAsyncTask(new TestAsyncTask());
-	}
-
-	public function tick(){
-		if(TestAsyncTask::$destroyed === true){
+		$item1 = Item::nbtDeserialize(Item::get(Item::STONE)->setCustomName("HI")->nbtSerialize());
+		$item2 = Item::get(Item::STONE)->setCustomName("HI");
+		if($item1->equals($item2)){
 			$this->setResult(Test::RESULT_OK);
+		}else{
+			$this->setResult(Test::RESULT_FAILED);
 		}
 	}
 
 	public function getName() : string{
-		return "AsyncTask memory leak after completion";
+		return "Items should still be equal after NBT serialize/deserialize";
 	}
 
 	public function getDescription() : string{
-		return "Regression test for AsyncTasks objects not being destroyed after completion";
-	}
-}
-
-class TestAsyncTask extends AsyncTask{
-	public static $destroyed = false;
-
-	public function onRun(){
-		usleep(50 * 1000); //1 server tick
-	}
-
-	public function __destruct(){
-		self::$destroyed = true;
+		return "Tests that items serialized to NBT and then deserialized should be equal to the original item";
 	}
 }

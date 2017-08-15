@@ -19,25 +19,10 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pmmp\TesterPlugin;
 
-use pocketmine\scheduler\PluginTask;
+class TestFailedException extends \Exception{
 
-class CheckTestCompletionTask extends PluginTask{
-
-	public function onRun(int $currentTick){
-		/** @var Main $owner */
-		$owner = $this->getOwner();
-		$test = $owner->getCurrentTest();
-		if($test === null){
-			if(!$owner->startNextTest()){
-				$owner->getServer()->getScheduler()->cancelTask($this->getHandler()->getTaskId());
-				$owner->onAllTestsCompleted();
-			}
-		}elseif($test->isFinished() or $test->isTimedOut()){
-			$owner->onTestCompleted($test);
-		}else{
-			$test->tick();
-		}
-	}
 }
