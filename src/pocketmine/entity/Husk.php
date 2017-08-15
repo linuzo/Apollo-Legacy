@@ -43,7 +43,7 @@ class Husk extends Monster{
 		parent::spawnTo($player);
 	}
 
-	public function getDrops(){
+	public function getDrops() : array {
 		$drops = [
 			ItemItem::get(ItemItem::ROTTEN_FLESH, 0, 1)
 		];

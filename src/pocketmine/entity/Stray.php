@@ -44,7 +44,7 @@ class Stray extends Monster implements ProjectileSource{
 		parent::spawnTo($player);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         $drops = [
             ItemItem::get(ItemItem::ARROW, 0, mt_rand(0, 2)),
             ItemItem::get(ItemItem::BONE, 0, mt_rand(0, 2))

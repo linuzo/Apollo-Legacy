@@ -84,7 +84,7 @@ class Boat extends Vehicle{
 		}
 	}*/
 
-	public function getDrops(){
+	public function getDrops() : array {
 		return [
 			ItemItem::get(ItemItem::BOAT, $this->getWoodID(), 1)
 		];

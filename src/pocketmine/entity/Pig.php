@@ -47,7 +47,7 @@ class Pig extends Animal implements Rideable{
 		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_BABY);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         $drops = [];
         if($this->getLastDamageCause() === EntityDamageEvent::CAUSE_FIRE){
             $drops[] = ItemItem::get(ItemItem::COOKED_PORKCHOP, 0, mt_rand(1, 3));

@@ -37,6 +37,7 @@ class Squid extends WaterAnimal{
 	public $width = 0.95;
 	public $length = 0.95;
 	public $height = 0.95;
+	protected $maxHealth = 5;
 
 	/** @var Vector3 */
 	public $swimDirection = null;
@@ -144,7 +145,6 @@ class Squid extends WaterAnimal{
 
 		return $hasUpdate or !$this->onGround or abs($this->motionX) > 0.00001 or abs($this->motionY) > 0.00001 or abs($this->motionZ) > 0.00001;
 	}
-
 
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();

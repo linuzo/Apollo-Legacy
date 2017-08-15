@@ -58,7 +58,7 @@ class Creeper extends Monster implements Explosive{
         return $this->namedtag["Powered"];
     }
 
-    public function getDrops(){
+    public function getDrops() : array {
         $drops = [];
         if($this->lastDamageCause instanceof EntityDamageByEntityEvent and $this->lastDamageCause->getEntity() instanceof Player){
             $drops = [

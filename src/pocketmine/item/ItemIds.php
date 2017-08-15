@@ -207,7 +207,6 @@ interface ItemIds extends BlockIds{
 	const SPLASH_POTION = 438;
 
 	const LINGERING_POTION = 441;
-
 	const COMMAND_BLOCK_MINECART = 443, MINECART_WITH_COMMAND_BLOCK = 443;
 	const ELYTRA = 444;
 	const SHULKER_SHELL = 445;

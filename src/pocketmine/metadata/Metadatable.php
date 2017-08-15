@@ -32,8 +32,10 @@ interface Metadatable{
 	 *
 	 * @param string        $metadataKey
 	 * @param MetadataValue $newMetadataValue
+	 *
+	 * @return void
 	 */
-	public function setMetadata(string $metadataKey, MetadataValue $newMetadataValue);
+	public function setMetadata($metadataKey, MetadataValue $newMetadataValue);
 
 	/**
 	 * Returns a list of previously set metadata values from the implementing
@@ -43,7 +45,7 @@ interface Metadatable{
 	 *
 	 * @return MetadataValue[]
 	 */
-	public function getMetadata(string $metadataKey);
+	public function getMetadata($metadataKey);
 
 	/**
 	 * Tests to see whether the implementing object contains the given
@@ -53,7 +55,7 @@ interface Metadatable{
 	 *
 	 * @return bool
 	 */
-	public function hasMetadata(string $metadataKey) : bool;
+	public function hasMetadata($metadataKey);
 
 	/**
 	 * Removes the given metadata value from the implementing object's
@@ -61,7 +63,9 @@ interface Metadatable{
 	 *
 	 * @param string $metadataKey
 	 * @param Plugin $owningPlugin
+	 *
+	 * @return void
 	 */
-	public function removeMetadata(string $metadataKey, Plugin $owningPlugin);
+	public function removeMetadata($metadataKey, Plugin $owningPlugin);
 
 }

@@ -41,7 +41,7 @@ class Shulker extends Monster{
 		parent::spawnTo($player);
 	}
 
-	public function getDrops(){
+	public function getDrops() : array {
 		/*$drops = [
 			ItemItem::get(ItemItem::SHULKER_SHELL, 0, 1)
 		];*/

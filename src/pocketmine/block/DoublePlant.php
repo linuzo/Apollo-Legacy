@@ -55,7 +55,7 @@ class DoublePlant extends Flowable{
 
 	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
 		$id = $block->getSide(Vector3::SIDE_DOWN)->getId();
-		if(($id === Block::GRASS or $id === Block::DIRT) and $block->getSide(Vector3::SIDE_UP)->canBeReplaced()){
+		if (($id === Block::GRASS or $id === Block::DIRT) and $block->getSide(Vector3::SIDE_UP)->canBeReplaced()){
 			$this->getLevel()->setBlock($block, $this, false, false);
 			$this->getLevel()->setBlock($block->getSide(Vector3::SIDE_UP), Block::get($this->id, $this->meta | self::BITFLAG_TOP), false, false);
 
@@ -65,14 +65,26 @@ class DoublePlant extends Flowable{
 		return false;
 	}
 
+	public function onUpdate($type){
+		if ($type === Level::BLOCK_UPDATE_NORMAL){
+			$down = $this->getSide(Vector3::SIDE_DOWN);
+			if (!$this->isValidHalfPlant() or (($this->meta & self::BITFLAG_TOP) === 0 and $down->isTransparent())){
+				$this->getLevel()->useBreakOn($this);
+
+				return Level::BLOCK_UPDATE_NORMAL;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Returns whether this double-plant has a corresponding other half.
 	 * @return bool
 	 */
-	public function isValidHalfPlant() : bool{
-		if($this->meta & self::BITFLAG_TOP){
+	public function isValidHalfPlant(): bool{
+		if ($this->meta & self::BITFLAG_TOP){
 			$other = $this->getSide(Vector3::SIDE_DOWN);
-		}else{
+		} else{
 			$other = $this->getSide(Vector3::SIDE_UP);
 		}
 
@@ -83,21 +95,8 @@ class DoublePlant extends Flowable{
 		);
 	}
 
-	public function onUpdate($type){
-		if($type === Level::BLOCK_UPDATE_NORMAL){
-			$down = $this->getSide(Vector3::SIDE_DOWN);
-			if(!$this->isValidHalfPlant() or (($this->meta & self::BITFLAG_TOP) === 0 and $down->isTransparent())){
-				$this->getLevel()->useBreakOn($this);
-
-				return Level::BLOCK_UPDATE_NORMAL;
-			}
-		}
-
-		return false;
-	}
-
 	public function onBreak(Item $item){
-		if(parent::onBreak($item) and $this->isValidHalfPlant()){
+		if (parent::onBreak($item) and $this->isValidHalfPlant()){
 			return $this->getLevel()->setBlock($this->getSide(($this->meta & self::BITFLAG_TOP) !== 0 ? Vector3::SIDE_DOWN : Vector3::SIDE_UP), Block::get(Block::AIR));
 		}
 
@@ -105,12 +104,12 @@ class DoublePlant extends Flowable{
 	}
 
 	public function getDrops(Item $item){
-		if(!$item->isShears() and ($this->meta === 2 or $this->meta === 3)){ //grass or fern
-			if(mt_rand(0, 24) === 0){
+		if (!$item->isShears() and ($this->meta === 2 or $this->meta === 3)){ //grass or fern
+			if (mt_rand(0, 24) === 0){
 				return [
 					[Item::SEEDS, 0, 1]
 				];
-			}else{
+			} else{
 				return [];
 			}
 		}

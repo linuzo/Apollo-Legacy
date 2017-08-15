@@ -47,7 +47,7 @@ class Ghast extends Monster{
 		parent::spawnTo($player);
 	}
 
-	public function getDrops(){
+	public function getDrops() : array {
 		return [
 			ItemItem::get(ItemItem::GHAST_TEAR, 0, mt_rand(0, 1)),
 			ItemItem::get(ItemItem::GUNPOWDER, 0, mt_rand(0, 2))

@@ -26,7 +26,7 @@ use pocketmine\Player;
 
 class PoweredRepeater extends Transparent {
 
-	protected $id = self::POWERED_REPEATER_BLOCK;
+	protected $id = self::POWERED_REPEATER;
 
 	public function __construct($meta = 0) {
 		$this->meta = $meta;
@@ -71,7 +71,7 @@ class PoweredRepeater extends Transparent {
 
 	private function canStay() {
 		if ($this->getSide(0)->isTransparent())
-			return ((in_array($this->getSide(0)->getId(), [Item::SLAB, Item::SLAB2, Item::WOODEN_SLAB]) && (($this->getSide(0)->getDamage() & 0x08) > 0)) || ($this->getSide(0) instanceof Stair && (($this->getSide(0)->getDamage() & 0x04) > 0)));
+			return ((in_array($this->getSide(0)->getId(), [Item::STONE_SLAB, Item::STONE_SLAB2, Item::WOODEN_SLAB]) && (($this->getSide(0)->getDamage() & 0x08) > 0)) || ($this->getSide(0) instanceof Stair && (($this->getSide(0)->getDamage() & 0x04) > 0)));
 		return true;
 	}
 }

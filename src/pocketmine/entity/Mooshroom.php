@@ -43,7 +43,7 @@ class Mooshroom extends Animal{
 		parent::spawnTo($player);
 	}
 
-	public function getDrops(){
+	public function getDrops() : array {
 		$drops = [
 			ItemItem::get(ItemItem::LEATHER, 0, mt_rand(0, 2))
 		];

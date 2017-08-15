@@ -39,7 +39,7 @@ class IronGolem extends Animal{
 		parent::spawnTo($player);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         return [
             ItemItem::get(ItemItem::IRON_INGOT, 0, mt_rand(3, 5)),
             ItemItem::get(ItemItem::POPPY, 0, mt_rand(0, 2))

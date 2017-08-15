@@ -33,19 +33,34 @@ use pocketmine\level\format\Chunk;
 use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\StringTag;
 
 abstract class Tile extends Position{
+	
+    const BED = "Bed";
+    const BEACON = "Beacon";
+    const BREWING_STAND = "BrewingStand";
+    const CAULDRON = "Cauldron";
+    const CHEST = "Chest";
+    const COMPARATOR = "Comparator";
+    const DAY_LIGHT_DETECTOR = "DLDetector";
+    const DISPENSER = "Dispenser";
+    const DROPPER = "Dropper";
+    const ENCHANT_TABLE = "EnchantTable";
+    const ENDER_CHEST = "EnderChest";
+    const END_PORTAL = "EndPortal";
+    const FURNACE = "Furnace";
+    const FLOWER_POT = "FlowerPot";
+    const HOPPER = "Hopper";
+    const ITEM_FRAME = "ItemFrame";
+    const MOB_SPAWNER = "MobSpawner";
+    const MOVING_BLOCK = "MovingBlock";
+    const NOTEBLOCK = "Music";
+    const PISTON = "PistonArm";
+    const SIGN = "Sign";
+    const SKULL = "Skull";
 
-	const BREWING_STAND = "BrewingStand";
-	const CHEST = "Chest";
-	const ENCHANT_TABLE = "EnchantTable";
-	const FLOWER_POT = "FlowerPot";
-	const FURNACE = "Furnace";
-	const ITEM_FRAME = "ItemFrame";
-	const MOB_SPAWNER = "MobSpawner";
-	const SIGN = "Sign";
-	const SKULL = "Skull";
-	const BED = "Bed";
 
 	public static $tileCount = 1;
 
@@ -68,12 +83,20 @@ abstract class Tile extends Position{
 	public $tickTimer;
 
 	public static function init(){
+		
 		self::registerTile(Bed::class);
+        self::registerTile(Beacon::class);
+        self::registerTile(BrewingStand::class);
+		self::registerTile(Cauldron::class);
 		self::registerTile(Chest::class);
-		self::registerTile(EnchantTable::class);
+        self::registerTile(EnchantTable::class);
+        self::registerTile(EnderChest::class);
+        self::registerTile(EndPortal::class);
 		self::registerTile(FlowerPot::class);
 		self::registerTile(Furnace::class);
-		self::registerTile(ItemFrame::class);
+        self::registerTile(ItemFrame::class);
+        self::registerTile(MovingBlock::class);
+        self::registerTile(PistonArm::class);
 		self::registerTile(Sign::class);
 		self::registerTile(Skull::class);
 	}
@@ -100,7 +123,7 @@ abstract class Tile extends Position{
 	 *
 	 * @return bool
 	 */
-	public static function registerTile($className) : bool{
+	public static function registerTile($className){
 		$class = new \ReflectionClass($className);
 		if(is_a($className, Tile::class, true) and !$class->isAbstract()){
 			self::$knownTiles[$class->getShortName()] = $className;
@@ -113,9 +136,10 @@ abstract class Tile extends Position{
 
 	/**
 	 * Returns the short save name
+	 *
 	 * @return string
 	 */
-	public function getSaveId() : string{
+	public function getSaveId(){
 		return self::$shortNames[static::class];
 	}
 
@@ -125,15 +149,15 @@ abstract class Tile extends Position{
 		$this->namedtag = $nbt;
 		$this->server = $level->getServer();
 		$this->setLevel($level);
-		$this->chunk = $level->getChunk($this->namedtag->x->getValue() >> 4, $this->namedtag->z->getValue() >> 4, false);
+		$this->chunk = $level->getChunk($this->namedtag["x"] >> 4, $this->namedtag["z"] >> 4, false);
 		assert($this->chunk !== null);
 
 		$this->name = "";
 		$this->lastUpdate = microtime(true);
 		$this->id = Tile::$tileCount++;
-		$this->x = $this->namedtag->x->getValue();
-		$this->y = $this->namedtag->y->getValue();
-		$this->z = $this->namedtag->z->getValue();
+		$this->x = (int) $this->namedtag["x"];
+		$this->y = (int) $this->namedtag["y"];
+		$this->z = (int) $this->namedtag["z"];
 
 		$this->chunk->addTile($this);
 		$this->getLevel()->addTile($this);
@@ -145,10 +169,10 @@ abstract class Tile extends Position{
 	}
 
 	public function saveNBT(){
-		$this->namedtag->id->setValue($this->getSaveId());
-		$this->namedtag->x->setValue($this->x);
-		$this->namedtag->y->setValue($this->y);
-		$this->namedtag->z->setValue($this->z);
+		$this->namedtag->id = new StringTag("id", $this->getSaveId());
+		$this->namedtag->x = new IntTag("x", $this->x);
+		$this->namedtag->y = new IntTag("y", $this->y);
+		$this->namedtag->z = new IntTag("z", $this->z);
 	}
 
 	public function getCleanedNBT(){
@@ -165,14 +189,11 @@ abstract class Tile extends Position{
 	/**
 	 * @return Block
 	 */
-	public function getBlock() : Block{
+	public function getBlock(){
 		return $this->level->getBlock($this);
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function onUpdate() : bool{
+	public function onUpdate(){
 		return false;
 	}
 

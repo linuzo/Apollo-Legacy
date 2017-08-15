@@ -47,7 +47,7 @@ class Slime extends Living{
 		parent::spawnTo($player);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         return [
             ItemItem::get(ItemItem::SLIMEBALL, 0, mt_rand(0, 2))
         ];

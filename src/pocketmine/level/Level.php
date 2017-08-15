@@ -1542,6 +1542,7 @@ class Level implements ChunkManager, Metadatable{
 		$itemTag->setName("Item");
 
 		if($item->getId() > 0 and $item->getCount() > 0){
+			/** @var DroppedItem $itemEntity */
 			$itemEntity = Entity::createEntity("Item", $this, new CompoundTag("", [
 				new ListTag("Pos", [
 					new DoubleTag("", $source->getX()),
@@ -2558,7 +2559,7 @@ class Level implements ChunkManager, Metadatable{
 
 		$this->server->getPluginManager()->callEvent(new ChunkLoadEvent($this, $chunk, !$chunk->isGenerated()));
 
-		if($chunk->isPopulated() and $this->getServer()->getProperty("chunk-ticking.light-updates", false)){
+		if(!$chunk->isLightPopulated() and $chunk->isPopulated() and $this->getServer()->getProperty("chunk-ticking.light-updates", false)){
 			$this->getServer()->getScheduler()->scheduleAsyncTask(new LightPopulationTask($this, $chunk));
 		}
 
@@ -2907,20 +2908,20 @@ class Level implements ChunkManager, Metadatable{
 		}
 	}
 
-	public function setMetadata(string $metadataKey, MetadataValue $newMetadataValue){
-		$this->server->getLevelMetadata()->setMetadata($this, $metadataKey, $newMetadataValue);
+	public function setMetadata($metadataKey, MetadataValue $metadataValue){
+		$this->server->getLevelMetadata()->setMetadata($this, $metadataKey, $metadataValue);
 	}
 
-	public function getMetadata(string $metadataKey){
+	public function getMetadata($metadataKey){
 		return $this->server->getLevelMetadata()->getMetadata($this, $metadataKey);
 	}
 
-	public function hasMetadata(string $metadataKey) : bool{
+	public function hasMetadata($metadataKey){
 		return $this->server->getLevelMetadata()->hasMetadata($this, $metadataKey);
 	}
 
-	public function removeMetadata(string $metadataKey, Plugin $owningPlugin){
-		$this->server->getLevelMetadata()->removeMetadata($this, $metadataKey, $owningPlugin);
+	public function removeMetadata($metadataKey, Plugin $plugin){
+		$this->server->getLevelMetadata()->removeMetadata($this, $metadataKey, $plugin);
 	}
 
 	public function addEntityMotion(int $chunkX, int $chunkZ, int $entityId, float $x, float $y, float $z){

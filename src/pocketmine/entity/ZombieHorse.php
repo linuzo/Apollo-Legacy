@@ -46,7 +46,7 @@ class ZombieHorse extends Animal /*implements Rideable*/{
 		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_BABY);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         $drops = [
             ItemItem::get(ItemItem::ROTTEN_FLESH, 0, mt_rand(0, 2))//TODO
         ];

@@ -27,6 +27,8 @@ namespace pocketmine\tile;
 use pocketmine\level\Level;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\StringTag;
 
 class Bed extends Spawnable{
 
@@ -42,11 +44,17 @@ class Bed extends Spawnable{
 	}
 
 	public function setColor(int $color){
-		$this->namedtag->color->setValue($color & 0x0f);
+		$this->namedtag["color"] = $color & 0x0f;
 		$this->onChanged();
 	}
 
-	public function addAdditionalSpawnData(CompoundTag $nbt){
-		$nbt->color = $this->namedtag->color;
+	public function getSpawnCompound(){
+		return new CompoundTag("", [
+			new StringTag("id", Tile::BED),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
+			$this->namedtag->color
+		]);
 	}
 }

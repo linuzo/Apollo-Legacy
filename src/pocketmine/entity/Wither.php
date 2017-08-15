@@ -42,7 +42,7 @@ class Wither extends Monster implements ProjectileSource{
 		parent::spawnTo($player);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
 		return [ItemItem::get(ItemItem::NETHER_STAR)];
     }
 }

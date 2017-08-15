@@ -24,7 +24,6 @@ namespace pocketmine\entity;
 use pocketmine\event\entity\EntityDamageByChildEntityEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\network\mcpe\protocol\AnimatePacket;
 use pocketmine\network\mcpe\protocol\EntityEventPacket;
 use pocketmine\Server;
 
@@ -77,7 +76,7 @@ class Snake extends Entity{
 		}
 	}
 
-	public function getDrops(){
+	public function getDrops() : array {
 		return [];
 	}
 }

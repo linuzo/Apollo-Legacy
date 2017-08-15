@@ -65,7 +65,7 @@ class Rabbit extends Animal{
         return $this->namedtag["Type"];
     }
 
-    public function getDrops(){
+    public function getDrops() : array {
         $drops = [ItemItem::get(ItemItem::RABBIT_HIDE, 0, mt_rand(0, 2))];
 
         if($this->getLastDamageCause() === EntityDamageEvent::CAUSE_FIRE){

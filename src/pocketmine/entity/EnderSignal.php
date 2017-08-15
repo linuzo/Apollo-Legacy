@@ -30,7 +30,7 @@ class EnderSignal extends Entity{
 		if($this->age > 50){
 			$this->kill();
 			$hasUpdate = true;
-			$this->getLevel()->dropItem($this, ItemItem::get(ItemItem::EYE_OF_ENDER), $this);
+			$this->getLevel()->dropItem($this, ItemItem::get(ItemItem::ENDER_EYE), $this);
 		}
 
 		$this->timings->stopTiming();

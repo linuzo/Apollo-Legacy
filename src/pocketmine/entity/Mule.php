@@ -46,7 +46,7 @@ class Mule extends Animal implements Rideable{
 		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_BABY);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         $drops = [
             ItemItem::get(ItemItem::LEATHER, 0, mt_rand(0, 2))
         ];

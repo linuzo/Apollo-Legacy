@@ -38,9 +38,9 @@ class MinecartChest extends Snake{
     }
 
     public function onUpdate($currentTick){
+		$hasUpdate = false;
     	if($this->isAlive()){
     		$this->timings->startTiming();
-    		$hasUpdate = false;
     		/*
     		if($this->isLinked() && $this->getlinkedTarget() !== null){
     			$hasUpdate = true;
@@ -56,12 +56,12 @@ class MinecartChest extends Snake{
     		}
     			
     		$this->timings->stopTiming();
-    
-    		return $hasUpdate;
+
     	}
+		return $hasUpdate;
     }
 
-    public function getDrops(){
+    public function getDrops() : array {
         return [ItemItem::get(ItemItem::MINECART, 0, 1),ItemItem::get(ItemItem::CHEST, 0, 1)];
     }
     

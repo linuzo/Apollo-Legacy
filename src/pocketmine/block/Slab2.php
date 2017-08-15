@@ -29,7 +29,7 @@ class Slab2 extends Slab{
 	const RED_SANDSTONE = 0;
 	const PURPUR = 1;
 
-	protected $id = Block::SLAB2;
+	protected $id = Block::STONE_SLAB2;
 
 	public function __construct($meta = 0){
 		$this->meta = $meta;
@@ -45,31 +45,31 @@ class Slab2 extends Slab{
 
 	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
 		if($face === 0){
-			if($target->getId() === self::SLAB2 and ($target->getDamage() & 0x08) === 0x08){
-				$this->getLevel()->setBlock($target, Block::get(Item::DOUBLE_SLAB2, $this->meta), true);
+			if($target->getId() === self::STONE_SLAB2 and ($target->getDamage() & 0x08) === 0x08){
+				$this->getLevel()->setBlock($target, Block::get(Item::DOUBLE_STONE_SLAB2, $this->meta), true);
 
 				return true;
-			}elseif($block->getId() === self::SLAB2){
-				$this->getLevel()->setBlock($block, Block::get(Item::DOUBLE_SLAB2, $this->meta), true);
+			}elseif($block->getId() === self::STONE_SLAB2){
+				$this->getLevel()->setBlock($block, Block::get(Item::DOUBLE_STONE_SLAB2, $this->meta), true);
 
 				return true;
 			}else{
 				$this->meta |= 0x08;
 			}
 		}elseif($face === 1){
-			if($target->getId() === self::SLAB2 and ($target->getDamage() & 0x08) === 0){
-				$this->getLevel()->setBlock($target, Block::get(Item::DOUBLE_SLAB2, $this->meta), true);
+			if($target->getId() === self::STONE_SLAB2 and ($target->getDamage() & 0x08) === 0){
+				$this->getLevel()->setBlock($target, Block::get(Item::DOUBLE_STONE_SLAB2, $this->meta), true);
 
 				return true;
-			}elseif($block->getId() === self::SLAB2){
-				$this->getLevel()->setBlock($block, Block::get(Item::DOUBLE_SLAB2, $this->meta), true);
+			}elseif($block->getId() === self::STONE_SLAB2){
+				$this->getLevel()->setBlock($block, Block::get(Item::DOUBLE_STONE_SLAB2, $this->meta), true);
 
 				return true;
 			}
 			//TODO: check for collision
 		}else{
-			if($block->getId() === self::SLAB2){
-				$this->getLevel()->setBlock($block, Block::get(Item::DOUBLE_SLAB2, $this->meta), true);
+			if($block->getId() === self::STONE_SLAB2){
+				$this->getLevel()->setBlock($block, Block::get(Item::DOUBLE_STONE_SLAB2, $this->meta), true);
 			}else{
 				if($fy > 0.5){
 					$this->meta |= 0x08;
@@ -77,7 +77,7 @@ class Slab2 extends Slab{
 			}
 		}
 		
-		if($block->getId() === self::SLAB2 and ($target->getDamage() & 0x07) !== ($this->meta & 0x07)){
+		if($block->getId() === self::STONE_SLAB2 and ($target->getDamage() & 0x07) !== ($this->meta & 0x07)){
 			return false;
 		}
 		$this->getLevel()->setBlock($block, $this, true, true);

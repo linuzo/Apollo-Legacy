@@ -41,7 +41,7 @@ class Silverfish extends Monster{
 		parent::spawnTo($player);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         return [];
     }
 }

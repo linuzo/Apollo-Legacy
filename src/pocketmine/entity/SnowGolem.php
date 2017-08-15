@@ -42,7 +42,7 @@ class SnowGolem extends Animal{
 		parent::spawnTo($player);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         return [
             ItemItem::get(ItemItem::SNOWBALL, 0, mt_rand(0, 15))
         ];

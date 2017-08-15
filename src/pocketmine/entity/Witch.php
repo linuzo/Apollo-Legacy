@@ -41,7 +41,7 @@ class Witch extends Monster implements ProjectileSource{
 		parent::spawnTo($player);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         $drops = []; //TODO: Drops
         return $drops;
     }

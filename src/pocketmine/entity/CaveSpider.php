@@ -42,7 +42,7 @@ class CaveSpider extends Monster{
 		parent::spawnTo($player);
 	}
 
-	public function getDrops(){
+	public function getDrops() : array {
 		return[
 			ItemItem::get(ItemItem::STRING, 0, mt_rand(0, 2)),
 			ItemItem::get(ItemItem::SPIDER_EYE, 0, mt_rand(0, 1))

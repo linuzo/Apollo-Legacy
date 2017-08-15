@@ -43,7 +43,7 @@ class Chicken extends Animal{
 		parent::spawnTo($player);
 	}
 	
-	public function getDrops(){
+	public function getDrops() : array {
 		$drops = [ItemItem::get(ItemItem::FEATHER, 0, mt_rand(0, 2))];
 
 		if($this->getLastDamageCause() === EntityDamageEvent::CAUSE_FIRE){

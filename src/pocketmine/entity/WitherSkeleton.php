@@ -43,7 +43,7 @@ class WitherSkeleton extends Monster implements ProjectileSource{
 		parent::spawnTo($player);
 	}
 
-    public function getDrops(){
+    public function getDrops() : array {
         $drops = [];
         if($this->lastDamageCause instanceof EntityDamageByEntityEvent and $this->lastDamageCause->getEntity() instanceof Player){
             $drops = [

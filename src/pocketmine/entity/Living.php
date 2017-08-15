@@ -40,6 +40,7 @@ use pocketmine\nbt\tag\ListTag;
 use pocketmine\network\mcpe\protocol\EntityEventPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\Player;
+use pocketmine\Server;
 use pocketmine\utils\Binary;
 use pocketmine\utils\BlockIterator;
 
@@ -51,6 +52,10 @@ abstract class Living extends Entity implements Damageable{
 	protected $attackTime = 0;
 
 	protected $invisible = false;
+	
+	protected $exp_min = 0;
+	protected $exp_max = 0;
+	protected $maxHealth = 20;
 
 	protected $jumpVelocity = 0.42;
 
@@ -61,7 +66,6 @@ abstract class Living extends Entity implements Damageable{
 
 	protected function initEntity(){
 		parent::initEntity();
-
 		if(isset($this->namedtag->HealF)){
 			$this->namedtag->Health = new FloatTag("Health", (float) $this->namedtag["HealF"]);
 			unset($this->namedtag->HealF);
@@ -72,7 +76,6 @@ abstract class Living extends Entity implements Damageable{
 		}else{
 			$this->namedtag->Health = new FloatTag("Health", (float) $this->getMaxHealth());
 		}
-
 		$this->setHealth($this->namedtag["Health"]);
 
 		if(isset($this->namedtag->ActiveEffects)){
@@ -108,7 +111,7 @@ abstract class Living extends Entity implements Damageable{
 			$pk = new EntityEventPacket();
 			$pk->entityRuntimeId = $this->getId();
 			$pk->event = EntityEventPacket::RESPAWN;
-			$this->server->broadcastPacket($this->hasSpawned, $pk);
+			Server::getInstance()->broadcastPacket($this->hasSpawned, $pk);
 		}
 	}
 
@@ -117,6 +120,7 @@ abstract class Living extends Entity implements Damageable{
 	}
 
 	public function setMaxHealth($amount){
+		if(is_null($this->attributeMap->getAttribute(Attribute::HEALTH))) $this->attributeMap->addAttribute(Attribute::getAttribute(Attribute::HEALTH));
 		$this->attributeMap->getAttribute(Attribute::HEALTH)->setMaxValue($amount);
 	}
 

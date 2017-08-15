@@ -436,7 +436,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 	/**
-	 * Returns if the block can be broken with an specific Item
+	 * Returns if the item can be broken with an specific Item
 	 *
 	 * @param Item $item
 	 *
@@ -830,13 +830,13 @@ class Block extends Position implements BlockIds, Metadatable{
 		return MovingObjectPosition::fromBlock($this->x, $this->y, $this->z, $f, $vector->add($this->x, $this->y, $this->z));
 	}
 
-	public function setMetadata(string $metadataKey, MetadataValue $newMetadataValue){
+	public function setMetadata($metadataKey, MetadataValue $metadataValue){
 		if($this->getLevel() instanceof Level){
-			$this->getLevel()->getBlockMetadata()->setMetadata($this, $metadataKey, $newMetadataValue);
+			$this->getLevel()->getBlockMetadata()->setMetadata($this, $metadataKey, $metadataValue);
 		}
 	}
 
-	public function getMetadata(string $metadataKey){
+	public function getMetadata($metadataKey){
 		if($this->getLevel() instanceof Level){
 			return $this->getLevel()->getBlockMetadata()->getMetadata($this, $metadataKey);
 		}
@@ -844,17 +844,15 @@ class Block extends Position implements BlockIds, Metadatable{
 		return null;
 	}
 
-	public function hasMetadata(string $metadataKey) : bool{
+	public function hasMetadata($metadataKey){
 		if($this->getLevel() instanceof Level){
-			return $this->getLevel()->getBlockMetadata()->hasMetadata($this, $metadataKey);
+			$this->getLevel()->getBlockMetadata()->hasMetadata($this, $metadataKey);
 		}
-
-		return false;
 	}
 
-	public function removeMetadata(string $metadataKey, Plugin $owningPlugin){
+	public function removeMetadata($metadataKey, Plugin $plugin){
 		if($this->getLevel() instanceof Level){
-			$this->getLevel()->getBlockMetadata()->removeMetadata($this, $metadataKey, $owningPlugin);
+			$this->getLevel()->getBlockMetadata()->removeMetadata($this, $metadataKey, $plugin);
 		}
 	}
 }
