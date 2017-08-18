@@ -6,7 +6,7 @@
 ### Join us here! [Discord](https://discord.gg/GYCnkM2)
 
 ### Here is our twitter! new [Twitter](https://mobile.twitter.com/Spigot_PE)
-##DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
+## DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
 
 ### If you wanna Donate for the Software and Upcoming Server! Click here ->> [Donate]( https://www.patreon.com/bePatron?c=1072120&rid=1895525)
 
