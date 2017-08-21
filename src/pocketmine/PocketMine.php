@@ -72,9 +72,9 @@ namespace pocketmine {
 	use pocketmine\utils\Utils;
 	use pocketmine\wizard\Installer;
 
-	const VERSION = '1.5.1-hybrid';
+	const VERSION = '1.5.1-Powerful';
 	const API_VERSION = "1.12.0";
-	const CODENAME = "刀 (Katana)";
+	const CODENAME = "(Cupcake)";
 	const MINECRAFT_VERSION = "v1.x";
 	const MINECRAFT_VERSION_NETWORK = "1.2";
 
