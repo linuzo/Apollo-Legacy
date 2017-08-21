@@ -32,94 +32,16 @@ use pocketmine\command\ConsoleCommandSender;
 use pocketmine\command\PluginIdentifiableCommand;
 use pocketmine\command\SimpleCommandMap;
 use pocketmine\entity\Arrow;
-use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
+use pocketmine\entity\Egg;
 use pocketmine\entity\Entity;
 use pocketmine\entity\FallingSand;
 use pocketmine\entity\Human;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\PrimedTNT;
 use pocketmine\entity\Snowball;
-use pocketmine\entity\Egg;
 use pocketmine\entity\Squid;
 use pocketmine\entity\Villager;
-use pocketmine\event\HandlerList;
-use pocketmine\event\level\LevelInitEvent;
-use pocketmine\event\level\LevelLoadEvent;
-use pocketmine\event\server\QueryRegenerateEvent;
-use pocketmine\event\server\ServerCommandEvent;
-use pocketmine\event\Timings;
-use pocketmine\event\TimingsHandler;
-use pocketmine\inventory\CraftingManager;
-use pocketmine\inventory\InventoryType;
-use pocketmine\inventory\Recipe;
-use pocketmine\inventory\ShapedRecipe;
-use pocketmine\inventory\ShapelessRecipe;
-use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\Item;
-use pocketmine\level\format\anvil\Anvil;
-use pocketmine\level\format\LevelProviderManager;
-use pocketmine\level\format\mcregion\McRegion;
-use pocketmine\level\Level;
-use pocketmine\metadata\EntityMetadataStore;
-use pocketmine\metadata\LevelMetadataStore;
-use pocketmine\metadata\PlayerMetadataStore;
-use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\ByteTag;
-use pocketmine\nbt\tag\Compound;
-use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\Enum;
-use pocketmine\nbt\tag\FloatTag;
-use pocketmine\nbt\tag\IntTag;
-use pocketmine\nbt\tag\LongTag;
-use pocketmine\nbt\tag\ShortTag;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\CompressBatchedTask;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\BatchPacket;
-use pocketmine\network\protocol\CraftingDataPacket;
-use pocketmine\network\protocol\DataPacket;
-use pocketmine\network\protocol\PlayerListPacket;
-use pocketmine\network\query\QueryHandler;
-use pocketmine\network\RakLibInterface;
-use pocketmine\network\rcon\RCON;
-use pocketmine\network\SourceInterface;
-use pocketmine\network\upnp\UPnP;
-use pocketmine\permission\BanList;
-use pocketmine\permission\DefaultPermissions;
-use pocketmine\plugin\PharPluginLoader;
-use pocketmine\plugin\Plugin;
-use pocketmine\plugin\PluginLoadOrder;
-use pocketmine\plugin\PluginManager;
-use pocketmine\scheduler\CallbackTask;
-use pocketmine\scheduler\GarbageCollectionTask;
-use pocketmine\scheduler\SendUsageTask;
-use pocketmine\scheduler\ServerScheduler;
-use pocketmine\tile\Bed;
-use pocketmine\tile\Cauldron;
-use pocketmine\tile\Chest;
-use pocketmine\tile\EnchantTable;
-use pocketmine\tile\EnderChest;
-use pocketmine\tile\Furnace;
-use pocketmine\tile\Sign;
-use pocketmine\tile\Skull;
-use pocketmine\tile\FlowerPot;
-use pocketmine\tile\Tile;
-use pocketmine\utils\Binary;
-use pocketmine\utils\Cache;
-use pocketmine\utils\Config;
-use pocketmine\utils\LevelException;
-use pocketmine\utils\MainLogger;
-use pocketmine\utils\ServerException;
-use pocketmine\utils\Terminal;
-use pocketmine\utils\TextFormat;
-use pocketmine\utils\TextWrapper;
-use pocketmine\utils\Utils;
-use pocketmine\utils\UUID;
-use pocketmine\utils\VersionString;
-use pocketmine\network\protocol\Info;
-use pocketmine\level\generator\biome\Biome;
-use pocketmine\scheduler\FileWriteTask;
 use pocketmine\entity\animal\walking\Chicken;
 use pocketmine\entity\animal\walking\Cow;
 use pocketmine\entity\animal\walking\Mooshroom;
@@ -142,7 +64,81 @@ use pocketmine\entity\monster\walking\Wolf;
 use pocketmine\entity\monster\walking\Zombie;
 use pocketmine\entity\monster\walking\ZombieVillager;
 use pocketmine\entity\projectile\FireBall;
+use pocketmine\event\HandlerList;
+use pocketmine\event\Timings;
+use pocketmine\event\TimingsHandler;
+use pocketmine\event\level\LevelInitEvent;
+use pocketmine\event\level\LevelLoadEvent;
+use pocketmine\event\server\QueryRegenerateEvent;
+use pocketmine\event\server\ServerCommandEvent;
+use pocketmine\inventory\CraftingManager;
+use pocketmine\inventory\InventoryType;
+use pocketmine\inventory\Recipe;
+use pocketmine\inventory\ShapedRecipe;
+use pocketmine\inventory\ShapelessRecipe;
+use pocketmine\item\Item;
+use pocketmine\item\enchantment\Enchantment;
+use pocketmine\level\Level;
+use pocketmine\level\format\LevelProviderManager;
+use pocketmine\level\format\anvil\Anvil;
+use pocketmine\level\format\mcregion\McRegion;
+use pocketmine\level\generator\biome\Biome;
+use pocketmine\metadata\EntityMetadataStore;
+use pocketmine\metadata\LevelMetadataStore;
+use pocketmine\metadata\PlayerMetadataStore;
+use pocketmine\nbt\NBT;
+use pocketmine\nbt\tag\ByteTag;
+use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\DoubleTag;
+use pocketmine\nbt\tag\Enum;
+use pocketmine\nbt\tag\FloatTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\LongTag;
+use pocketmine\nbt\tag\ShortTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\network\Network;
+use pocketmine\network\RakLibInterface;
+use pocketmine\network\SourceInterface;
+use pocketmine\network\protocol\BatchPacket;
+use pocketmine\network\protocol\CraftingDataPacket;
+use pocketmine\network\protocol\DataPacket;
+use pocketmine\network\protocol\PlayerListPacket;
+use pocketmine\network\protocol\v120\Protocol120;
+use pocketmine\network\query\QueryHandler;
+use pocketmine\network\rcon\RCON;
+use pocketmine\network\upnp\UPnP;
+use pocketmine\permission\BanList;
+use pocketmine\permission\DefaultPermissions;
+use pocketmine\plugin\PharPluginLoader;
+use pocketmine\plugin\Plugin;
+use pocketmine\plugin\PluginLoadOrder;
+use pocketmine\plugin\PluginManager;
+use pocketmine\scheduler\CallbackTask;
+use pocketmine\scheduler\FileWriteTask;
+use pocketmine\scheduler\GarbageCollectionTask;
+use pocketmine\scheduler\ServerScheduler;
+use pocketmine\tile\Bed;
+use pocketmine\tile\Cauldron;
+use pocketmine\tile\Chest;
+use pocketmine\tile\EnchantTable;
+use pocketmine\tile\EnderChest;
+use pocketmine\tile\FlowerPot;
+use pocketmine\tile\Furnace;
+use pocketmine\tile\Sign;
+use pocketmine\tile\Skull;
+use pocketmine\tile\Tile;
+use pocketmine\utils\Binary;
+use pocketmine\utils\Cache;
+use pocketmine\utils\Config;
+use pocketmine\utils\LevelException;
+use pocketmine\utils\MainLogger;
 use pocketmine\utils\MetadataConvertor;
+use pocketmine\utils\ServerException;
+use pocketmine\utils\TextFormat;
+use pocketmine\utils\TextWrapper;
+use pocketmine\utils\UUID;
+use pocketmine\utils\Utils;
+use pocketmine\utils\VersionString;
 
 /**
  * The class that manages everything
@@ -176,13 +172,11 @@ class Server{
 	/** @var PluginManager */
 	private $pluginManager = null;
 
-	/** @var AutoUpdater */
 	private $updater = null;
 
 	/** @var ServerScheduler */
 	private $scheduler = null;
 
-	/** @var GenerationRequestManager */
 	private $generationManager = null;
 
 	/**
@@ -1453,7 +1447,7 @@ class Server{
 	
 	
 	public function about(){
-	 $version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
+	 $version = implode(",",Protocol120::MINECRAFT_VERSION);
 		$string = "
 
     _____       _             _   _____  ______       
@@ -2090,7 +2084,7 @@ class Server{
 	public function start(){			
 		DataPacket::initPackets();
 		if ($this->isUseEncrypt) {
-			\McpeEncrypter::generateKeyPair($this->serverPrivateKey, $this->serverPublicKey);
+		//	$generateKeyPair=\McpeEncrypter::generateKeyPair($this->serverPrivateKey, $this->serverPublicKey);
 		}
 		$jsonCommands = @json_decode(@file_get_contents(__DIR__ . "/command/commands.json"), true);
 		if ($jsonCommands) {

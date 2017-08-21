@@ -37,7 +37,7 @@ abstract class UPnP{
 		$port = (int) $port;
 		$myLocalIP = gethostbyname(trim(`hostname`));
 		try{
-			$com = new \COM("HNetCfg.NATUPnP");
+			$com ("HNetCfg.NATUPnP");
 			if($com === false or !is_object($com->StaticPortMappingCollection)){
 				return false;
 			}
@@ -58,7 +58,7 @@ abstract class UPnP{
 		}
 		$port = (int) $port;
 		try{
-			$com = new \COM("HNetCfg.NATUPnP") or false;
+			$com = ("HNetCfg.NATUPnP") or false;
 			if($com === false or !is_object($com->StaticPortMappingCollection)){
 				return false;
 			}

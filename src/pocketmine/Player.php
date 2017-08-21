@@ -21,8 +21,9 @@
 
 namespace pocketmine;
 
-use pocketmine\block\Block;
+use pocketmine\block\Liquid;
 use pocketmine\command\CommandSender;
+use pocketmine\customUI\CustomUI;
 use pocketmine\entity\Arrow;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
@@ -30,8 +31,8 @@ use pocketmine\entity\Human;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\Living;
 use pocketmine\entity\Projectile;
+use pocketmine\event\TextContainer;
 use pocketmine\event\block\SignChangeEvent;
-use pocketmine\event\entity\EntityDamageByBlockEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
@@ -45,8 +46,8 @@ use pocketmine\event\player\PlayerAnimationEvent;
 use pocketmine\event\player\PlayerBedEnterEvent;
 use pocketmine\event\player\PlayerBedLeaveEvent;
 use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerCommandPostprocessEvent;
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
@@ -58,43 +59,40 @@ use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerRespawnAfterEvent;
+use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerToggleSneakEvent;
 use pocketmine\event\player\PlayerToggleSprintEvent;
-use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
-use pocketmine\event\TextContainer;
-use pocketmine\event\Timings;
 use pocketmine\inventory\BaseTransaction;
 use pocketmine\inventory\BigShapedRecipe;
 use pocketmine\inventory\BigShapelessRecipe;
-use pocketmine\inventory\CraftingTransactionGroup;
 use pocketmine\inventory\EnchantInventory;
-use pocketmine\inventory\FurnaceInventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\inventory\PlayerInventory;
+use pocketmine\inventory\PlayerInventory120;
+use pocketmine\inventory\Recipe;
 use pocketmine\inventory\ShapedRecipe;
 use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\inventory\SimpleTransactionGroup;
-
-use pocketmine\item\Item;
+use pocketmine\inventory\transactions\SimpleTransactionData;
+use pocketmine\inventory\win10\Win10InvLogic;
 use pocketmine\item\Armor;
-use pocketmine\item\Tool;
+use pocketmine\item\Elytra;
+use pocketmine\item\Item;
 use pocketmine\item\Potion;
-use pocketmine\level\format\FullChunk;
-use pocketmine\level\format\LevelProvider;
+use pocketmine\item\Tool;
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\level\Level;
 use pocketmine\level\Location;
 use pocketmine\level\Position;
+use pocketmine\level\format\LevelProvider;
 use pocketmine\level\sound\LaunchSound;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
 use pocketmine\metadata\MetadataValue;
 use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\Enum;
@@ -103,39 +101,53 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\LongTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\Network;
+use pocketmine\network\SourceInterface;
+use pocketmine\network\multiversion\Multiversion;
+use pocketmine\network\multiversion\MultiversionEnums;
+use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\AdventureSettingsPacket;
 use pocketmine\network\protocol\AnimatePacket;
+use pocketmine\network\protocol\AvailableCommandsPacket;
 use pocketmine\network\protocol\BatchPacket;
+use pocketmine\network\protocol\ChunkRadiusUpdatePacket;
 use pocketmine\network\protocol\ContainerClosePacket;
 use pocketmine\network\protocol\ContainerSetContentPacket;
 use pocketmine\network\protocol\DataPacket;
 use pocketmine\network\protocol\DisconnectPacket;
 use pocketmine\network\protocol\EntityEventPacket;
-use pocketmine\network\protocol\FullChunkDataPacket;
-use pocketmine\network\protocol\Info as ProtocolInfo;
 use pocketmine\network\protocol\Info;
-use pocketmine\network\protocol\PlayerActionPacket;
-use pocketmine\network\protocol\PlayStatusPacket;
-use pocketmine\network\protocol\PlayerListPacket;
-use pocketmine\network\protocol\RespawnPacket;
-use pocketmine\network\protocol\SetEntityDataPacket;
-use pocketmine\network\protocol\StrangePacket;
-use pocketmine\network\protocol\TextPacket;
+use pocketmine\network\protocol\Info as ProtocolInfo;
+use pocketmine\network\protocol\InteractPacket;
+use pocketmine\network\protocol\LevelEventPacket;
+use pocketmine\network\protocol\LevelSoundEventPacket;
 use pocketmine\network\protocol\MovePlayerPacket;
+use pocketmine\network\protocol\PlayStatusPacket;
+use pocketmine\network\protocol\PlayerActionPacket;
+use pocketmine\network\protocol\PlayerListPacket;
+use pocketmine\network\protocol\RemoveEntityPacket;
+use pocketmine\network\protocol\ResourcePackClientResponsePacket;
+use pocketmine\network\protocol\ResourcePackStackPacket;
+use pocketmine\network\protocol\ResourcePacksInfoPacket;
+use pocketmine\network\protocol\RespawnPacket;
+use pocketmine\network\protocol\ServerToClientHandshakePacket;
 use pocketmine\network\protocol\SetDifficultyPacket;
+use pocketmine\network\protocol\SetEntityDataPacket;
 use pocketmine\network\protocol\SetEntityMotionPacket;
+use pocketmine\network\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\protocol\SetSpawnPositionPacket;
 use pocketmine\network\protocol\SetTimePacket;
+use pocketmine\network\protocol\SetTitlePacket;
 use pocketmine\network\protocol\StartGamePacket;
 use pocketmine\network\protocol\TakeItemEntityPacket;
+use pocketmine\network\protocol\TextPacket;
 use pocketmine\network\protocol\TransferPacket;
 use pocketmine\network\protocol\UpdateAttributesPacket;
-use pocketmine\network\protocol\SetHealthPacket;
 use pocketmine\network\protocol\UpdateBlockPacket;
-use pocketmine\network\protocol\ChunkRadiusUpdatePacket;
-use pocketmine\network\protocol\InteractPacket;
-use pocketmine\network\SourceInterface;
+use pocketmine\network\protocol\v120\InventoryTransactionPacket;
+use pocketmine\network\protocol\v120\PlayerSkinPacket;
+use pocketmine\network\protocol\v120\Protocol120;
+use pocketmine\network\protocol\v120\ServerSettingsResponsetPacket;
+use pocketmine\network\protocol\v120\ShowModalFormPacket;
 use pocketmine\permission\PermissibleBase;
 use pocketmine\permission\PermissionAttachment;
 use pocketmine\plugin\Plugin;
@@ -144,34 +156,6 @@ use pocketmine\tile\Sign;
 use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
 use pocketmine\utils\TextFormat;
-use pocketmine\network\protocol\SetPlayerGameTypePacket;
-use pocketmine\block\Liquid;
-use pocketmine\network\protocol\SetCommandsEnabledPacket;
-use pocketmine\network\protocol\AvailableCommandsPacket;
-use pocketmine\network\protocol\ResourcePackDataInfoPacket;
-use pocketmine\network\protocol\ResourcePacksInfoPacket;
-use pocketmine\network\protocol\ResourcePackStackPacket;
-use raklib\Binary;
-use pocketmine\network\protocol\ServerToClientHandshakePacket;
-use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\Elytra;
-use pocketmine\network\protocol\SetTitlePacket;
-use pocketmine\network\protocol\ResourcePackClientResponsePacket;
-use pocketmine\network\protocol\LevelSoundEventPacket;
-
-use pocketmine\network\protocol\v120\InventoryTransactionPacket;
-use pocketmine\network\protocol\v120\Protocol120;
-use pocketmine\inventory\PlayerInventory120;
-use pocketmine\network\multiversion\Multiversion;
-use pocketmine\network\multiversion\MultiversionEnums;
-use pocketmine\network\protocol\LevelEventPacket;
-
-use pocketmine\inventory\win10\Win10InvLogic;
-use pocketmine\network\protocol\v120\ShowModalFormPacket;
-use pocketmine\network\protocol\v120\ServerSettingsResponsetPacket;
-use pocketmine\network\protocol\v120\PlayerSkinPacket;
-use pocketmine\network\protocol\AddPlayerPacket;
-use pocketmine\network\protocol\RemoveEntityPacket;
 
 /**
  * Main class that handles networking, recovery, and packet sending to the server part
@@ -2133,7 +2117,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 				}
 				$this->craftingType = self::CRAFTING_DEFAULT;
 				$this->currentTransaction = null;
-				// @todo добавить обычный инвентарь и броню
+				// @todo Ð´Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ð¾Ð±Ñ‹Ñ‡Ð½Ñ‹Ð¹ Ð¸Ð½Ð²ÐµÐ½Ñ‚Ð°Ñ€ÑŒ Ð¸ Ð±Ñ€Ð¾Ð½ÑŽ
 				if ($packet->windowid === $this->currentWindowId) {
 					$this->server->getPluginManager()->callEvent(new InventoryCloseEvent($this->currentWindow, $this));
 					$this->removeWindow($this->currentWindow);
@@ -2188,7 +2172,7 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 					return;
 				}
 
-				// переделать эту проверку
+				// Ð¿ÐµÑ€ÐµÐ´ÐµÐ»Ð°Ñ‚ÑŒ Ñ�Ñ‚Ñƒ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÑƒ
 				if ($recipe === null || (($recipe instanceof BigShapelessRecipe || $recipe instanceof BigShapedRecipe) && $this->craftingType === self::CRAFTING_DEFAULT)) {
 					$this->inventory->sendContents($this);
 					//Timings::$timerCraftingEventPacket->stopTiming();
@@ -3630,8 +3614,8 @@ class Player extends Human implements CommandSender, InventoryHolder, IPlayer{
 	}
 
 	private function enableEncrypt($token, $privateKey, $publicKey) {
-		$this->encrypter = new \McpeEncrypter($token, $privateKey, $publicKey);
-		$this->encryptEnabled = true;
+	//	$this->encrypter = new \McpeEncrypter($token, $privateKey, $publicKey);
+		//$this->encryptEnabled = true;
 	}
 
 	public function getPlayerProtocol() {

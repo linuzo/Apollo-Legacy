@@ -38,7 +38,6 @@ class BlockIterator implements \Iterator{
 
 	private $end = false;
 
-	/** @var \SplFixedArray<Block>[3] */
 	private $blockQueue;
 	private $currentBlock = 0;
 	/** @var Block */

@@ -21,23 +21,19 @@
 
 namespace pocketmine\network;
 
-use pocketmine\event\player\PlayerCreationEvent;
-use pocketmine\event\server\QueryRegenerateEvent;
-use pocketmine\network\protocol\DataPacket;
-use pocketmine\network\protocol\Info as ProtocolInfo;
-use pocketmine\network\protocol\Info;
-use pocketmine\network\protocol\UnknownPacket;
+use Exception;
 use pocketmine\Player;
 use pocketmine\Server;
-use pocketmine\utils\MainLogger;
-use pocketmine\utils\TextFormat;
-use raklib\protocol\EncapsulatedPacket;
+use pocketmine\event\player\PlayerCreationEvent;
+use pocketmine\network\protocol\BatchPacket;
+use pocketmine\network\protocol\DataPacket;
+use pocketmine\network\protocol\Info;
+use pocketmine\utils\Binary;
 use raklib\RakLib;
+use raklib\protocol\EncapsulatedPacket;
 use raklib\server\RakLibServer;
 use raklib\server\ServerHandler;
 use raklib\server\ServerInstance;
-use pocketmine\network\protocol\BatchPacket;
-use pocketmine\utils\Binary;
 
 class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 	
@@ -111,7 +107,7 @@ class RakLibInterface implements ServerInstance, AdvancedSourceInterface{
 		}else{
 			$info = $this->rakLib->getTerminationInfo();
 			$this->network->unregisterInterface($this);
-			\ExceptionHandler::handler(E_ERROR, "RakLib Thread crashed [".$info["scope"]."]: " . (isset($info["message"]) ? $info["message"] : ""), $info["file"], $info["line"]);
+			Exception::handler(E_ERROR, "RakLib Thread crashed [".$info["scope"]."]: " . (isset($info["message"]) ? $info["message"] : ""), $info["file"], $info["line"]);
 		}
 	}
 

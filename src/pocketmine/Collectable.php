@@ -21,7 +21,7 @@
 
 namespace pocketmine;
 
-abstract class Collectable extends \Threaded implements \Collectable{
+abstract class Collectable extends \Threaded{
 	
 	private $isGarbage = false;
 	
