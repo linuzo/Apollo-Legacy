@@ -21,13 +21,12 @@
 
 namespace pocketmine\inventory;
 
-use pocketmine\level\Level;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\TileEventPacket;
 use pocketmine\Player;
 use pocketmine\Server;
-use pocketmine\tile\Chest;
+use pocketmine\level\Level;
 use pocketmine\network\protocol\LevelSoundEventPacket;
+use pocketmine\network\protocol\TileEventPacket;
+use pocketmine\tile\Chest;
 
 class ChestInventory extends ContainerInventory {
 

@@ -25,10 +25,9 @@ namespace pocketmine\event\entity;
 
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
-use pocketmine\item\FoodSource;
 
 class EntityEatBlockEvent extends EntityEatEvent{
-	public function __construct(Entity $entity, FoodSource $foodSource){
+	public function __construct(Entity $entity,  $foodSource){
 		if(!($foodSource instanceof Block)){
 			throw new \InvalidArgumentException("Food source must be a block");
 		}

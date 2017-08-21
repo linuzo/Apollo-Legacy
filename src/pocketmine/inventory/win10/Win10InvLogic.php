@@ -2,10 +2,9 @@
 
 namespace pocketmine\inventory\win10;
 
-use pocketmine\network\protocol\Info;
-use pocketmine\network\protocol\MobEquipmentPacket;
 use pocketmine\Player;
 use pocketmine\inventory\PlayerInventory;
+use pocketmine\network\protocol\MobEquipmentPacket;
 
 class Win10InvLogic {
 	

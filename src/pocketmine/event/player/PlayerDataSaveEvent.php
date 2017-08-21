@@ -23,11 +23,11 @@ declare(strict_types=1);
 
 namespace pocketmine\event\player;
 
+use pocketmine\IPlayer;
+use pocketmine\Server;
 use pocketmine\event\Cancellable;
 use pocketmine\event\Event;
-use pocketmine\IPlayer;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\Server;
+use pocketmine\nbt\tag\Compound;
 
 /**
  * Called when a player's data is about to be saved to disk.
@@ -40,7 +40,7 @@ class PlayerDataSaveEvent extends Event implements Cancellable{
 	/** @var string */
 	protected $playerName;
 
-	public function __construct(CompoundTag $nbt, string $playerName){
+	public function __construct(Compound $nbt, string $playerName){
 		$this->data = $nbt;
 		$this->playerName = $playerName;
 	}
@@ -49,14 +49,14 @@ class PlayerDataSaveEvent extends Event implements Cancellable{
 	 * Returns the data to be written to disk as a CompoundTag
 	 * @return CompoundTag
 	 */
-	public function getSaveData() : CompoundTag{
+	public function getSaveData() : Compound{
 		return $this->data;
 	}
 
 	/**
 	 * @param CompoundTag $data
 	 */
-	public function setSaveData(CompoundTag $data){
+	public function setSaveData(Compound $data){
 		$this->data = $data;
 	}
 

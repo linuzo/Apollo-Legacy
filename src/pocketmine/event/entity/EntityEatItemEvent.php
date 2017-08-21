@@ -24,11 +24,10 @@ declare(strict_types=1);
 namespace pocketmine\event\entity;
 
 use pocketmine\entity\Entity;
-use pocketmine\item\Food;
 use pocketmine\item\Item;
 
 class EntityEatItemEvent extends EntityEatEvent{
-	public function __construct(Entity $entity, Food $foodSource){
+	public function __construct(Entity $entity,  $foodSource){
 		parent::__construct($entity, $foodSource);
 	}
 

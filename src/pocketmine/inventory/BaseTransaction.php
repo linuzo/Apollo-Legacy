@@ -21,6 +21,7 @@
 
 namespace pocketmine\inventory;
 
+use pocketmine\Player;
 use pocketmine\item\Item;
 
 class BaseTransaction implements Transaction {
