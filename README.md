@@ -1,5 +1,4 @@
-# SpigotPE
- <img src="https://github.com/caspervanneck/spigotpe/blob/master/spigotpe.png">
+<img src="https://github.com/caspervanneck/spigotpe/blob/master/spigotpe.png">
  
 # Introduction:
 This is an Advanced & Feature Rich Server Software to hopefully Replace [Tesseract](https://www.github.com/TesseractTeam/Tesseract).  
@@ -11,7 +10,7 @@ NOTE: **The master branch is the only officially supported branch.**
 _All other branches are in testing and may be unstable. Do not use builds from other branches unless you are sure you understand the risks._
 
 # Where can I get the Latest spigotpe phar?
-You can download the latest phar from our [CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE- :smile:
+You can download the latest phar from our [CircleCI](https://circleci.com/gh/SpigotPE-Team) :smile:
 
 # Features:
 - [X] **CustomPotions**
