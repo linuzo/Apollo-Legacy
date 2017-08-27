@@ -10,7 +10,7 @@ NOTE: **The master branch is the only officially supported branch.**
 _All other branches are in testing and may be unstable. Do not use builds from other branches unless you are sure you understand the risks._
 
 # Where can I get the Latest spigotpe phar?
-You can download the latest phar from our [download](https://circleci.com/gh/SpigotPE-Team) :smile:
+You can download the latest phar from our [download center](https://circleci.com/gh/SpigotPE-Team) :smile:
 
 # Features:
 - [X] **CustomPotions**
@@ -29,7 +29,7 @@ You can download the latest phar from our [download](https://circleci.com/gh/Spi
 
 # Builds, Gitter Chat & Discord Server:
 #### Discord Server (Talk to a Human For Support): [Join Server]((https://discord.gg/GYCnkM2)
-[![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-TEeam)
+[![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
 
 # Windows & Linux Installation:
 Read (coming soon)
