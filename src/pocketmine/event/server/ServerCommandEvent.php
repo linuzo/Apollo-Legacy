@@ -32,7 +32,7 @@ use pocketmine\event\Cancellable;
  *
  * The message contains a slash at the start
  */
-class ServerCommandEvent extends ServerEvent implements Cancellable{
+class ServerCommandEvent extends ServerEvent implements Cancellable {
 	public static $handlerList = null;
 
 	/** @var string */
@@ -43,7 +43,7 @@ class ServerCommandEvent extends ServerEvent implements Cancellable{
 
 	/**
 	 * @param CommandSender $sender
-	 * @param string        $command
+	 * @param string $command
 	 */
 	public function __construct(CommandSender $sender, $command){
 		$this->sender = $sender;

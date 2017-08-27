@@ -25,17 +25,32 @@ use pocketmine\nbt\NBT;
 
 #include <rules/NBT.h>
 
-class ShortTag extends NamedTag{
+class ShortTag extends NamedTag {
 
+	/**
+	 * @return int
+	 */
 	public function getType(){
 		return NBT::TAG_Short;
 	}
 
-	public function read(NBT $nbt){
-		$this->value = $nbt->endianness === 1 ? unpack("n", $nbt->get(2))[1] : unpack("v", $nbt->get(2))[1];
+	/**
+	 * @param NBT $nbt
+	 * @param bool $network
+	 *
+	 * @return mixed|void
+	 */
+	public function read(NBT $nbt, bool $network = false){
+		$this->value = $nbt->getShort();
 	}
 
-	public function write(NBT $nbt){
-		$nbt->buffer .= $nbt->endianness === 1 ? pack("n", $this->value) : pack("v", $this->value);
+	/**
+	 * @param NBT $nbt
+	 * @param bool $network
+	 *
+	 * @return mixed|void
+	 */
+	public function write(NBT $nbt, bool $network = false){
+		$nbt->putShort($this->value);
 	}
 }

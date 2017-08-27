@@ -22,23 +22,24 @@
 /**
  * Network-related classes
  */
+
 namespace pocketmine\network;
 
-use pocketmine\network\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\Player;
 
 /**
  * Classes that implement this interface will be able to be attached to players
  */
-interface SourceInterface{
+interface SourceInterface {
 
 	/**
 	 * Sends a DataPacket to the interface, returns an unique identifier for the packet if $needACK is true
 	 *
-	 * @param Player     $player
+	 * @param Player $player
 	 * @param DataPacket $packet
-	 * @param bool       $needACK
-	 * @param bool       $immediate
+	 * @param bool $needACK
+	 * @param bool $immediate
 	 *
 	 * @return int
 	 */

@@ -25,32 +25,34 @@ use pocketmine\inventory\ChestInventory;
 use pocketmine\inventory\DoubleChestInventory;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\item\Item;
-use pocketmine\level\format\FullChunk;
+use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\NBT;
-
-use pocketmine\nbt\tag\Compound;
-use pocketmine\nbt\tag\Enum;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
-
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 
-class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
+class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 
 	/** @var ChestInventory */
 	protected $inventory;
 	/** @var DoubleChestInventory */
 	protected $doubleInventory = null;
 
-	public function __construct(FullChunk $chunk, Compound $nbt){
-		parent::__construct($chunk, $nbt);
+	/**
+	 * Chest constructor.
+	 *
+	 * @param Level $level
+	 * @param CompoundTag $nbt
+	 */
+	public function __construct(Level $level, CompoundTag $nbt){
+		parent::__construct($level, $nbt);
 		$this->inventory = new ChestInventory($this);
-
-		if(!isset($this->namedtag->Items) or !($this->namedtag->Items instanceof Enum)){
-			$this->namedtag->Items = new Enum("Items", []);
+		if(!isset($this->namedtag->Items) or !($this->namedtag->Items instanceof ListTag)){
+			$this->namedtag->Items = new ListTag("Items", []);
 			$this->namedtag->Items->setTagType(NBT::TAG_Compound);
 		}
-
 		for($i = 0; $i < $this->getSize(); ++$i){
 			$this->inventory->setItem($i, $this->getItem($i));
 		}
@@ -70,7 +72,7 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 	}
 
 	public function saveNBT(){
-		$this->namedtag->Items = new Enum("Items", []);
+		$this->namedtag->Items = new ListTag("Items", []);
 		$this->namedtag->Items->setTagType(NBT::TAG_Compound);
 		for($index = 0; $index < $this->getSize(); ++$index){
 			$this->setItem($index, $this->inventory->getItem($index));
@@ -91,8 +93,8 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 	 */
 	protected function getSlotIndex($index){
 		foreach($this->namedtag->Items as $i => $slot){
-			if((int) $slot["Slot"] === (int) $index){
-				return (int) $i;
+			if((int)$slot["Slot"] === (int)$index){
+				return (int)$i;
 			}
 		}
 
@@ -111,22 +113,20 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 		if($i < 0){
 			return Item::get(Item::AIR, 0, 0);
 		}else{
-			return NBT::getItemHelper($this->namedtag->Items[$i]);
+			return Item::nbtDeserialize($this->namedtag->Items[$i]);
 		}
 	}
 
 	/**
 	 * This method should not be used by plugins, use the Inventory
 	 *
-	 * @param int  $index
+	 * @param int $index
 	 * @param Item $item
 	 *
 	 * @return bool
 	 */
 	public function setItem($index, Item $item){
 		$i = $this->getSlotIndex($index);
-
-		$d = NBT::putItemHelper($item, $index);
 
 		if($item->getId() === Item::AIR or $item->getCount() <= 0){
 			if($i >= 0){
@@ -138,9 +138,9 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 					break;
 				}
 			}
-			$this->namedtag->Items[$i] = $d;
+			$this->namedtag->Items[$i] = $item->nbtSerialize($index);
 		}else{
-			$this->namedtag->Items[$i] = $d;
+			$this->namedtag->Items[$i] = $item->nbtSerialize($index);
 		}
 
 		return true;
@@ -153,6 +153,7 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 		if($this->isPaired() and $this->doubleInventory === null){
 			$this->checkPairing();
 		}
+
 		return $this->doubleInventory instanceof DoubleChestInventory ? $this->doubleInventory : $this->inventory;
 	}
 
@@ -163,17 +164,32 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 		return $this->inventory;
 	}
 
+	/**
+	 * @return DoubleChestInventory|null
+	 */
+	public function getDoubleInventory(){
+		return $this->doubleInventory;
+	}
+
 	protected function checkPairing(){
-		if(($pair = $this->getPair()) instanceof Chest){
+		if($this->isPaired() and !$this->getLevel()->isChunkLoaded($this->namedtag->pairx->getValue() >> 4, $this->namedtag->pairz->getValue() >> 4)){
+			//paired to a tile in an unloaded chunk
+			$this->doubleInventory = null;
+
+		}elseif(($pair = $this->getPair()) instanceof Chest){
 			if(!$pair->isPaired()){
 				$pair->createPair($this);
 				$pair->checkPairing();
 			}
 			if($this->doubleInventory === null){
-				if(($pair->x + ($pair->z << 15)) > ($this->x + ($this->z << 15))){ //Order them correctly
-					$this->doubleInventory = new DoubleChestInventory($pair, $this);
+				if(($p = $pair->getDoubleInventory()) instanceof DoubleChestInventory){
+					$this->doubleInventory = $p;
 				}else{
-					$this->doubleInventory = new DoubleChestInventory($this, $pair);
+					if(($pair->x + ($pair->z << 15)) > ($this->x + ($this->z << 15))){ //Order them correctly
+						$this->doubleInventory = new DoubleChestInventory($pair, $this);
+					}else{
+						$this->doubleInventory = new DoubleChestInventory($this, $pair);
+					}
 				}
 			}
 		}else{
@@ -182,23 +198,36 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 		}
 	}
 
-	public function getName(){
+	/**
+	 * @return string
+	 */
+	public function getName(): string{
 		return isset($this->namedtag->CustomName) ? $this->namedtag->CustomName->getValue() : "Chest";
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function hasName(){
 		return isset($this->namedtag->CustomName);
 	}
 
+	/**
+	 * @param void $str
+	 */
 	public function setName($str){
 		if($str === ""){
 			unset($this->namedtag->CustomName);
+
 			return;
 		}
 
 		$this->namedtag->CustomName = new StringTag("CustomName", $str);
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function isPaired(){
 		if(!isset($this->namedtag->pairx) or !isset($this->namedtag->pairz)){
 			return false;
@@ -212,7 +241,7 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 	 */
 	public function getPair(){
 		if($this->isPaired()){
-			$tile = $this->getLevel()->getTile(new Vector3((int) $this->namedtag["pairx"], $this->y, (int) $this->namedtag["pairz"]));
+			$tile = $this->getLevel()->getTile(new Vector3((int)$this->namedtag["pairx"], $this->y, (int)$this->namedtag["pairz"]));
 			if($tile instanceof Chest){
 				return $tile;
 			}
@@ -221,6 +250,11 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 		return null;
 	}
 
+	/**
+	 * @param Chest $tile
+	 *
+	 * @return bool
+	 */
 	public function pairWith(Chest $tile){
 		if($this->isPaired() or $tile->isPaired()){
 			return false;
@@ -235,6 +269,9 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 		return true;
 	}
 
+	/**
+	 * @param Chest $tile
+	 */
 	private function createPair(Chest $tile){
 		$this->namedtag->pairx = new IntTag("pairx", $tile->x);
 		$this->namedtag->pairz = new IntTag("pairz", $tile->z);
@@ -243,6 +280,9 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 		$tile->namedtag->pairz = new IntTag("pairz", $this->z);
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function unpair(){
 		if(!$this->isPaired()){
 			return false;
@@ -263,22 +303,25 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable{
 		return true;
 	}
 
+	/**
+	 * @return CompoundTag
+	 */
 	public function getSpawnCompound(){
 		if($this->isPaired()){
-			$c = new Compound("", [
+			$c = new CompoundTag("", [
 				new StringTag("id", Tile::CHEST),
-				new IntTag("x", (int) $this->x),
-				new IntTag("y", (int) $this->y),
-				new IntTag("z", (int) $this->z),
-				new IntTag("pairx", (int) $this->namedtag["pairx"]),
-				new IntTag("pairz", (int) $this->namedtag["pairz"])
+				new IntTag("x", (int)$this->x),
+				new IntTag("y", (int)$this->y),
+				new IntTag("z", (int)$this->z),
+				new IntTag("pairx", (int)$this->namedtag["pairx"]),
+				new IntTag("pairz", (int)$this->namedtag["pairz"]),
 			]);
 		}else{
-			$c = new Compound("", [
+			$c = new CompoundTag("", [
 				new StringTag("id", Tile::CHEST),
-				new IntTag("x", (int) $this->x),
-				new IntTag("y", (int) $this->y),
-				new IntTag("z", (int) $this->z)
+				new IntTag("x", (int)$this->x),
+				new IntTag("y", (int)$this->y),
+				new IntTag("z", (int)$this->z),
 			]);
 		}
 

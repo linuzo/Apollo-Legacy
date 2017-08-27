@@ -26,7 +26,14 @@ use pocketmine\level\ChunkManager;
 use pocketmine\math\Vector3 as Vector3;
 use pocketmine\utils\Random;
 
-class TallGrass{
+class TallGrass {
+	/**
+	 * @param ChunkManager $level
+	 * @param Vector3 $pos
+	 * @param Random $random
+	 * @param int $count
+	 * @param int $radius
+	 */
 	public static function growGrass(ChunkManager $level, Vector3 $pos, Random $random, $count = 15, $radius = 10){
 		$arr = [
 			[Block::DANDELION, 0],
@@ -34,7 +41,7 @@ class TallGrass{
 			[Block::TALL_GRASS, 1],
 			[Block::TALL_GRASS, 1],
 			[Block::TALL_GRASS, 1],
-			[Block::TALL_GRASS, 1]
+			[Block::TALL_GRASS, 1],
 		];
 		$arrC = count($arr) - 1;
 		for($c = 0; $c < $count; ++$c){

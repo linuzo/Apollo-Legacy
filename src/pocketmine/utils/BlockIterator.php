@@ -28,7 +28,7 @@ use pocketmine\math\Vector3;
 /**
  * This class performs ray tracing and iterates along blocks on a line
  */
-class BlockIterator implements \Iterator{
+class BlockIterator implements \Iterator {
 
 	/** @var Level */
 	private $level;
@@ -38,6 +38,7 @@ class BlockIterator implements \Iterator{
 
 	private $end = false;
 
+	/** @var \SplFixedArray<Block>[3] */
 	private $blockQueue;
 	private $currentBlock = 0;
 	/** @var Block */
@@ -55,9 +56,18 @@ class BlockIterator implements \Iterator{
 	private $secondFace;
 	private $thirdFace;
 
+	/**
+	 * BlockIterator constructor.
+	 *
+	 * @param Level $level
+	 * @param Vector3 $start
+	 * @param Vector3 $direction
+	 * @param int $yOffset
+	 * @param int $maxDistance
+	 */
 	public function __construct(Level $level, Vector3 $start, Vector3 $direction, $yOffset = 0, $maxDistance = 0){
 		$this->level = $level;
-		$this->maxDistance = (int) $maxDistance;
+		$this->maxDistance = (int)$maxDistance;
 		$this->blockQueue = new \SplFixedArray(3);
 
 		$startClone = new Vector3($start->x, $start->y, $start->z);
@@ -171,46 +181,110 @@ class BlockIterator implements \Iterator{
 		$this->maxDistanceInt = round($maxDistance / (sqrt($mainDirection ** 2 + $secondDirection ** 2 + $thirdDirection ** 2) / $mainDirection));
 	}
 
+	/**
+	 * @param Block $a
+	 * @param Block $b
+	 *
+	 * @return bool
+	 */
 	private function blockEquals(Block $a, Block $b){
 		return $a->x === $b->x and $a->y === $b->y and $a->z === $b->z;
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 *
+	 * @return int
+	 */
 	private function getXFace(Vector3 $direction){
 		return (($direction->x) > 0) ? Vector3::SIDE_EAST : Vector3::SIDE_WEST;
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 *
+	 * @return int
+	 */
 	private function getYFace(Vector3 $direction){
 		return (($direction->y) > 0) ? Vector3::SIDE_UP : Vector3::SIDE_DOWN;
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 *
+	 * @return int
+	 */
 	private function getZFace(Vector3 $direction){
 		return (($direction->z) > 0) ? Vector3::SIDE_SOUTH : Vector3::SIDE_NORTH;
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 *
+	 * @return number
+	 */
 	private function getXLength(Vector3 $direction){
 		return abs($direction->x);
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 *
+	 * @return number
+	 */
 	private function getYLength(Vector3 $direction){
 		return abs($direction->y);
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 *
+	 * @return number
+	 */
 	private function getZLength(Vector3 $direction){
 		return abs($direction->z);
 	}
 
+	/**
+	 * @param $direction
+	 * @param $position
+	 * @param $blockPosition
+	 *
+	 * @return mixed
+	 */
 	private function getPosition($direction, $position, $blockPosition){
 		return $direction > 0 ? ($position - $blockPosition) : ($blockPosition + 1 - $position);
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 * @param Vector3 $position
+	 * @param Block $block
+	 *
+	 * @return mixed
+	 */
 	private function getXPosition(Vector3 $direction, Vector3 $position, Block $block){
 		return $this->getPosition($direction->x, $position->x, $block->x);
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 * @param Vector3 $position
+	 * @param Block $block
+	 *
+	 * @return mixed
+	 */
 	private function getYPosition(Vector3 $direction, Vector3 $position, Block $block){
 		return $this->getPosition($direction->y, $position->y, $block->y);
 	}
 
+	/**
+	 * @param Vector3 $direction
+	 * @param Vector3 $position
+	 * @param Block $block
+	 *
+	 * @return mixed
+	 */
 	private function getZPosition(Vector3 $direction, Vector3 $position, Block $block){
 		return $this->getPosition($direction->z, $position->z, $block->z);
 	}
@@ -234,6 +308,7 @@ class BlockIterator implements \Iterator{
 		if($this->currentBlockObject === null){
 			throw new \OutOfBoundsException;
 		}
+
 		return $this->currentBlockObject;
 	}
 
@@ -241,22 +316,34 @@ class BlockIterator implements \Iterator{
 		throw new \InvalidStateException("BlockIterator doesn't support rewind()");
 	}
 
+	/**
+	 * @return int
+	 */
 	public function key(){
 		return $this->currentBlock - 1;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function valid(){
 		$this->scan();
+
 		return $this->currentBlock !== -1;
 	}
 
 	private function scan(){
-		if ($this->currentBlock >= 0 || $this->end) {
+		if($this->currentBlock >= 0){
 			return;
 		}
 
 		if($this->maxDistance !== 0 and $this->currentDistance > $this->maxDistanceInt){
 			$this->end = true;
+
+			return;
+		}
+
+		if($this->end){
 			return;
 		}
 

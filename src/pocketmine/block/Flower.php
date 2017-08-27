@@ -26,7 +26,7 @@ use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class Flower extends Flowable{
+class Flower extends Flowable {
 	const TYPE_POPPY = 0;
 	const TYPE_BLUE_ORCHID = 1;
 	const TYPE_ALLIUM = 2;
@@ -39,33 +39,54 @@ class Flower extends Flowable{
 
 	protected $id = self::RED_FLOWER;
 
+	/**
+	 * Flower constructor.
+	 *
+	 * @param int $meta
+	 */
 	public function __construct($meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function getName(){
+	/**
+	 * @return string
+	 */
+	public function getName(): string{
 		static $names = [
-			self::TYPE_POPPY => "Poppy",
-			self::TYPE_BLUE_ORCHID => "Blue Orchid",
-			self::TYPE_ALLIUM => "Allium",
-			self::TYPE_AZURE_BLUET => "Azure Bluet",
-			self::TYPE_RED_TULIP => "Red Tulip",
+			self::TYPE_POPPY        => "Poppy",
+			self::TYPE_BLUE_ORCHID  => "Blue Orchid",
+			self::TYPE_ALLIUM       => "Allium",
+			self::TYPE_AZURE_BLUET  => "Azure Bluet",
+			self::TYPE_RED_TULIP    => "Red Tulip",
 			self::TYPE_ORANGE_TULIP => "Orange Tulip",
-			self::TYPE_WHITE_TULIP => "White Tulip",
-			self::TYPE_PINK_TULIP => "Pink Tulip",
-			self::TYPE_OXEYE_DAISY => "Oxeye Daisy",
-			9 => "Unknown",
-			10 => "Unknown",
-			11 => "Unknown",
-			12 => "Unknown",
-			13 => "Unknown",
-			14 => "Unknown",
-			15 => "Unknown"
+			self::TYPE_WHITE_TULIP  => "White Tulip",
+			self::TYPE_PINK_TULIP   => "Pink Tulip",
+			self::TYPE_OXEYE_DAISY  => "Oxeye Daisy",
+			9                       => "Unknown",
+			10                      => "Unknown",
+			11                      => "Unknown",
+			12                      => "Unknown",
+			13                      => "Unknown",
+			14                      => "Unknown",
+			15                      => "Unknown",
 		];
+
 		return $names[$this->meta];
 	}
 
 
+	/**
+	 * @param Item $item
+	 * @param Block $block
+	 * @param Block $target
+	 * @param int $face
+	 * @param float $fx
+	 * @param float $fy
+	 * @param float $fz
+	 * @param Player|null $player
+	 *
+	 * @return bool
+	 */
 	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
 		$down = $this->getSide(0);
 		if($down->getId() === Block::GRASS or $down->getId() === Block::DIRT or $down->getId() === Block::FARMLAND){
@@ -77,6 +98,11 @@ class Flower extends Flowable{
 		return false;
 	}
 
+	/**
+	 * @param int $type
+	 *
+	 * @return bool|int
+	 */
 	public function onUpdate($type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
 			if($this->getSide(Vector3::SIDE_DOWN)->isTransparent()){

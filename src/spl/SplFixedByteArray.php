@@ -2,7 +2,7 @@
 
 /*
  * PocketMine Standard PHP Library
- * Copyright (C) 2014 PocketMine Team <https://github.com/PocketMine/PocketMine-SPL>
+ * Copyright (C) 2014-2017 PocketMine Team <https://github.com/PocketMine/PocketMine-SPL>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,13 +15,13 @@
  * GNU General Public License for more details.
 */
 
-class SplFixedByteArray extends SplFixedArray{
+class SplFixedByteArray extends SplFixedArray {
 
 	private $convert;
 
 	public function __construct($size, $convert = false){
 		parent::__construct($size);
-		$this->convert = (bool) $convert;
+		$this->convert = (bool)$convert;
 	}
 
 	public function chunk($start, $size, $normalize = true){
@@ -37,12 +37,13 @@ class SplFixedByteArray extends SplFixedArray{
 				$d[] = $this[$i];
 			}
 		}
+
 		return $d;
 	}
 
 	/**
 	 * @param string $str
-	 * @param bool   $convert
+	 * @param bool $convert
 	 *
 	 * @return SplFixedByteArray
 	 */
@@ -65,9 +66,9 @@ class SplFixedByteArray extends SplFixedArray{
 
 	/**
 	 * @param string $str
-	 * @param int    $size
-	 * @param int    $start
-	 * @param bool   $convert
+	 * @param int $size
+	 * @param int $start
+	 * @param bool $convert
 	 *
 	 * @return SplFixedByteArray
 	 */
@@ -98,6 +99,7 @@ class SplFixedByteArray extends SplFixedArray{
 				$result .= $this[$i];
 			}
 		}
+
 		return $result;
 	}
 

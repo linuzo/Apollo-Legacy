@@ -24,7 +24,7 @@ namespace pocketmine\permission;
 use pocketmine\Server;
 use pocketmine\utils\MainLogger;
 
-class BanList{
+class BanList {
 
 	/** @var BanEntry[] */
 	private $list = [];
@@ -53,7 +53,7 @@ class BanList{
 	 * @param bool $flag
 	 */
 	public function setEnabled($flag){
-		$this->enabled = (bool) $flag;
+		$this->enabled = (bool)$flag;
 	}
 
 	/**
@@ -90,10 +90,10 @@ class BanList{
 	}
 
 	/**
-	 * @param string    $target
-	 * @param string    $reason
+	 * @param string $target
+	 * @param string $reason
 	 * @param \DateTime $expires
-	 * @param string    $source
+	 * @param string $source
 	 *
 	 * @return BanEntry
 	 */
@@ -146,6 +146,9 @@ class BanList{
 		}
 	}
 
+	/**
+	 * @param bool $flag
+	 */
 	public function save($flag = true){
 		$this->removeExpired();
 		$fp = @fopen($this->file, "w");

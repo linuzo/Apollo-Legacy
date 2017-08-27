@@ -30,7 +30,7 @@ use pocketmine\utils\Random;
  * Stefan Gustavson at
  * http://staffwww.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
  */
-class Simplex extends Perlin{
+class Simplex extends Perlin {
 	protected static $SQRT_3;
 	protected static $SQRT_5;
 	protected static $F2;
@@ -63,6 +63,14 @@ class Simplex extends Perlin{
 	protected $offsetW;
 
 
+	/**
+	 * Simplex constructor.
+	 *
+	 * @param Random $random
+	 * @param        $octaves
+	 * @param        $persistence
+	 * @param int $expansion
+	 */
 	public function __construct(Random $random, $octaves, $persistence, $expansion = 1){
 		parent::__construct($random, $octaves, $persistence, $expansion);
 		$this->offsetW = $random->nextFloat() * 256;
@@ -80,18 +88,49 @@ class Simplex extends Perlin{
 		self::$G44 = self::$G4 * 4.0 - 1.0;
 	}
 
+	/**
+	 * @param $g
+	 * @param $x
+	 * @param $y
+	 *
+	 * @return mixed
+	 */
 	protected static function dot2D($g, $x, $y){
 		return $g[0] * $x + $g[1] * $y;
 	}
 
+	/**
+	 * @param $g
+	 * @param $x
+	 * @param $y
+	 * @param $z
+	 *
+	 * @return mixed
+	 */
 	protected static function dot3D($g, $x, $y, $z){
 		return $g[0] * $x + $g[1] * $y + $g[2] * $z;
 	}
 
+	/**
+	 * @param $g
+	 * @param $x
+	 * @param $y
+	 * @param $z
+	 * @param $w
+	 *
+	 * @return mixed
+	 */
 	protected static function dot4D($g, $x, $y, $z, $w){
 		return $g[0] * $x + $g[1] * $y + $g[2] * $z + $g[3] * $w;
 	}
 
+	/**
+	 * @param $x
+	 * @param $y
+	 * @param $z
+	 *
+	 * @return float
+	 */
 	public function getNoise3D($x, $y, $z){
 		$x += $this->offsetX;
 		$y += $this->offsetY;
@@ -99,9 +138,9 @@ class Simplex extends Perlin{
 
 		// Skew the input space to determine which simplex cell we're in
 		$s = ($x + $y + $z) * self::$F3; // Very nice and simple skew factor for 3D
-		$i = (int) ($x + $s);
-		$j = (int) ($y + $s);
-		$k = (int) ($z + $s);
+		$i = (int)($x + $s);
+		$j = (int)($y + $s);
+		$k = (int)($z + $s);
 		$t = ($i + $j + $k) * self::$G3;
 		// Unskew the cell origin back to (x,y,z) space
 		$x0 = $x - ($i - $t); // The x,y,z distances from the cell origin
@@ -216,14 +255,20 @@ class Simplex extends Perlin{
 		return 32.0 * $n;
 	}
 
+	/**
+	 * @param $x
+	 * @param $y
+	 *
+	 * @return float
+	 */
 	public function getNoise2D($x, $y){
 		$x += $this->offsetX;
 		$y += $this->offsetY;
 
 		// Skew the input space to determine which simplex cell we're in
 		$s = ($x + $y) * self::$F2; // Hairy factor for 2D
-		$i = (int) ($x + $s);
-		$j = (int) ($y + $s);
+		$i = (int)($x + $s);
+		$j = (int)($y + $s);
 		$t = ($i + $j) * self::$G2;
 		// Unskew the cell origin back to (x,y) space
 		$x0 = $x - ($i - $t); // The x,y distances from the cell origin

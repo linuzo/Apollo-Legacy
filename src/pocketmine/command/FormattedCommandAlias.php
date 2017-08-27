@@ -21,15 +21,16 @@
 
 namespace pocketmine\command;
 
+use pocketmine\event\TranslationContainer;
 use pocketmine\Server;
 use pocketmine\utils\MainLogger;
 use pocketmine\utils\TextFormat;
 
-class FormattedCommandAlias extends Command{
+class FormattedCommandAlias extends Command {
 	private $formatStrings = [];
 
 	/**
-	 * @param string   $alias
+	 * @param string $alias
 	 * @param string[] $formatStrings
 	 */
 	public function __construct($alias, array $formatStrings){
@@ -37,6 +38,13 @@ class FormattedCommandAlias extends Command{
 		$this->formatStrings = $formatStrings;
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $commandLabel
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $commandLabel, array $args){
 
 		$commands = [];
@@ -45,11 +53,11 @@ class FormattedCommandAlias extends Command{
 		foreach($this->formatStrings as $formatString){
 			try{
 				$commands[] = $this->buildCommand($formatString, $args);
-			}catch(\Exception $e){
+			}catch(\Throwable $e){
 				if($e instanceof \InvalidArgumentException){
 					$sender->sendMessage(TextFormat::RED . $e->getMessage());
 				}else{
-					$sender->sendMessage(TextFormat::RED . "An internal error occurred while attempting to perform this command");
+					$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.exception"));
 					$logger = $sender->getServer()->getLogger();
 					if($logger instanceof MainLogger){
 						$logger->logException($e);
@@ -64,12 +72,12 @@ class FormattedCommandAlias extends Command{
 			$result |= Server::getInstance()->dispatchCommand($sender, $command);
 		}
 
-		return (bool) $result;
+		return (bool)$result;
 	}
 
 	/**
 	 * @param string $formatString
-	 * @param array  $args
+	 * @param array $args
 	 *
 	 * @return string
 	 * @throws \InvalidArgumentException
@@ -95,7 +103,7 @@ class FormattedCommandAlias extends Command{
 
 			$argStart = $index;
 
-			while($index < strlen($formatString) and self::inRange($formatString{$index} - 48, 0, 9)){
+			while($index < strlen($formatString) and self::inRange(ord($formatString{$index}) - 48, 0, 9)){
 				++$index;
 			}
 

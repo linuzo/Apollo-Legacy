@@ -24,7 +24,7 @@ namespace pocketmine\level\generator\biome;
 use pocketmine\level\generator\noise\Simplex;
 use pocketmine\utils\Random;
 
-class BiomeSelector{
+class BiomeSelector {
 
 	/** @var Biome */
 	private $fallback;
@@ -77,10 +77,11 @@ class BiomeSelector{
 	 * @return Biome
 	 */
 	public function pickBiome($x, $z){
-		$temperature = (int) ($this->getTemperature($x, $z) * 63);
-		$rainfall = (int) ($this->getRainfall($x, $z) * 63);
+		$temperature = (int)($this->getTemperature($x, $z) * 63);
+		$rainfall = (int)($this->getRainfall($x, $z) * 63);
 
 		$biomeId = $this->map[$temperature + ($rainfall << 6)];
+
 		return isset($this->biomes[$biomeId]) ? $this->biomes[$biomeId] : $this->fallback;
 	}
 }

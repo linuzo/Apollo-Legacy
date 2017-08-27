@@ -22,6 +22,7 @@
 /**
  * Permission related classes
  */
+
 namespace pocketmine\permission;
 
 use pocketmine\Server;
@@ -29,7 +30,7 @@ use pocketmine\Server;
 /**
  * Represents a permission
  */
-class Permission{
+class Permission {
 	const DEFAULT_OP = "op";
 	const DEFAULT_NOT_OP = "notop";
 	const DEFAULT_TRUE = "true";
@@ -92,9 +93,9 @@ class Permission{
 	/**
 	 * Creates a new Permission object to be attached to Permissible objects
 	 *
-	 * @param string       $name
-	 * @param string       $description
-	 * @param string       $defaultValue
+	 * @param string $name
+	 * @param string $description
+	 * @param string $defaultValue
 	 * @param Permission[] $children
 	 */
 	public function __construct($name, $description = null, $defaultValue = null, array $children = []){
@@ -109,7 +110,7 @@ class Permission{
 	/**
 	 * @return string
 	 */
-	public function getName(){
+	public function getName(): string{
 		return $this->name;
 	}
 
@@ -173,13 +174,14 @@ class Permission{
 	 * @param string|Permission $name
 	 * @param                   $value
 	 *
-	 * @return Permission|void Permission if $name is a string, void if it's a Permission
+	 * @return Permission|null Permission if $name is a string, void if it's a Permission
 	 */
 	public function addParent($name, $value){
 		if($name instanceof Permission){
 			$name->getChildren()[$this->getName()] = $value;
 			$name->recalculatePermissibles();
-			return;
+
+			return null;
 		}else{
 			$perm = Server::getInstance()->getPluginManager()->getPermission($name);
 			if($perm === null){
@@ -210,13 +212,13 @@ class Permission{
 
 	/**
 	 * @param string $name
-	 * @param array  $data
+	 * @param array $data
 	 * @param string $default
-	 * @param array  $output
+	 * @param array $output
 	 *
 	 * @return Permission
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public static function loadPermission($name, array $data, $default = self::DEFAULT_OP, &$output = []){
 		$desc = null;

@@ -26,36 +26,52 @@ use pocketmine\Player;
 /**
  * Called when a player leaves the server
  */
-class PlayerQuitEvent extends PlayerEvent{
+class PlayerQuitEvent extends PlayerEvent {
 	public static $handlerList = null;
 
 	/** @var string */
 	protected $quitMessage;
-	protected $quitReason;
-	protected $quitLog;
+	protected $autoSave = true;
 
-	public function __construct(Player $player, $quitMessage, $quitReason, $quitLog = ""){
+	/**
+	 * PlayerQuitEvent constructor.
+	 *
+	 * @param Player $player
+	 * @param        $quitMessage
+	 * @param bool $autoSave
+	 */
+	public function __construct(Player $player, $quitMessage, $autoSave = true){
 		$this->player = $player;
 		$this->quitMessage = $quitMessage;
-		$this->quitReason = $quitReason;
-		$this->quitLog = $quitLog;
+		$this->autoSave = $autoSave;
 	}
 
+	/**
+	 * @param $quitMessage
+	 */
 	public function setQuitMessage($quitMessage){
 		$this->quitMessage = $quitMessage;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getQuitMessage(){
 		return $this->quitMessage;
 	}
-	
-	public function getQuitReason(){
-		return $this->quitReason;
+
+	/**
+	 * @return bool
+	 */
+	public function getAutoSave(){
+		return $this->autoSave;
 	}
-	
-	public function getQuitLog(){
-		return $this->quitLog;
+
+	/**
+	 * @param bool $value
+	 */
+	public function setAutoSave($value = true){
+		$this->autoSave = (bool)$value;
 	}
-	
 
 }

@@ -22,15 +22,15 @@
 /**
  * Task scheduling related classes
  */
+
 namespace pocketmine\scheduler;
 
 use pocketmine\plugin\Plugin;
+use pocketmine\plugin\PluginException;
 use pocketmine\Server;
-use pocketmine\utils\MainLogger;
-use pocketmine\utils\PluginException;
 use pocketmine\utils\ReversePriorityQueue;
 
-class ServerScheduler{
+class ServerScheduler {
 	public static $WORKERS = 2;
 	/**
 	 * @var ReversePriorityQueue<Task>
@@ -51,6 +51,9 @@ class ServerScheduler{
 	/** @var int */
 	protected $currentTick = 0;
 
+	/**
+	 * ServerScheduler constructor.
+	 */
 	public function __construct(){
 		$this->queue = new ReversePriorityQueue();
 		$this->asyncPool = new AsyncPool(Server::getInstance(), self::$WORKERS);
@@ -79,34 +82,62 @@ class ServerScheduler{
 	}
 
 	/**
+	 * Submits an asynchronous task to a specific Worker in the Pool
+	 *
+	 * @param AsyncTask $task
+	 * @param int $worker
+	 *
+	 * @return void
+	 */
+	public function scheduleAsyncTaskToWorker(AsyncTask $task, $worker){
+		$id = $this->nextId();
+		$task->setTaskId($id);
+		$this->asyncPool->submitTaskToWorker($task, $worker);
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getAsyncTaskPoolSize(){
+		return $this->asyncPool->getSize();
+	}
+
+	/**
+	 * @param $newSize
+	 */
+	public function increaseAsyncTaskPoolSize($newSize){
+		$this->asyncPool->increaseSize($newSize);
+	}
+
+	/**
 	 * @param Task $task
-	 * @param int  $delay
+	 * @param int $delay
 	 *
 	 * @return null|TaskHandler
 	 */
 	public function scheduleDelayedTask(Task $task, $delay){
-		return $this->addTask($task, (int) $delay, -1);
+		return $this->addTask($task, (int)$delay, -1);
 	}
 
 	/**
 	 * @param Task $task
-	 * @param int  $period
+	 * @param int $period
 	 *
 	 * @return null|TaskHandler
 	 */
 	public function scheduleRepeatingTask(Task $task, $period){
-		return $this->addTask($task, -1, (int) $period);
+		return $this->addTask($task, -1, (int)$period);
 	}
 
 	/**
 	 * @param Task $task
-	 * @param int  $delay
-	 * @param int  $period
+	 * @param int $delay
+	 * @param int $period
 	 *
 	 * @return null|TaskHandler
 	 */
 	public function scheduleDelayedRepeatingTask(Task $task, $delay, $period){
-		return $this->addTask($task, (int) $delay, (int) $period);
+		return $this->addTask($task, (int)$delay, (int)$period);
 	}
 
 	/**
@@ -117,16 +148,6 @@ class ServerScheduler{
 			$this->tasks[$taskId]->cancel();
 			unset($this->tasks[$taskId]);
 		}
-	}
-	
-	public function getAsyncTaskPoolSize(){
-		return $this->asyncPool->getSize();
-	}
-	
-	public function scheduleAsyncTaskToWorker(AsyncTask $task, $worker){
-		$id = $this->nextId();
-		$task->setTaskId($id);
-		$this->asyncPool->submitTaskToWorker($task, $worker);
 	}
 
 	/**
@@ -148,7 +169,9 @@ class ServerScheduler{
 		}
 		$this->tasks = [];
 		$this->asyncPool->removeTasks();
-		$this->queue = new ReversePriorityQueue();
+		while(!$this->queue->isEmpty()){
+			$this->queue->extract();
+		}
 		$this->ids = 1;
 	}
 
@@ -189,24 +212,14 @@ class ServerScheduler{
 			$period = 1;
 		}
 
-		if($task instanceof CallbackTask){
-			$callable = $task->getCallable();
-			if(is_array($callable)){
-				if(is_object($callable[0])){
-					$taskName = "Callback#" . get_class($callable[0]) . "::" . $callable[1];
-				}else{
-					$taskName = "Callback#" . $callable[0] . "::" . $callable[1];
-				}
-			}else{
-				$taskName = "Callback#" . $callable;
-			}
-		}else{
-			$taskName = get_class($task);
-		}
-
-		return $this->handle(new TaskHandler($taskName, $task, $this->nextId(), $delay, $period));
+		return $this->handle(new TaskHandler(get_class($task), $task, $this->nextId(), $delay, $period));
 	}
 
+	/**
+	 * @param TaskHandler $handler
+	 *
+	 * @return TaskHandler
+	 */
 	private function handle(TaskHandler $handler){
 		if($handler->isDelayed()){
 			$nextRun = $this->currentTick + $handler->getDelay();
@@ -233,14 +246,14 @@ class ServerScheduler{
 				unset($this->tasks[$task->getTaskId()]);
 				continue;
 			}else{
-				//$task->timings->startTiming();
+				$task->timings->startTiming();
 				try{
 					$task->run($this->currentTick);
 				}catch(\Throwable $e){
 					Server::getInstance()->getLogger()->critical("Could not execute task " . $task->getTaskName() . ": " . $e->getMessage());
 					Server::getInstance()->getLogger()->logException($e);
 				}
-				//$task->timings->stopTiming();
+				$task->timings->stopTiming();
 			}
 			if($task->isRepeating()){
 				$task->setNextRun($this->currentTick + $task->getPeriod());
@@ -254,6 +267,11 @@ class ServerScheduler{
 		$this->asyncPool->collectTasks();
 	}
 
+	/**
+	 * @param $currentTicks
+	 *
+	 * @return bool
+	 */
 	private function isReady($currentTicks){
 		return count($this->tasks) > 0 and $this->queue->current()->getNextRun() <= $currentTicks;
 	}

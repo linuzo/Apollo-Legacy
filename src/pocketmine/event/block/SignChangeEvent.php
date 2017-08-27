@@ -28,7 +28,7 @@ use pocketmine\Player;
 /**
  * Called when a sign is changed by a player.
  */
-class SignChangeEvent extends BlockEvent implements Cancellable{
+class SignChangeEvent extends BlockEvent implements Cancellable {
 	public static $handlerList = null;
 
 	/** @var \pocketmine\Player */
@@ -37,8 +37,8 @@ class SignChangeEvent extends BlockEvent implements Cancellable{
 	private $lines = [];
 
 	/**
-	 * @param Block    $theBlock
-	 * @param Player   $thePlayer
+	 * @param Block $theBlock
+	 * @param Player $thePlayer
 	 * @param string[] $theLines
 	 */
 	public function __construct(Block $theBlock, Player $thePlayer, array $theLines){
@@ -71,7 +71,7 @@ class SignChangeEvent extends BlockEvent implements Cancellable{
 	}
 
 	/**
-	 * @param int    $index 0-3
+	 * @param int $index 0-3
 	 * @param string $line
 	 */
 	public function setLine($index, $line){

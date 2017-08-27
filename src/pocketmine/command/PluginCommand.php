@@ -21,10 +21,11 @@
 
 namespace pocketmine\command;
 
+use pocketmine\event\TranslationContainer;
 use pocketmine\plugin\Plugin;
-use pocketmine\utils\TextFormat;
 
-class PluginCommand extends Command implements PluginIdentifiableCommand{
+
+class PluginCommand extends Command implements PluginIdentifiableCommand {
 
 	/** @var Plugin */
 	private $owningPlugin;
@@ -43,6 +44,13 @@ class PluginCommand extends Command implements PluginIdentifiableCommand{
 		$this->usageMessage = "";
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $commandLabel
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $commandLabel, array $args){
 
 		if(!$this->owningPlugin->isEnabled()){
@@ -56,12 +64,15 @@ class PluginCommand extends Command implements PluginIdentifiableCommand{
 		$success = $this->executor->onCommand($sender, $this, $commandLabel, $args);
 
 		if(!$success and $this->usageMessage !== ""){
-			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
+			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
 		}
 
 		return $success;
 	}
 
+	/**
+	 * @return CommandExecutor|Plugin
+	 */
 	public function getExecutor(){
 		return $this->executor;
 	}

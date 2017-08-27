@@ -1,37 +1,76 @@
 # SpigotPE
  <img src="https://github.com/caspervanneck/spigotpe/blob/master/spigotpe.png">
  
- ### We accept pull request so what are you waiting for
- 
- ### Join us here! [Discord](https://discord.gg/GYCnkM2)
- 
- ### Here is our twitter! new [Twitter](https://mobile.twitter.com/Spigot_PE)
- ## DOWNLOAD LINK -> [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
- 
- ### If you wanna Donate for the Software and Upcoming Server! Click here ->> [Donate]( https://www.patreon.com/bePatron?c=1072120&rid=1895525)
- 
- ## Warning: all new alpha 3.0.0 alhpa X plugins will not work!!!
- 
- # Introduction:
- - This is an Advanced & Feature Rich Server Software to hopefully Replace Tesseract.  
- - (They're dead. And this is **NOT** supposed to be taken out of context.)  
- - This spoon is based off of staedfast2 (For Stability)  
- 
- # ToDo:
- - [ ] Fully Functional **Elytra Wings** and **SlimeBlocks**
- - [ ] EnderChests
- - [ ] **Full Tesseract & PMMP PluginAPI Compatibility not all plugins just ask and we will look at it**
- - [ ] **CustomPotions**
- - [ ] **CustomEnchants**
- - [ ] 1.0.x Blocks & Items
- - [ ] 1.1.x Blocks & Items
- - [ ] **CommandLogger**
- - [ ] **Toggleable PluginAPI Version Checking**
- - [ ] **Toggleable Built-In Devtools & FolderPluginLoader**
- - [ ] **Limited Creative**
- - [ ] **Weather**  
- - [X] Spawn Eggs
- - [X] Working Mob Spawners (#WIP)
- - [X] Toggleable MobAI
- - [X] support 32bit
- - [X] mcpe 1.2 beta support
+# Introduction:
+This is an Advanced & Feature Rich Server Software to hopefully Replace [Tesseract](https://www.github.com/TesseractTeam/Tesseract).  
+(They're dead. And this is **NOT** supposed to be taken out of context.)  
+This spoon is based off of [GenisysPro](https://www.github.com/GenisysPro/GenisysPro) (For Stability) which is based on [Genisys](https://www.github.com/ITXTech/Genisys)<br />
+Report any BUGS in the issues section...
+
+NOTE: **The master branch is the only officially supported branch.**
+_All other branches are in testing and may be unstable. Do not use builds from other branches unless you are sure you understand the risks._
+
+# Where can I get the Latest spigotpe phar?
+You can download the latest phar from our [CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE- :smile:
+
+# Features:
+- [X] **CustomPotions**
+- [X] **Fully Support UserNames with spaces**
+- [X] **XBox Live Authentication**
+- [X] **Integrated DevTools**
+- [X] **Advanced Player Functions**
+- [X] **GeniAPI v2.0**
+- [X] **LoginPacket variables are accessible Via plugins**
+- [X] **CustomEnchants**
+- [X] **Plugin Compatibility for PMMP Plugins**
+- [X] **Plugin Compatibility for Tesseract & Genisys Plugins**
+- [X] **More Advanced & Open MainLogger**
+
+***Other List Entries are on "spigotpe.yml"....***
+
+# Builds, Gitter Chat & Discord Server:
+#### Discord Server (Talk to a Human For Support): [Join Server]((https://discord.gg/GYCnkM2)
+[![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-
+
+# Windows & Linux Installation:
+Read (coming soon)
+
+# Resources:
+To be able to run this on Windows, You'll need Visual Studio C++ Redistributable 2015,
+Which can be downloaded [Here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
+
+# Acknowledgements / Credits:
+- spigotpe is a "spoon" of **[Pocketmine-MP](http://github.com/pmmp/PocketMine-MP/)**
+- Most of the original code was written by the original [PocketMine](https://github.com/PocketMine) Team and [GenisysPro](https://github.com/GenisysPro).
+- Some Implementations are ported from [Tesseract](https://www.github.com/TesseractTeam/Tesseract), [Prismarine](https://github.com/PrismarineMC/Prismarine) and [Genisys](https://www.github.com/ITXTech/Genisys)
+- Ported files' authors are stated inside the file
+- most files were token from [Leveryl](https://github.com/LeverylTeam/Leveryl)
+
+# License:
+```
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+```
+# Third-party Libraries/Protocols Used:
+* __[PHP Sockets](http://php.net/manual/en/book.sockets.php)__
+* __[PHP mbstring](http://php.net/manual/en/book.mbstring.php)__
+* __[PHP SQLite3](http://php.net/manual/en/book.sqlite3.php)__
+* __[PHP BCMath](http://php.net/manual/en/book.bc.php)__
+* __[PHP pthreads](http://pthreads.org/)__ by _[krakjoe](https://github.com/krakjoe)_: Threading for PHP - Share Nothing, Do Everything.
+* __[PHP YAML](https://code.google.com/p/php-yaml/)__ by _Bryan Davis_: The Yaml PHP Extension provides a wrapper to the LibYAML library.
+* __[LibYAML](http://pyyaml.org/wiki/LibYAML)__ by _Kirill Simonov_: A YAML 1.1 parser and emitter written in C.
+* __[cURL](http://curl.haxx.se/)__: cURL is a command line tool for transferring data with URL syntax
+* __[Zlib](http://www.zlib.net/)__: A Massively Spiffy Yet Delicately Unobtrusive Compression Library
+* __[Source RCON Protocol](https://developer.valvesoftware.com/wiki/Source_RCON_Protocol)__
+* __[UT3 Query Protocol](http://wiki.unrealadmin.org/UT3_query_protocol)__
+* __[PHP OpenSSL](http://php.net/manual/en/book.openssl.php)__ by _[OpenSSL.org](https://www.openssl.org/)_: Cryptography and SSL/TLS Toolkit

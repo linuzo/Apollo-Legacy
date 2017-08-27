@@ -22,84 +22,95 @@
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
-use pocketmine\network\protocol\Info;
+use pocketmine\event\TranslationContainer;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\plugin\Plugin;
 use pocketmine\utils\TextFormat;
 
-class VersionCommand extends VanillaCommand{
+class VersionCommand extends VanillaCommand {
 
+	/**
+	 * VersionCommand constructor.
+	 *
+	 * @param string $name
+	 */
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Gets the version of this server including any plugins in use",
-			"/version",
+			"%pocketmine.command.version.description",
+			"%pocketmine.command.version.usage",
 			["ver", "about"]
 		);
 		$this->setPermission("pocketmine.command.version");
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $currentAlias
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
-			return true;
+			return \true;
 		}
-		$version = $sender->getServer()->getConfigString("game-version", "");
-		$output = "";
-		if (!empty($version)) {
-			$output .= $version . ". ";
+
+		if(\count($args) === 0){
+			if(count(ProtocolInfo::MINECRAFT_VERSION) > 1){
+				$tc = "§r\n§aTarget Clients: §f" . $sender->getServer()->getVersion();
+			}else{
+				$tc = "§r\n§aTarget Client: §f" . $sender->getServer()->getVersion();
+			}
+			$sender->sendMessage("§f----- §aServer information§f -----§r\n§aThis server is running " . $sender->getServer()->getName() . "-v" . $sender->getServer()->getPocketMineVersion() . "§r\n§aCodename: §f" . $sender->getServer()->getCodename() . "§r\n§aPHP Version: §f" . phpversion() . "§r\n§aAPI: §f" . $sender->getServer()->getApiVersion() . $tc . "§r\n§aProtocol Version:§f " . ProtocolInfo::CURRENT_PROTOCOL . "§r\n§aGit Commit:§f " . $sender->getServer()->getShortGitCommit() . "§r\n§aGitHub Repository§f: https://github.com/LeverylTeam/Leveryl§r");
+		}else{
+			$pluginName = \implode(" ", $args);
+			$exactPlugin = $sender->getServer()->getPluginManager()->getPlugin($pluginName);
+
+			if($exactPlugin instanceof Plugin){
+				$this->describeToSender($exactPlugin, $sender);
+
+				return \true;
+			}
+
+			$found = \false;
+			$pluginName = \strtolower($pluginName);
+			foreach($sender->getServer()->getPluginManager()->getPlugins() as $plugin){
+				if(\stripos($plugin->getName(), $pluginName) !== \false){
+					$this->describeToSender($plugin, $sender);
+					$found = \true;
+				}
+			}
+
+			if(!$found){
+				$sender->sendMessage(new TranslationContainer("pocketmine.command.version.noSuchPlugin"));
+			}
 		}
-		$output .= "This server is running " . $sender->getServer()->getName() . " " . $sender->getServer()->getPocketMineVersion();
 
-		$sender->sendMessage($output);
-//		if(count($args) === 0){
-//			$output = "This server is running " . $sender->getServer()->getName() . " version " . $sender->getServer()->getPocketMineVersion() . " 「" . $sender->getServer()->getCodename() . "」 (Implementing API version " . $sender->getServer()->getApiVersion() . " for Minecraft: PE " . $sender->getServer()->getVersion() . " protocol version " . Info::CURRENT_PROTOCOL . ")";
-//			if(\pocketmine\GIT_COMMIT !== str_repeat("00", 20)){
-//				$output .= " [git " . \pocketmine\GIT_COMMIT . "]";
-//			}
-//			$sender->sendMessage($output);
-//		}else{
-//			$pluginName = implode(" ", $args);
-//			$exactPlugin = $sender->getServer()->getPluginManager()->getPlugin($pluginName);
-//
-//			if($exactPlugin instanceof Plugin){
-//				$this->describeToSender($exactPlugin, $sender);
-//
-//				return true;
-//			}
-//
-//			$found = false;
-//			$pluginName = strtolower($pluginName);
-//			foreach($sender->getServer()->getPluginManager()->getPlugins() as $plugin){
-//				if(stripos($plugin->getName(), $pluginName) !== false){
-//					$this->describeToSender($plugin, $sender);
-//					$found = true;
-//				}
-//			}
-//
-//			if(!$found){
-//				$sender->sendMessage("This server is not running any plugin by that name.\nUse /plugins to get a list of plugins.");
-//			}
-//		}
-
-		return true;
+		return \true;
 	}
 
+	/**
+	 * @param Plugin $plugin
+	 * @param CommandSender $sender
+	 */
 	private function describeToSender(Plugin $plugin, CommandSender $sender){
 		$desc = $plugin->getDescription();
 		$sender->sendMessage(TextFormat::DARK_GREEN . $desc->getName() . TextFormat::WHITE . " version " . TextFormat::DARK_GREEN . $desc->getVersion());
 
-		if($desc->getDescription() != null){
+		if($desc->getDescription() != \null){
 			$sender->sendMessage($desc->getDescription());
 		}
 
-		if($desc->getWebsite() != null){
+		if($desc->getWebsite() != \null){
 			$sender->sendMessage("Website: " . $desc->getWebsite());
 		}
 
-		if(count($authors = $desc->getAuthors()) > 0){
-			if(count($authors) === 1){
-				$sender->sendMessage("Author: " . implode(", ", $authors));
+		if(\count($authors = $desc->getAuthors()) > 0){
+			if(\count($authors) === 1){
+				$sender->sendMessage("Author: " . \implode(", ", $authors));
 			}else{
-				$sender->sendMessage("Authors: " . implode(", ", $authors));
+				$sender->sendMessage("Authors: " . \implode(", ", $authors));
 			}
 		}
 	}

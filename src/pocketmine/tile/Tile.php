@@ -21,32 +21,38 @@
 
 /**
  * All the Tile classes and related classes
- * TODO: Add Nether Reactor tile
  */
+
 namespace pocketmine\tile;
 
 use pocketmine\event\Timings;
 use pocketmine\level\format\Chunk;
-use pocketmine\level\format\FullChunk;
 use pocketmine\level\Level;
 use pocketmine\level\Position;
-use pocketmine\nbt\tag\Compound;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\utils\ChunkException;
 
-abstract class Tile extends Position{
-	const SIGN = "Sign";
+abstract class Tile extends Position {
+
+	const BREWING_STAND = "BrewingStand";
 	const CHEST = "Chest";
-	const FURNACE = "Furnace";
-	const FLOWER_POT = "FlowerPot";
-	const MOB_SPAWNER = "MobSpawner";
-	const SKULL = "Skull";
-	const BREWING_STAND = "Cauldron";
+	const DL_DETECTOR = "DayLightDetector";
 	const ENCHANT_TABLE = "EnchantTable";
+	const FLOWER_POT = "FlowerPot";
+	const FURNACE = "Furnace";
+	const MOB_SPAWNER = "MobSpawner";
+	const SIGN = "Sign";
+	const SKULL = "Skull";
+	const ITEM_FRAME = "ItemFrame";
+	const DISPENSER = "Dispenser";
+	const DROPPER = "Dropper";
+	const CAULDRON = "Cauldron";
+	const HOPPER = "Hopper";
+	const BEACON = "Beacon";
 	const ENDER_CHEST = "EnderChest";
 	const BED = "Bed";
-	const CAULDRON = "Cauldron";
+	const DAY_LIGHT_DETECTOR = "DLDetector";
 
 	public static $tileCount = 1;
 
@@ -71,18 +77,39 @@ abstract class Tile extends Position{
 	/** @var \pocketmine\event\TimingsHandler */
 	public $tickTimer;
 
+	public static function init(){
+		self::registerTile(Beacon::class);
+		self::registerTile(Bed::class);
+		self::registerTile(BrewingStand::class);
+		self::registerTile(Cauldron::class);
+		self::registerTile(Chest::class);
+		self::registerTile(Dispenser::class);
+		self::registerTile(DLDetector::class);
+		self::registerTile(Dropper::class);
+		self::registerTile(EnchantTable::class);
+		self::registerTile(EnderChest::class);
+		self::registerTile(FlowerPot::class);
+		self::registerTile(Furnace::class);
+		self::registerTile(Hopper::class);
+		self::registerTile(ItemFrame::class);
+		self::registerTile(MobSpawner::class);
+		self::registerTile(Sign::class);
+		self::registerTile(Skull::class);
+	}
+
 	/**
-	 * @param string    $type
-	 * @param FullChunk $chunk
-	 * @param Compound  $nbt
-	 * @param           $args
+	 * @param string $type
+	 * @param Level $level
+	 * @param CompoundTag $nbt
+	 * @param array $args
 	 *
 	 * @return Tile
 	 */
-	public static function createTile($type, FullChunk $chunk, Compound $nbt, ...$args){
+	public static function createTile($type, Level $level, CompoundTag $nbt, ...$args){
 		if(isset(self::$knownTiles[$type])){
 			$class = self::$knownTiles[$type];
-			return new $class($chunk, $nbt, ...$args);
+
+			return new $class($level, $nbt, ...$args);
 		}
 
 		return null;
@@ -98,6 +125,7 @@ abstract class Tile extends Position{
 		if(is_a($className, Tile::class, true) and !$class->isAbstract()){
 			self::$knownTiles[$class->getShortName()] = $className;
 			self::$shortNames[$className] = $class->getShortName();
+
 			return true;
 		}
 
@@ -113,29 +141,36 @@ abstract class Tile extends Position{
 		return self::$shortNames[static::class];
 	}
 
-	public function __construct(FullChunk $chunk, Compound $nbt){
-		if($chunk === null or $chunk->getProvider() === null){
-			throw new ChunkException("Invalid garbage Chunk given to Tile");
-		}
-
+	/**
+	 * Tile constructor.
+	 *
+	 * @param Level $level
+	 * @param CompoundTag $nbt
+	 */
+	public function __construct(Level $level, CompoundTag $nbt){
 		$this->timings = Timings::getTileEntityTimings($this);
 
-		$this->server = $chunk->getProvider()->getLevel()->getServer();
-		$this->chunk = $chunk;
-		$this->setLevel($chunk->getProvider()->getLevel());
 		$this->namedtag = $nbt;
+		$this->server = $level->getServer();
+		$this->setLevel($level);
+		$this->chunk = $level->getChunk($this->namedtag["x"] >> 4, $this->namedtag["z"] >> 4, false);
+		assert($this->chunk !== null);
+
 		$this->name = "";
 		$this->lastUpdate = microtime(true);
 		$this->id = Tile::$tileCount++;
-		$this->x = (int) $this->namedtag["x"];
-		$this->y = (int) $this->namedtag["y"];
-		$this->z = (int) $this->namedtag["z"];
+		$this->x = (int)$this->namedtag["x"];
+		$this->y = (int)$this->namedtag["y"];
+		$this->z = (int)$this->namedtag["z"];
 
 		$this->chunk->addTile($this);
 		$this->getLevel()->addTile($this);
 		$this->tickTimer = Timings::getTileEntityTimings($this);
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getId(){
 		return $this->id;
 	}
@@ -154,6 +189,9 @@ abstract class Tile extends Position{
 		return $this->level->getBlock($this);
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function onUpdate(){
 		return false;
 	}
@@ -170,7 +208,7 @@ abstract class Tile extends Position{
 		if(!$this->closed){
 			$this->closed = true;
 			unset($this->level->updateTiles[$this->id]);
-			if($this->chunk instanceof FullChunk){
+			if($this->chunk instanceof Chunk){
 				$this->chunk->removeTile($this);
 			}
 			if(($level = $this->getLevel()) instanceof Level){
@@ -180,7 +218,10 @@ abstract class Tile extends Position{
 		}
 	}
 
-	public function getName(){
+	/**
+	 * @return string
+	 */
+	public function getName(): string{
 		return $this->name;
 	}
 

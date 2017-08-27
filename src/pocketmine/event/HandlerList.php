@@ -24,7 +24,7 @@ namespace pocketmine\event;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\RegisteredListener;
 
-class HandlerList{
+class HandlerList {
 
 	/**
 	 * @var RegisteredListener[]
@@ -68,14 +68,17 @@ class HandlerList{
 		}
 	}
 
+	/**
+	 * HandlerList constructor.
+	 */
 	public function __construct(){
 		$this->handlerSlots = [
-			EventPriority::LOWEST => [],
-			EventPriority::LOW => [],
-			EventPriority::NORMAL => [],
-			EventPriority::HIGH => [],
+			EventPriority::LOWEST  => [],
+			EventPriority::LOW     => [],
+			EventPriority::NORMAL  => [],
+			EventPriority::HIGH    => [],
 			EventPriority::HIGHEST => [],
-			EventPriority::MONITOR => []
+			EventPriority::MONITOR => [],
 		];
 		self::$allLists[] = $this;
 	}
@@ -83,7 +86,7 @@ class HandlerList{
 	/**
 	 * @param RegisteredListener $listener
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function register(RegisteredListener $listener){
 		if($listener->getPriority() < EventPriority::MONITOR or $listener->getPriority() > EventPriority::LOWEST){

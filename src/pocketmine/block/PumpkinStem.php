@@ -26,22 +26,36 @@ use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\Server;
 
-class PumpkinStem extends Crops{
+class PumpkinStem extends Crops {
 
 	protected $id = self::PUMPKIN_STEM;
 
+	/**
+	 * PumpkinStem constructor.
+	 *
+	 * @param int $meta
+	 */
 	public function __construct($meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function getName(){
+	/**
+	 * @return string
+	 */
+	public function getName(): string{
 		return "Pumpkin Stem";
 	}
 
+	/**
+	 * @param int $type
+	 *
+	 * @return bool|int
+	 */
 	public function onUpdate($type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
 			if($this->getSide(0)->isTransparent()){
 				$this->getLevel()->useBreakOn($this);
+
 				return Level::BLOCK_UPDATE_NORMAL;
 			}
 		}elseif($type === Level::BLOCK_UPDATE_RANDOM){
@@ -79,7 +93,12 @@ class PumpkinStem extends Crops{
 		return false;
 	}
 
-	public function getDrops(Item $item){
+	/**
+	 * @param Item $item
+	 *
+	 * @return array
+	 */
+	public function getDrops(Item $item): array{
 		return [
 			[Item::PUMPKIN_SEEDS, 0, mt_rand(0, 2)],
 		];

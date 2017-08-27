@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,24 +15,25 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
 namespace pocketmine\level;
 
 use pocketmine\math\Vector3;
-use pocketmine\utils\LevelException;
+use pocketmine\utils\MainLogger;
 
-class Position extends Vector3{
+
+class Position extends Vector3 {
 
 	/** @var Level */
 	public $level = null;
 
 	/**
-	 * @param int   $x
-	 * @param int   $y
-	 * @param int   $z
+	 * @param int $x
+	 * @param int $y
+	 * @param int $z
 	 * @param Level $level
 	 */
 	public function __construct($x = 0, $y = 0, $z = 0, Level $level = null){
@@ -42,53 +43,78 @@ class Position extends Vector3{
 		$this->level = $level;
 	}
 
+	/**
+	 * @param Vector3 $pos
+	 * @param Level|null $level
+	 *
+	 * @return Position
+	 */
 	public static function fromObject(Vector3 $pos, Level $level = null){
 		return new Position($pos->x, $pos->y, $pos->z, $level);
+	}
+
+	/**
+	 * Return a Position instance
+	 *
+	 * @return Position
+	 */
+	public function asPosition(): Position{
+		return new Position($this->x, $this->y, $this->z, $this->level);
+	}
+
+	/**
+	 * @param int|Vector3 $x
+	 * @param int $y
+	 * @param int $z
+	 *
+	 * @return Position
+	 */
+	public function add($x, $y = 0, $z = 0){
+		if($x instanceof Vector3){
+			return new Position($this->x + $x->x, $this->y + $x->y, $this->z + $x->z, $this->level);
+		}else{
+			return new Position($this->x + $x, $this->y + $y, $this->z + $z, $this->level);
+		}
 	}
 
 	/**
 	 * @return Level
 	 */
 	public function getLevel(){
+		if($this->level !== null and $this->level->isClosed()){
+			MainLogger::getLogger()->debug("Position was holding a reference to an unloaded Level");
+			$this->level = null;
+		}
+
 		return $this->level;
 	}
 
-	public function setLevel(Level $level){
+	/**
+	 * Sets the target Level of the position.
+	 *
+	 * @param Level|null $level
+	 *
+	 * @return $this
+	 *
+	 * @throws \InvalidArgumentException if the specified Level has been closed
+	 */
+	public function setLevel(Level $level = null){
+		if($level !== null and $level->isClosed()){
+			throw new \InvalidArgumentException("Specified level has been unloaded and cannot be used");
+		}
+
 		$this->level = $level;
+
 		return $this;
 	}
 
 	/**
-	 * Checks if this object has a valid reference to a Level
+	 * Checks if this object has a valid reference to a loaded Level
 	 *
 	 * @return bool
 	 */
 	public function isValid(){
-		return $this->level !== null;
-	}
-
-	/**
-	 * Marks the level reference as strong so it won't be collected
-	 * by the garbage collector.
-	 *
-	 * @deprecated
-	 *
-	 * @return bool
-	 */
-	public function setStrong(){
-		return false;
-	}
-
-	/**
-	 * Marks the level reference as weak so it won't have effect against
-	 * the garbage collector decision.
-	 *
-	 * @deprecated
-	 *
-	 * @return bool
-	 */
-	public function setWeak(){
-		return false;
+		return $this->getLevel() instanceof Level;
 	}
 
 	/**
@@ -109,6 +135,9 @@ class Position extends Vector3{
 		return Position::fromObject(parent::getSide($side, $step), $this->level);
 	}
 
+	/**
+	 * @return string
+	 */
 	public function __toString(){
 		return "Position(level=" . ($this->isValid() ? $this->getLevel()->getName() : "null") . ",x=" . $this->x . ",y=" . $this->y . ",z=" . $this->z . ")";
 	}
@@ -124,7 +153,26 @@ class Position extends Vector3{
 		$this->x = $x;
 		$this->y = $y;
 		$this->z = $z;
+
 		return $this;
 	}
+
+	/**
+	 * @param Vector3 $pos
+	 * @param         $x
+	 * @param         $y
+	 * @param         $z
+	 *
+	 * @return $this
+	 */
+	public function fromObjectAdd(Vector3 $pos, $x, $y, $z){
+		if($pos instanceof Position){
+			$this->level = $pos->level;
+		}
+		parent::fromObjectAdd($pos, $x, $y, $z);
+
+		return $this;
+	}
+
 
 }

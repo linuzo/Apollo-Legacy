@@ -21,16 +21,20 @@
 
 namespace pocketmine\command;
 
+use pocketmine\event\TextContainer;
 use pocketmine\permission\PermissibleBase;
 use pocketmine\permission\PermissionAttachment;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use pocketmine\utils\MainLogger;
 
-class ConsoleCommandSender implements CommandSender{
+class ConsoleCommandSender implements CommandSender {
 
 	private $perm;
 
+	/**
+	 * ConsoleCommandSender constructor.
+	 */
 	public function __construct(){
 		$this->perm = new PermissibleBase($this);
 	}
@@ -56,7 +60,7 @@ class ConsoleCommandSender implements CommandSender{
 	/**
 	 * @param Plugin $plugin
 	 * @param string $name
-	 * @param bool   $value
+	 * @param bool $value
 	 *
 	 * @return \pocketmine\permission\PermissionAttachment
 	 */
@@ -102,6 +106,12 @@ class ConsoleCommandSender implements CommandSender{
 	 * @param string $message
 	 */
 	public function sendMessage($message){
+		if($message instanceof TextContainer){
+			$message = $this->getServer()->getLanguage()->translate($message);
+		}else{
+			$message = $this->getServer()->getLanguage()->translateString($message);
+		}
+
 		foreach(explode("\n", trim($message)) as $line){
 			MainLogger::getLogger()->info($line);
 		}
@@ -110,7 +120,7 @@ class ConsoleCommandSender implements CommandSender{
 	/**
 	 * @return string
 	 */
-	public function getName(){
+	public function getName(): string{
 		return "CONSOLE";
 	}
 

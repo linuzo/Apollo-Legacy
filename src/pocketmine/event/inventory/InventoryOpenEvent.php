@@ -25,7 +25,7 @@ use pocketmine\event\Cancellable;
 use pocketmine\inventory\Inventory;
 use pocketmine\Player;
 
-class InventoryOpenEvent extends InventoryEvent implements Cancellable{
+class InventoryOpenEvent extends InventoryEvent implements Cancellable {
 	public static $handlerList = null;
 
 	/** @var Player */
@@ -33,7 +33,7 @@ class InventoryOpenEvent extends InventoryEvent implements Cancellable{
 
 	/**
 	 * @param Inventory $inventory
-	 * @param Player    $who
+	 * @param Player $who
 	 */
 	public function __construct(Inventory $inventory, Player $who){
 		$this->who = $who;

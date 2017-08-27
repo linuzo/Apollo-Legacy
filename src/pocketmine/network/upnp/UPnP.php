@@ -22,33 +22,44 @@
 /**
  * UPnP port forwarding support. Only for Windows
  */
+
 namespace pocketmine\network\upnp;
 
 use pocketmine\utils\Utils;
 
-abstract class UPnP{
+abstract class UPnP {
+	/**
+	 * @param $port
+	 *
+	 * @return bool
+	 */
 	public static function PortForward($port){
 		if(Utils::$online === false){
 			return false;
 		}
-		if(Utils::getOS() != "win" or !class_exists("COM")){
+		if(Utils::getOS() != "win" or !class_exists("COM", false)){
 			return false;
 		}
-		$port = (int) $port;
+		$port = (int)$port;
 		$myLocalIP = gethostbyname(trim(`hostname`));
 		try{
-			$com ("HNetCfg.NATUPnP");
+			$com = new \COM("HNetCfg.NATUPnP");
 			if($com === false or !is_object($com->StaticPortMappingCollection)){
 				return false;
 			}
 			$com->StaticPortMappingCollection->Add($port, "UDP", $port, $myLocalIP, true, "PocketMine-MP");
-		}catch(\Exception $e){
+		}catch(\Throwable $e){
 			return false;
 		}
 
 		return true;
 	}
 
+	/**
+	 * @param $port
+	 *
+	 * @return bool
+	 */
 	public static function RemovePortForward($port){
 		if(Utils::$online === false){
 			return false;
@@ -56,14 +67,14 @@ abstract class UPnP{
 		if(Utils::getOS() != "win" or !class_exists("COM")){
 			return false;
 		}
-		$port = (int) $port;
+		$port = (int)$port;
 		try{
-			$com = ("HNetCfg.NATUPnP") or false;
+			$com = new \COM("HNetCfg.NATUPnP") or false;
 			if($com === false or !is_object($com->StaticPortMappingCollection)){
 				return false;
 			}
 			$com->StaticPortMappingCollection->Remove($port, "UDP");
-		}catch(\Exception $e){
+		}catch(\Throwable $e){
 			return false;
 		}
 

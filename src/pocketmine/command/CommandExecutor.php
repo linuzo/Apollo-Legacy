@@ -22,15 +22,15 @@
 namespace pocketmine\command;
 
 
-interface CommandExecutor{
+interface CommandExecutor {
 
 	/**
 	 * @param CommandSender $sender
-	 * @param Command       $command
-	 * @param string        $label
-	 * @param string[]      $args
+	 * @param Command $command
+	 * @param string $label
+	 * @param string[] $args
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
 	public function onCommand(CommandSender $sender, Command $command, $label, array $args);
 

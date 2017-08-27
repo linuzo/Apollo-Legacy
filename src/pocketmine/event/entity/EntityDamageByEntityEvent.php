@@ -23,10 +23,8 @@ namespace pocketmine\event\entity;
 
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
-use pocketmine\item\enchantment\Enchantment;
-use pocketmine\Player;
 
-class EntityDamageByEntityEvent extends EntityDamageEvent{
+class EntityDamageByEntityEvent extends EntityDamageEvent {
 
 	/** @var Entity */
 	private $damager;
@@ -34,11 +32,11 @@ class EntityDamageByEntityEvent extends EntityDamageEvent{
 	private $knockBack;
 
 	/**
-	 * @param Entity    $damager
-	 * @param Entity    $entity
-	 * @param int       $cause
+	 * @param Entity $damager
+	 * @param Entity $entity
+	 * @param int $cause
 	 * @param int|int[] $damage
-	 * @param float     $knockBack
+	 * @param float $knockBack
 	 */
 	public function __construct(Entity $damager, Entity $entity, $cause, $damage, $knockBack = 0.4){
 		$this->damager = $damager;
@@ -47,47 +45,20 @@ class EntityDamageByEntityEvent extends EntityDamageEvent{
 		$this->addAttackerModifiers($damager);
 	}
 
+	/**
+	 * @param Entity $damager
+	 */
 	protected function addAttackerModifiers(Entity $damager){
 		if($damager->hasEffect(Effect::STRENGTH)){
-			$this->setDamage($this->getDamage(self::MODIFIER_BASE) * 0.3 * ($damager->getEffect(Effect::STRENGTH)->getAmplifier() + 1), self::MODIFIER_STRENGTH);
+			$this->setRateDamage(1 + 0.3 * ($damager->getEffect(Effect::STRENGTH)->getAmplifier() + 1), self::MODIFIER_STRENGTH);
 		}
 
 		if($damager->hasEffect(Effect::WEAKNESS)){
-			$this->setDamage(-($this->getDamage(self::MODIFIER_BASE) * 0.2 * ($damager->getEffect(Effect::WEAKNESS)->getAmplifier() + 1)), self::MODIFIER_WEAKNESS);
-		}
-		
-		if ($damager instanceof Player) {
-			$baseDamage = $this->getDamage(self::MODIFIER_BASE);
-			$weapon = $damager->getInventory()->getItemInHand();
-			$weaponEnchantments = $weapon->getEnchantments();
-			if (isset($weaponEnchantments[Enchantment::TYPE_WEAPON_SHARPNESS])) {
-				$effect = $weaponEnchantments[Enchantment::TYPE_WEAPON_SHARPNESS];
-				$effectLevel = $effect->getLevel();
-				if ($effectLevel > 0) {
-					$additionalDamage = 1;
-					if ($effectLevel > 1) {
-						$additionalDamage += ($effectLevel - 1) * 0.25;
-					}
-					$this->setDamage($additionalDamage, self::MODIFIER_EFFECT_SHARPNESS);
-				}
+			$eff_level = 1 - 0.2 * ($damager->getEffect(Effect::WEAKNESS)->getAmplifier() + 1);
+			if($eff_level < 0){
+				$eff_level = 0;
 			}
-			if (isset($weaponEnchantments[Enchantment::TYPE_WEAPON_SMITE])) {
-				/** @todo add check for entity on arthropod */
-				$effect = $weaponEnchantments[Enchantment::TYPE_WEAPON_SMITE];
-				$additionalDamage = 0;
-				$this->setDamage($additionalDamage, self::MODIFIER_EFFECT_SMITE);
-			}
-			if (isset($weaponEnchantments[Enchantment::TYPE_WEAPON_ARTHROPODS])) {
-				/** @todo add check for entity on undead */
-				$effect = $weaponEnchantments[Enchantment::TYPE_WEAPON_ARTHROPODS];
-				$additionalDamage = 0;
-				$this->setDamage($additionalDamage, self::MODIFIER_EFFECT_ARTHROPODOS);
-			}
-			if (isset($weaponEnchantments[Enchantment::TYPE_WEAPON_KNOCKBACK])) {
-				$effect = $weaponEnchantments[Enchantment::TYPE_WEAPON_KNOCKBACK];
-				// not sure
-				$this->knockBack += $effect->getLevel() * 0.3;
-			}
+			$this->setRateDamage($eff_level, self::MODIFIER_WEAKNESS);
 		}
 	}
 
@@ -97,12 +68,14 @@ class EntityDamageByEntityEvent extends EntityDamageEvent{
 	public function getDamager(){
 		return $this->damager;
 	}
+
 	/**
 	 * @return float
 	 */
 	public function getKnockBack(){
 		return $this->knockBack;
 	}
+
 	/**
 	 * @param float $knockBack
 	 */

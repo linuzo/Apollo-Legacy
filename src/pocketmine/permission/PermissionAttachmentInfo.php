@@ -22,7 +22,7 @@
 namespace pocketmine\permission;
 
 
-class PermissionAttachmentInfo{
+class PermissionAttachmentInfo {
 	/** @var Permissible */
 	private $permissible;
 
@@ -36,10 +36,10 @@ class PermissionAttachmentInfo{
 	private $value;
 
 	/**
-	 * @param Permissible          $permissible
-	 * @param string               $permission
+	 * @param Permissible $permissible
+	 * @param string $permission
 	 * @param PermissionAttachment $attachment
-	 * @param bool                 $value
+	 * @param bool $value
 	 *
 	 * @throws \InvalidStateException
 	 */

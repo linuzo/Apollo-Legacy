@@ -23,12 +23,12 @@ namespace pocketmine\metadata;
 
 use pocketmine\plugin\Plugin;
 
-interface Metadatable{
+interface Metadatable {
 
 	/**
 	 * Sets a metadata value in the implementing object's metadata store.
 	 *
-	 * @param string        $metadataKey
+	 * @param string $metadataKey
 	 * @param MetadataValue $newMetadataValue
 	 *
 	 * @return void
@@ -51,7 +51,7 @@ interface Metadatable{
 	 *
 	 * @param string $metadataKey
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
 	public function hasMetadata($metadataKey);
 

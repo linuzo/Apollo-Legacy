@@ -23,36 +23,60 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\level\Level;
+use pocketmine\Player;
 
-class DoublePlant extends Flowable{
+class DoublePlant extends Flowable {
 
 	protected $id = self::DOUBLE_PLANT;
 
+	const SUNFLOWER = 0;
+	const LILAC = 1;
+	const DOUBLE_TALLGRASS = 2;
+	const LARGE_FERN = 3;
+	const ROSE_BUSH = 4;
+	const PEONY = 5;
+
+	/**
+	 * DoublePlant constructor.
+	 *
+	 * @param int $meta
+	 */
 	public function __construct($meta = 0){
 		$this->meta = $meta;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function canBeReplaced(){
 		return true;
 	}
 
-	public function getName(){
+	/**
+	 * @return string
+	 */
+	public function getName(): string{
 		static $names = [
 			0 => "Sunflower",
 			1 => "Lilac",
 			2 => "Double Tallgrass",
 			3 => "Large Fern",
 			4 => "Rose Bush",
-			5 => "Peony"
+			5 => "Peony",
 		];
+
 		return $names[$this->meta & 0x07];
 	}
 
-
+	/**
+	 * @param int $type
+	 *
+	 * @return bool|int
+	 */
 	public function onUpdate($type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
-			if($this->getSide(0)->isTransparent() === true){ //Replace with common break method
-				$this->getLevel()->setBlock($this, new Air(), false, false, true);
+			if($this->getSide(0)->isTransparent() === true && !$this->getSide(0) instanceof DoublePlant){ //Replace with common break method
+				$this->getLevel()->setBlock($this, new Air(), false, false);
 
 				return Level::BLOCK_UPDATE_NORMAL;
 			}
@@ -61,10 +85,64 @@ class DoublePlant extends Flowable{
 		return false;
 	}
 
-	public function getDrops(Item $item){
-		//TODO
+	/**
+	 * @param Item $item
+	 * @param Block $block
+	 * @param Block $target
+	 * @param int $face
+	 * @param float $fx
+	 * @param float $fy
+	 * @param float $fz
+	 * @param Player|null $player
+	 *
+	 * @return bool
+	 */
+	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
+		$down = $this->getSide(0);
+		$up = $this->getSide(1);
+		if($down->getId() === self::GRASS or $down->getId() === self::DIRT){
+			$this->getLevel()->setBlock($block, $this, true);
+			$this->getLevel()->setBlock($up, Block::get($this->id, $this->meta ^ 0x08), true);
 
-		return [];
+			return true;
+		}
+
+		return false;
 	}
 
+	/**
+	 * @param Item $item
+	 *
+	 * @return mixed|void
+	 */
+	public function onBreak(Item $item){
+		$up = $this->getSide(1);
+		$down = $this->getSide(0);
+		if(($this->meta & 0x08) === 0x08){ // This is the Top part of flower
+			if($up->getId() === $this->id and $up->meta !== 0x08){ // Checks if the block ID and meta are right
+				$this->getLevel()->setBlock($up, new Air(), true, true);
+			}elseif($down->getId() === $this->id and $down->meta !== 0x08){
+				$this->getLevel()->setBlock($down, new Air(), true, true);
+			}
+		}else{ // Bottom Part of flower
+			if($up->getId() === $this->id and ($up->meta & 0x08) === 0x08){
+				$this->getLevel()->setBlock($up, new Air(), true, true);
+			}elseif($down->getId() === $this->id and ($down->meta & 0x08) === 0x08){
+				$this->getLevel()->setBlock($down, new Air(), true, true);
+			}
+		}
+	}
+
+	/**
+	 * @param Item $item
+	 *
+	 * @return array
+	 */
+	public function getDrops(Item $item): array{
+		if(($this->meta & 0x08) !== 0x08){
+			return [[Item::DOUBLE_PLANT, $this->meta, 1]];
+		}else{
+			return [];
+		}
+	}
 }

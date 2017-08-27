@@ -25,33 +25,36 @@ namespace pocketmine\utils;
 /**
  * Manages PocketMine-MP version strings, and compares them
  */
-class VersionString{
+class VersionString {
 	private $major;
 	private $build;
 	private $minor;
 	private $development = false;
 
+	/**
+	 * VersionString constructor.
+	 *
+	 * @param string $version
+	 */
 	public function __construct($version = \pocketmine\VERSION){
 		if(is_int($version)){
 			$this->minor = $version & 0x1F;
 			$this->major = ($version >> 5) & 0x0F;
 			$this->generation = ($version >> 9) & 0x0F;
 		}else{
-			$version = preg_split("/([A-Za-z]*)[ _\\-]?([0-9]*)\\.([0-9]*)\\.{0,1}([0-9]*)(dev|)(-[\\0-9]{1,}|)/", $version, -1, PREG_SPLIT_DELIM_CAPTURE);
-			$this->generation = isset($version[2]) ? (int) $version[2] : 0; //0-15
-			$this->major = isset($version[3]) ? (int) $version[3] : 0; //0-15
-			$this->minor = isset($version[4]) ? (int) $version[4] : 0; //0-31
-			$this->development = $version[5] === "dev" ? true : false;
-			if($version[6] !== ""){
-				$this->build = intval(substr($version[6], 1));
-			}else{
-				$this->build = 0;
-			}
+			$this->generation = 0;
+			$this->major = 0;
+			$this->minor = 0;
+			$this->development = true;
+			$this->build = 0;
 		}
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getNumber(){
-		return (int) (($this->generation << 9) + ($this->major << 5) + $this->minor);
+		return (int)(($this->generation << 9) + ($this->major << 5) + $this->minor);
 	}
 
 	/**
@@ -61,38 +64,70 @@ class VersionString{
 		return "final";
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getGeneration(){
 		return $this->generation;
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getMajor(){
 		return $this->major;
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getMinor(){
 		return $this->minor;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getRelease(){
 		return $this->generation . "." . $this->major . ($this->minor > 0 ? "." . $this->minor : "");
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getBuild(){
 		return $this->build;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function isDev(){
 		return $this->development === true;
 	}
 
+	/**
+	 * @param bool $build
+	 *
+	 * @return string
+	 */
 	public function get($build = false){
 		return $this->getRelease() . ($this->development === true ? "dev" : "") . (($this->build > 0 and $build === true) ? "-" . $this->build : "");
 	}
 
+	/**
+	 * @return string
+	 */
 	public function __toString(){
 		return $this->get();
 	}
 
+	/**
+	 * @param      $target
+	 * @param bool $diff
+	 *
+	 * @return int
+	 */
 	public function compare($target, $diff = false){
 		if(($target instanceof VersionString) === false){
 			$target = new VersionString($target);

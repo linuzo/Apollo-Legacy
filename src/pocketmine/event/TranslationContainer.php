@@ -21,13 +21,13 @@
 
 namespace pocketmine\event;
 
-class TranslationContainer extends TextContainer{
+class TranslationContainer extends TextContainer {
 
 	/** @var string[] $params */
 	protected $params = [];
 
 	/**
-	 * @param string   $text
+	 * @param string $text
 	 * @param string[] $params
 	 */
 	public function __construct($text, array $params = []){
@@ -53,7 +53,7 @@ class TranslationContainer extends TextContainer{
 	}
 
 	/**
-	 * @param int    $i
+	 * @param int $i
 	 * @param string $str
 	 */
 	public function setParameter($i, $str){
@@ -61,7 +61,7 @@ class TranslationContainer extends TextContainer{
 			throw new \InvalidArgumentException("Invalid index $i, have " . count($this->params));
 		}
 
-		$this->params[(int) $i] = $str;
+		$this->params[(int)$i] = $str;
 	}
 
 	/**
@@ -70,7 +70,7 @@ class TranslationContainer extends TextContainer{
 	public function setParameters(array $params){
 		$i = 0;
 		foreach($params as $str){
-			$this->params[$i] = (string) $str;
+			$this->params[$i] = (string)$str;
 
 			++$i;
 		}

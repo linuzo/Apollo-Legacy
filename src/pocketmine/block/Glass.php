@@ -21,25 +21,46 @@
 
 namespace pocketmine\block;
 
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
 
-class Glass extends Transparent{
+class Glass extends Transparent {
 
 	protected $id = self::GLASS;
 
-	public function __construct(){
-
+	/**
+	 * Glass constructor.
+	 */
+	public function __construct($meta = 0){
+		$this->meta = $meta;
 	}
 
-	public function getName(){
+	/**
+	 * @return string
+	 */
+	public function getName(): string{
 		return "Glass";
 	}
 
+	/**
+	 * @return float
+	 */
 	public function getHardness(){
 		return 0.3;
 	}
 
-	public function getDrops(Item $item){
-		return [];
+	/**
+	 * @param Item $item
+	 *
+	 * @return array
+	 */
+	public function getDrops(Item $item): array{
+		if($item->getEnchantmentLevel(Enchantment::SILK_TOUCH) > 0){
+			return [
+				[Item::GLASS, 0, 1],
+			];
+		}else{
+			return [];
+		}
 	}
 }

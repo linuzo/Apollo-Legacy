@@ -22,6 +22,7 @@
 /**
  * Plugin related classes
  */
+
 namespace pocketmine\plugin;
 
 use pocketmine\command\CommandExecutor;
@@ -31,7 +32,7 @@ use pocketmine\command\CommandExecutor;
  * It is recommended to use PluginBase for the actual plugin
  *
  */
-interface Plugin extends CommandExecutor{
+interface Plugin extends CommandExecutor {
 
 	/**
 	 * Called when the plugin is loaded, before calling onEnable()
@@ -43,6 +44,9 @@ interface Plugin extends CommandExecutor{
 	 */
 	public function onEnable();
 
+	/**
+	 * @return mixed
+	 */
 	public function isEnabled();
 
 	/**
@@ -51,6 +55,9 @@ interface Plugin extends CommandExecutor{
 	 */
 	public function onDisable();
 
+	/**
+	 * @return mixed
+	 */
 	public function isDisabled();
 
 	/**
@@ -74,12 +81,12 @@ interface Plugin extends CommandExecutor{
 	 * Saves an embedded resource to its relative location in the data folder
 	 *
 	 * @param string $filename
-	 * @param bool   $replace
+	 * @param bool $replace
 	 */
 	public function saveResource($filename, $replace = false);
 
 	/**
-	 * Returns all the resources incrusted in the plugin
+	 * Returns all the resources packaged with the plugin
 	 */
 	public function getResources();
 
@@ -88,10 +95,19 @@ interface Plugin extends CommandExecutor{
 	 */
 	public function getConfig();
 
+	/**
+	 * @return mixed
+	 */
 	public function saveConfig();
 
+	/**
+	 * @return mixed
+	 */
 	public function saveDefaultConfig();
 
+	/**
+	 * @return mixed
+	 */
 	public function reloadConfig();
 
 	/**
@@ -99,6 +115,9 @@ interface Plugin extends CommandExecutor{
 	 */
 	public function getServer();
 
+	/**
+	 * @return mixed
+	 */
 	public function getName();
 
 	/**
@@ -110,13 +129,5 @@ interface Plugin extends CommandExecutor{
 	 * @return PluginLoader
 	 */
 	public function getPluginLoader();
-	
-	/**
-	 * @return array
-	 */
-	public function getJsonCommands();
 
-    public function setJsonCommands($commands);
-	
-    public function generateJsonCommands($pluginCmds);
 }

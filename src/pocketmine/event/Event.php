@@ -22,9 +22,12 @@
 /**
  * Event related classes
  */
+
 namespace pocketmine\event;
 
-abstract class Event{
+use pocketmine\Server;
+
+abstract class Event {
 
 	/**
 	 * Any callable event must declare the static variable
@@ -63,8 +66,6 @@ abstract class Event{
 	/**
 	 * @param bool $value
 	 *
-	 * @return bool
-	 *
 	 * @throws \BadMethodCallException
 	 */
 	public function setCancelled($value = true){
@@ -73,7 +74,7 @@ abstract class Event{
 		}
 
 		/** @var Event $this */
-		$this->isCancelled = (bool) $value;
+		$this->isCancelled = (bool)$value;
 	}
 
 	/**
@@ -85,6 +86,10 @@ abstract class Event{
 		}
 
 		return static::$handlerList;
+	}
+
+	public function call(){
+		Server::getInstance()->getPluginManager()->callEvent($this);
 	}
 
 }

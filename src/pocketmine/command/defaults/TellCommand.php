@@ -19,33 +19,44 @@
  *
 */
 
-/*IMPORTANT NOTE: this command is owerridden inside lbcore, please do not update code here*/
-
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
-class TellCommand extends VanillaCommand{
+class TellCommand extends VanillaCommand {
 
+	/**
+	 * TellCommand constructor.
+	 *
+	 * @param $name
+	 */
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Sends a private message to the given player",
-			"/tell <player> <message>",
-			["w", "msg"]
+			"%pocketmine.command.tell.description",
+			"%pocketmine.command.tell.usage",
+			["w", "whisper", "msg", "m"]
 		);
 		$this->setPermission("pocketmine.command.tell");
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $currentAlias
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) < 2){
-			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
+			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
 
 			return false;
 		}
@@ -54,12 +65,17 @@ class TellCommand extends VanillaCommand{
 
 		$player = $sender->getServer()->getPlayer($name);
 
+		if($player === $sender){
+			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.message.sameTarget"));
+
+			return true;
+		}
+
 		if($player instanceof Player){
-			$player->setLastMessageFrom($sender->getName());
-			$sender->sendMessage("[me -> " . $player->getName() . "] " . implode(" ", $args));
-			$player->sendMessage("[" . $sender->getName() . " -> me] " . implode(" ", $args));
+			$sender->sendMessage("[" . $sender->getName() . " -> " . $player->getDisplayName() . "] " . implode(" ", $args));
+			$player->sendMessage("[" . ($sender instanceof Player ? $sender->getDisplayName() : $sender->getName()) . " -> " . $player->getName() . "] " . implode(" ", $args));
 		}else{
-			$sender->sendMessage("There's no player by that name online.");
+			$sender->sendMessage(new TranslationContainer("commands.generic.player.notFound"));
 		}
 
 		return true;

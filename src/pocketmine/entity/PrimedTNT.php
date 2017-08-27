@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -23,17 +23,15 @@ namespace pocketmine\entity;
 
 
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\level\Explosion;
+use pocketmine\level\Level;
 use pocketmine\nbt\tag\ByteTag;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\AddEntityPacket;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\Player;
-use pocketmine\network\protocol\SetEntityDataPacket;
-use pocketmine\Server;
 
-class PrimedTNT extends Entity implements Explosive{
+class PrimedTNT extends Entity implements Explosive {
 	const NETWORK_ID = 65;
 
 	public $width = 0.98;
@@ -47,11 +45,31 @@ class PrimedTNT extends Entity implements Explosive{
 
 	public $canCollide = false;
 
-	protected $owner = null;
+	private $dropItem = true;
+
+	/**
+	 * PrimedTNT constructor.
+	 *
+	 * @param Level $level
+	 * @param CompoundTag $nbt
+	 * @param bool $dropItem
+	 */
+	public function __construct(Level $level, CompoundTag $nbt, bool $dropItem = true){
+		parent::__construct($level, $nbt);
+		$this->dropItem = $dropItem;
+	}
 
 
+	/**
+	 * @param float $damage
+	 * @param EntityDamageEvent $source
+	 *
+	 * @return bool|void
+	 */
 	public function attack($damage, EntityDamageEvent $source){
-
+		if($source->getCause() === EntityDamageEvent::CAUSE_VOID){
+			parent::attack($damage, $source);
+		}
 	}
 
 	protected function initEntity(){
@@ -62,9 +80,17 @@ class PrimedTNT extends Entity implements Explosive{
 		}else{
 			$this->fuse = 80;
 		}
+
+		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_IGNITED, true);
+		$this->setDataProperty(self::DATA_FUSE_LENGTH, self::DATA_TYPE_INT, $this->fuse);
 	}
 
 
+	/**
+	 * @param Entity $entity
+	 *
+	 * @return bool
+	 */
 	public function canCollideWith(Entity $entity){
 		return false;
 	}
@@ -74,24 +100,37 @@ class PrimedTNT extends Entity implements Explosive{
 		$this->namedtag->Fuse = new ByteTag("Fuse", $this->fuse);
 	}
 
+	/**
+	 * @param $currentTick
+	 *
+	 * @return bool
+	 */
 	public function onUpdate($currentTick){
 
 		if($this->closed){
 			return false;
 		}
 
-		//$this->timings->startTiming();
+		$this->timings->startTiming();
 
-		$tickDiff = max(1, $currentTick - $this->lastUpdate);
+		$tickDiff = $currentTick - $this->lastUpdate;
+		if($tickDiff <= 0 and !$this->justCreated){
+			return true;
+		}
+
+		if($this->fuse % 5 === 0){ //don't spam it every tick, it's not necessary
+			$this->setDataProperty(self::DATA_FUSE_LENGTH, self::DATA_TYPE_INT, $this->fuse);
+		}
+
 		$this->lastUpdate = $currentTick;
 
 		$hasUpdate = $this->entityBaseTick($tickDiff);
 
-		if(!$this->dead){
+		if($this->isAlive()){
 
 			$this->motionY -= $this->gravity;
 
-			//$this->move($this->motionX, $this->motionY, $this->motionZ);
+			$this->move($this->motionX, $this->motionY, $this->motionZ);
 
 			$friction = 1 - $this->drag;
 
@@ -108,14 +147,7 @@ class PrimedTNT extends Entity implements Explosive{
 			}
 
 			$this->fuse -= $tickDiff;
-			if ($this->fuse % 2 == 0) {
-				$time = (int) $this->fuse / 2;
-				$pk = new SetEntityDataPacket();
-				$pk->eid = $this->getId();
-				$pk->metadata = [Entity::DATA_EXPLODE_TIMER => [Entity::DATA_TYPE_INT, $time]];
-				Server::broadcastPacket($this->hasSpawned, $pk);
-			}
-			
+
 			if($this->fuse <= 0){
 				$this->kill();
 				$this->explode();
@@ -124,14 +156,14 @@ class PrimedTNT extends Entity implements Explosive{
 		}
 
 
-		return $hasUpdate or $this->fuse >= 0 or $this->motionX != 0 or $this->motionY != 0 or $this->motionZ != 0;
+		return $hasUpdate or $this->fuse >= 0 or abs($this->motionX) > 0.00001 or abs($this->motionY) > 0.00001 or abs($this->motionZ) > 0.00001;
 	}
 
 	public function explode(){
-		$this->server->getPluginManager()->callEvent($ev = new ExplosionPrimeEvent($this, 4));
+		$this->server->getPluginManager()->callEvent($ev = new ExplosionPrimeEvent($this, 4, $this->dropItem));
 
 		if(!$ev->isCancelled()){
-			$explosion = new Explosion($this, $ev->getForce(), $this->owner);
+			$explosion = new Explosion($this, $ev->getForce(), $this, $ev->dropItem());
 			if($ev->isBlockBreaking()){
 				$explosion->explodeA();
 			}
@@ -139,6 +171,9 @@ class PrimedTNT extends Entity implements Explosive{
 		}
 	}
 
+	/**
+	 * @param Player $player
+	 */
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();
 		$pk->type = PrimedTNT::NETWORK_ID;
@@ -149,13 +184,9 @@ class PrimedTNT extends Entity implements Explosive{
 		$pk->speedX = $this->motionX;
 		$pk->speedY = $this->motionY;
 		$pk->speedZ = $this->motionZ;
-//		$pk->metadata = $this->dataProperties;
+		$pk->metadata = $this->dataProperties;
 		$player->dataPacket($pk);
 
 		parent::spawnTo($player);
-	}
-
-	public function setOwner($owner){
-		$this->owner = $owner;
 	}
 }

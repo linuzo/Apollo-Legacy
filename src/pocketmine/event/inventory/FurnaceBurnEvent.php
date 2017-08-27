@@ -26,7 +26,7 @@ use pocketmine\event\Cancellable;
 use pocketmine\item\Item;
 use pocketmine\tile\Furnace;
 
-class FurnaceBurnEvent extends BlockEvent implements Cancellable{
+class FurnaceBurnEvent extends BlockEvent implements Cancellable {
 	public static $handlerList = null;
 
 	private $furnace;
@@ -34,10 +34,17 @@ class FurnaceBurnEvent extends BlockEvent implements Cancellable{
 	private $burnTime;
 	private $burning = true;
 
+	/**
+	 * FurnaceBurnEvent constructor.
+	 *
+	 * @param Furnace $furnace
+	 * @param Item $fuel
+	 * @param         $burnTime
+	 */
 	public function __construct(Furnace $furnace, Item $fuel, $burnTime){
 		parent::__construct($furnace->getBlock());
 		$this->fuel = $fuel;
-		$this->burnTime = (int) $burnTime;
+		$this->burnTime = (int)$burnTime;
 		$this->furnace = $furnace;
 	}
 
@@ -66,7 +73,7 @@ class FurnaceBurnEvent extends BlockEvent implements Cancellable{
 	 * @param int $burnTime
 	 */
 	public function setBurnTime($burnTime){
-		$this->burnTime = (int) $burnTime;
+		$this->burnTime = (int)$burnTime;
 	}
 
 	/**
@@ -80,6 +87,6 @@ class FurnaceBurnEvent extends BlockEvent implements Cancellable{
 	 * @param bool $burning
 	 */
 	public function setBurning($burning){
-		$this->burning = (bool) $burning;
+		$this->burning = (bool)$burning;
 	}
 }

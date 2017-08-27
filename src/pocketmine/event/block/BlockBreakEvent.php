@@ -26,7 +26,7 @@ use pocketmine\event\Cancellable;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
-class BlockBreakEvent extends BlockEvent implements Cancellable{
+class BlockBreakEvent extends BlockEvent implements Cancellable {
 	public static $handlerList = null;
 
 	/** @var \pocketmine\Player */
@@ -37,40 +37,69 @@ class BlockBreakEvent extends BlockEvent implements Cancellable{
 
 	/** @var bool */
 	protected $instaBreak = false;
-	protected $drop = [];
+	protected $blockDrops = [];
 
-	public function __construct(Player $player, Block $block, Item $item, $instaBreak = false, $drop = []){
+	/**
+	 * BlockBreakEvent constructor.
+	 *
+	 * @param Player $player
+	 * @param Block $block
+	 * @param Item $item
+	 * @param bool $instaBreak
+	 */
+	public function __construct(Player $player, Block $block, Item $item, $instaBreak = false){
 		$this->block = $block;
 		$this->item = $item;
 		$this->player = $player;
-		$this->instaBreak = (bool) $instaBreak;
-		$this->drop = $drop;
+		$this->instaBreak = (bool)$instaBreak;
+		$drops = $player->isSurvival() ? $block->getDrops($item) : [];
+		if($drops != null && is_numeric($drops[0]))
+			$this->blockDrops[] = Item::get($drops[0], $drops[1], $drops[2]);
+		else
+			foreach($drops as $i){
+				$this->blockDrops[] = Item::get($i[0], $i[1], $i[2]);
+			}
 	}
 
+	/**
+	 * @return Player
+	 */
 	public function getPlayer(){
 		return $this->player;
 	}
 
+	/**
+	 * @return Item
+	 */
 	public function getItem(){
 		return $this->item;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function getInstaBreak(){
 		return $this->instaBreak;
 	}
 
 	/**
-	 * @param boolean $instaBreak
+	 * @return Item[]
+	 */
+	public function getDrops(){
+		return $this->blockDrops;
+	}
+
+	/**
+	 * @param Item[] $drops
+	 */
+	public function setDrops(array $drops){
+		$this->blockDrops = $drops;
+	}
+
+	/**
+	 * @param bool $instaBreak
 	 */
 	public function setInstaBreak($instaBreak){
-		$this->instaBreak = (bool) $instaBreak;
-	}
-	
-	public function getDrops() {
-		return $this->drop;
-	}
-	
-	public function setDrops($drop = []) {
-		$this->drop = $drop;
+		$this->instaBreak = (bool)$instaBreak;
 	}
 }

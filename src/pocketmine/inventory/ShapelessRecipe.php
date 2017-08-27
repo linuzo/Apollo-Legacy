@@ -25,7 +25,7 @@ use pocketmine\item\Item;
 use pocketmine\Server;
 use pocketmine\utils\UUID;
 
-class ShapelessRecipe implements Recipe{
+class ShapelessRecipe implements Recipe {
 	/** @var Item */
 	private $output;
 
@@ -34,14 +34,25 @@ class ShapelessRecipe implements Recipe{
 	/** @var Item[] */
 	private $ingredients = [];
 
+	/**
+	 * ShapelessRecipe constructor.
+	 *
+	 * @param Item $result
+	 */
 	public function __construct(Item $result){
 		$this->output = clone $result;
 	}
 
+	/**
+	 * @return null
+	 */
 	public function getId(){
 		return $this->id;
 	}
 
+	/**
+	 * @param UUID $id
+	 */
 	public function setId(UUID $id){
 		if($this->id !== null){
 			throw new \InvalidStateException("Id is already set");
@@ -50,6 +61,9 @@ class ShapelessRecipe implements Recipe{
 		$this->id = $id;
 	}
 
+	/**
+	 * @return Item
+	 */
 	public function getResult(){
 		return clone $this->output;
 	}
@@ -87,7 +101,7 @@ class ShapelessRecipe implements Recipe{
 			if($item->getCount() <= 0){
 				break;
 			}
-			if($ingredient->equals($item, $item->getDamage() === null ? false : true, $item->getCompound() === null ? false : true)){
+			if($ingredient->equals($item, !$item->hasAnyDamageValue(), $item->hasCompoundTag())){
 				unset($this->ingredients[$index]);
 				$item->setCount($item->getCount() - 1);
 			}

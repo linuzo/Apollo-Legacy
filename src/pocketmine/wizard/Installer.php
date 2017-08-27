@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
@@ -23,49 +23,95 @@
  * Set-up wizard used on the first run
  * Can be disabled with --no-wizard
  */
+
 namespace pocketmine\wizard;
 
 use pocketmine\utils\Config;
 use pocketmine\utils\Utils;
 
-class Installer{
-	const DEFAULT_NAME = "Minecraft: PE Server";
+class Installer {
+	const DEFAULT_NAME = "§l§f§oLeveryl§r§a MC:PE Server§r";
 	const DEFAULT_PORT = 19132;
-	const DEFAULT_MEMORY = 256;
+	const DEFAULT_MEMORY = 512;
 	const DEFAULT_PLAYERS = 20;
 	const DEFAULT_GAMEMODE = 0;
+	const DEFAULT_LEVEL_NAME = "world";
+	const DEFAULT_LEVEL_TYPE = "DEFAULT";
 
+	const LEVEL_TYPES = [
+		"DEFAULT",
+		"FLAT",
+		"NORMAL",
+		"NORMAL2",
+		"HELL", //nether type, in case anyone wants to generate a blue-skies nether, which actually does look pretty awesome
+		"VOID",
+	];
+
+	private $defaultLang;
+
+	/** @var  InstallerLang */
 	private $lang;
 
+	/**
+	 * Installer constructor.
+	 */
 	public function __construct(){
-		echo "[*] PocketMine-MP set-up wizard\n";
-		echo "[*] Please select a language:\n";
-		foreach(InstallerLang::$languages as $short => $native){
+
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function run(){
+		$this->writeLine("     __                           _ ");
+		$this->writeLine("    / /  _____   _____ _ __ _   _| |");
+		$this->writeLine("   / /  / _ \ \ / / _ \ '__| | | | |");
+		$this->writeLine("  / /__|  __/\ V /  __/ |  | |_| | |");
+		$this->writeLine("  \____/\___| \_/ \___|_|   \__, |_|");
+		$this->writeLine("                            |___/   ");
+		$this->writeLine();
+		$this->writeLine(" This program is free software: you can redistribute it and/or modify");
+		$this->writeLine(" it under the terms of the GNU Lesser General Public License as published by");
+		$this->writeLine(" the Free Software Foundation, either version 3 of the License, or");
+		$this->writeLine(" (at your option) any later version.");
+		$this->writeLine();
+		$this->writeLine("----------------------------------------------------------------------------");
+		$this->writeLine();
+		$this->message("Leveryl set-up wizard");
+		$this->notice("Press the [ENTER] Key to use the Default Value.");
+		$langs = InstallerLang::$languages;
+		if(empty($langs)){
+			$this->error("No language files found, please use provided builds or clone the repository recursively.");
+
+			return false;
+		}
+
+		$this->message("Please select a language");
+		foreach($langs as $short => $native){
 			echo " $native => $short\n";
 		}
 		do{
-			echo "[?] Language (en): ";
-			$lang = strtolower($this->getInput("en"));
+			$lang = strtolower($this->getInput("Language", "eng"));
 			if(!isset(InstallerLang::$languages[$lang])){
-				echo "[!] Couldn't find the language\n";
+				$this->error("Couldn't find the language");
 				$lang = false;
 			}
+			$this->defaultLang = $lang;
 		}while($lang == false);
 		$this->lang = new InstallerLang($lang);
 
+		$this->message($this->lang->get("language_has_been_selected"));
 
-		echo "[*] " . $this->lang->language_has_been_selected . "\n";
+		$this->relayLangSetting();
 
 		if(!$this->showLicense()){
-			\pocketmine\kill(getmypid());
-			exit(-1);
+			return false;
 		}
 
-		echo "[?] " . $this->lang->skip_installer . " (y/N): ";
-		if(strtolower($this->getInput()) === "y"){
-			return;
+		if(strtolower($this->getInput($this->lang->get("skip_installer"), "n", "y/N")) === "y"){
+			return true;
 		}
-		echo "\n";
+
 		$this->welcome();
 		$this->generateBaseConfig();
 		$this->generateUserFiles();
@@ -73,21 +119,24 @@ class Installer{
 		$this->networkFunctions();
 
 		$this->endWizard();
+
+		return true;
+	}
+
+	public function getDefaultLang(){
+		return $this->defaultLang;
 	}
 
 	private function showLicense(){
-		echo $this->lang->welcome_to_pocketmine . "\n";
-		echo <<<LICENSE
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-LICENSE;
-		echo "\n[?] " . $this->lang->accept_license . " (y/N): ";
-		if(strtolower($this->getInput("n")) != "y"){
-			echo "[!] " . $this->lang->you_have_to_accept_the_license . "\n";
+		$this->notice("Please accept the license below before you continue: ");
+		$this->message(" ----- + The GNU LGPL License + ----- ");
+		$this->message("This program is free software: you can redistribute it and/or modify");
+		$this->message("it under the terms of the GNU Lesser General Public License as published by");
+		$this->message("the Free Software Foundation, either version 3 of the License, or");
+		$this->message("(at your option) any later version.");
+		$this->message(" ----- + The GNU LGPL License + ----- ");
+		if(strtolower($this->getInput($this->lang->get("accept_license"), "n", "y/N")) !== "y"){
+			$this->error("You have to Accept the License before you continue.");
 			sleep(5);
 
 			return false;
@@ -97,62 +146,76 @@ LICENSE;
 	}
 
 	private function welcome(){
-		echo "[*] " . $this->lang->setting_up_server_now . "\n";
-		echo "[*] " . $this->lang->default_values_info . "\n";
-		echo "[*] " . $this->lang->server_properties . "\n";
-
+		$this->message($this->lang->get("setting_up_server_now"));
+		$this->message($this->lang->get("default_values_info"));
+		$this->message($this->lang->get("server_properties"));
 	}
 
 	private function generateBaseConfig(){
 		$config = new Config(\pocketmine\DATA . "server.properties", Config::PROPERTIES);
-		echo "[?] " . $this->lang->name_your_server . " (" . self::DEFAULT_NAME . "): ";
-		$config->set("server-name", $this->getInput(self::DEFAULT_NAME));
-		echo "[*] " . $this->lang->port_warning . "\n";
+		$config->set("motd", ($name = $this->getInput($this->lang->get("name_your_server"), self::DEFAULT_NAME)));
+		$config->set("server-name", $name);
+		$this->message($this->lang->get("port_warning"));
 		do{
-			echo "[?] " . $this->lang->server_port . " (" . self::DEFAULT_PORT . "): ";
-			$port = (int) $this->getInput(self::DEFAULT_PORT);
+			$port = (int)$this->getInput($this->lang->get("server_port"), (string)self::DEFAULT_PORT);
 			if($port <= 0 or $port > 65535){
-				echo "[!] " . $this->lang->invalid_port . "\n";
+				$this->error($this->lang->get("invalid_port"));
 			}
 		}while($port <= 0 or $port > 65535);
 		$config->set("server-port", $port);
-		/*echo "[*] " . $this->lang->ram_warning . "\n";
-		echo "[?] " . $this->lang->server_ram . " (" . self::DEFAULT_MEMORY . "): ";
-		$config->set("memory-limit", ((int) $this->getInput(self::DEFAULT_MEMORY)) . "M");*/
-		echo "[*] " . $this->lang->gamemode_info . "\n";
+
+		$this->message($this->lang->get("online_mode_info"));
+		if(strtolower($this->getInput($this->lang->get("online_mode"), "y", "Y/n")) === "y"){
+			$config->set("online-mode", "on");
+		}else{
+			$config->set("online-mode", "off");
+		}
+
+		$config->set("level-name", $this->getInput($this->lang->get("level_name"), self::DEFAULT_LEVEL_NAME));
+
 		do{
-			echo "[?] " . $this->lang->default_gamemode . ": (" . self::DEFAULT_GAMEMODE . "): ";
-			$gamemode = (int) $this->getInput(self::DEFAULT_GAMEMODE);
+			$type = strtoupper((string)$this->getInput($this->lang->get("level_type"), self::DEFAULT_LEVEL_TYPE));
+			if(!in_array($type, self::LEVEL_TYPES)){
+				$this->error($this->lang->get("invalid_level_type"));
+			}
+		}while(!in_array($type, self::LEVEL_TYPES));
+		$config->set("level-type", $type);
+
+		$this->message($this->lang->get("gamemode_info"));
+		do{
+			$gamemode = (int)$this->getInput($this->lang->get("default_gamemode"), self::DEFAULT_GAMEMODE);
 		}while($gamemode < 0 or $gamemode > 3);
 		$config->set("gamemode", $gamemode);
-		echo "[?] " . $this->lang->max_players . " (" . self::DEFAULT_PLAYERS . "): ";
-		$config->set("max-players", (int) $this->getInput(self::DEFAULT_PLAYERS));
-		echo "[*] " . $this->lang->spawn_protection_info . "\n";
-		echo "[?] " . $this->lang->spawn_protection . " (Y/n): ";
-		if(strtolower($this->getInput("y")) == "n"){
+		$config->set("max-players", $this->getInput($this->lang->get("max_players"), self::DEFAULT_PLAYERS));
+		$this->message($this->lang->get("spawn_protection_info"));
+		if(strtolower($this->getInput($this->lang->get("spawn_protection"), "y", "Y/n")) == "n"){
 			$config->set("spawn-protection", -1);
 		}else{
 			$config->set("spawn-protection", 16);
+		}
+
+		if(strtolower($this->getInput($this->lang->get("announce_player_achievements"), "n", "Y/n")) === "y"){
+			$config->set("announce-player-achievements", "on");
+		}else{
+			$config->set("announce-player-achievements", "off");
 		}
 		$config->save();
 	}
 
 	private function generateUserFiles(){
-		echo "[*] " . $this->lang->op_info . "\n";
-		echo "[?] " . $this->lang->op_who . ": ";
-		$op = strtolower($this->getInput(""));
+		$this->message($this->lang->get("op_info"));
+		$op = strtolower($this->getInput($this->lang->get("op_who"), ""));
 		if($op === ""){
-			echo "[!] " . $this->lang->op_warning . "\n";
+			$this->error($this->lang->get("op_warning"));
 		}else{
 			$ops = new Config(\pocketmine\DATA . "ops.txt", Config::ENUM);
 			$ops->set($op, true);
 			$ops->save();
 		}
-		echo "[*] " . $this->lang->whitelist_info . "\n";
-		echo "[?] " . $this->lang->whitelist_enable . " (y/N): ";
+		$this->message($this->lang->get("whitelist_info"));
 		$config = new Config(\pocketmine\DATA . "server.properties", Config::PROPERTIES);
-		if(strtolower($this->getInput("n")) === "y"){
-			echo "[!] " . $this->lang->whitelist_warning . "\n";
+		if(strtolower($this->getInput($this->lang->get("whitelist_enable"), "n", "Y/n")) === "y"){
+			$this->error($this->lang->get("whitelist_warning"));
 			$config->set("white-list", true);
 		}else{
 			$config->set("white-list", false);
@@ -162,58 +225,95 @@ LICENSE;
 
 	private function networkFunctions(){
 		$config = new Config(\pocketmine\DATA . "server.properties", Config::PROPERTIES);
-		echo "[!] " . $this->lang->query_warning1 . "\n";
-		echo "[!] " . $this->lang->query_warning2 . "\n";
-		echo "[?] " . $this->lang->query_disable . " (y/N): ";
-		if(strtolower($this->getInput("n")) === "y"){
+		$this->message($this->lang->get("query_warning1"));
+		$this->message($this->lang->get("query_warning2"));
+		if(strtolower($this->getInput($this->lang->get("query_disable"), "n", "Y/n")) === "y"){
 			$config->set("enable-query", false);
 		}else{
 			$config->set("enable-query", true);
 		}
 
-		echo "[*] " . $this->lang->rcon_info . "\n";
-		echo "[?] " . $this->lang->rcon_enable . " (y/N): ";
-		if(strtolower($this->getInput("n")) === "y"){
+		$this->message($this->lang->get("rcon_info"));
+		if(strtolower($this->getInput($this->lang->get("rcon_enable"), "n", "Y/n")) === "y"){
 			$config->set("enable-rcon", true);
-			$password = substr(base64_encode(@Utils::getRandomBytes(20, false)), 3, 10);
+			$password = substr(base64_encode(random_bytes(20)), 3, 10);
 			$config->set("rcon.password", $password);
-			echo "[*] " . $this->lang->rcon_password . ": " . $password . "\n";
+			$this->message($this->lang->get("rcon_password") . ": " . $password);
 		}else{
 			$config->set("enable-rcon", false);
 		}
-
-		/*echo "[*] " . $this->lang->usage_info . "\n";
-		echo "[?] " . $this->lang->usage_disable . " (y/N): ";
-		if(strtolower($this->getInput("n")) === "y"){
-			$config->set("send-usage", false);
-		}else{
-			$config->set("send-usage", true);
-		}*/
 		$config->save();
 
 
-		echo "[*] " . $this->lang->ip_get . "\n";
+		$this->message($this->lang->get("ip_get"));
 
 		$externalIP = Utils::getIP();
+		if($externalIP === false){
+			$externalIP = "Unknown (server offline)";
+		}
 		$internalIP = gethostbyname(trim(`hostname`));
 
-		echo "[!] " . $this->lang->get("ip_warning", ["{{EXTERNAL_IP}}", "{{INTERNAL_IP}}"], [$externalIP, $internalIP]) . "\n";
-		echo "[!] " . $this->lang->ip_confirm;
-		$this->getInput();
+		$ipwarning0 = str_replace("{{EXTERNAL_IP}}", $externalIP, $this->lang->get("ip_warning"));
+		$ipwarning = str_replace("{{INTERNAL_IP}}", $internalIP, $ipwarning0);
+
+		$this->notice($ipwarning);
+		$this->notice($this->lang->get("ip_confirm"));
+		$this->readLine();
+	}
+
+	private function relayLangSetting(){
+		if(file_exists(\pocketmine\DATA . "lang.txt")){
+			unlink(\pocketmine\DATA . "lang.txt");
+		}
+		$langFile = new Config(\pocketmine\DATA . "lang.txt", Config::ENUM);
+		$langFile->set($this->defaultLang, true);
+		$langFile->save();
 	}
 
 	private function endWizard(){
-		echo "[*] " . $this->lang->you_have_finished . "\n";
-		echo "[*] " . $this->lang->pocketmine_plugins . "\n";
-		echo "[*] " . $this->lang->pocketmine_will_start . "\n\n\n";
+		$this->message($this->lang->get("you_have_finished"));
+		$this->message($this->lang->get("pocketmine_will_start"));
 		sleep(4);
 	}
 
-	private function getInput($default = ""){
-		$input = trim(fgets(STDIN));
+
+	private function writeLine(string $line = ""){
+		echo $line . PHP_EOL;
+	}
+
+	private function readLine(): string{
+		return trim((string)fgets(STDIN));
+	}
+
+	private function message(string $message){
+		$this->writeLine(date("H:i:s", time()) . " [INFO] " . $message);
+	}
+
+	private function error(string $message){
+		$this->writeLine(date("H:i:s", time()) . " [ERROR] " . $message);
+	}
+
+	private function notice(string $message){
+		$this->writeLine(date("H:i:s", time()) . " [NOTICE] " . $message);
+	}
+
+	private function getInput(string $message, string $default = "", string $options = ""){
+		$message = date("H:i:s", time()) . " [INPUT] " . $message;
+
+		if($options !== "" or $default !== ""){
+			if($default == self::DEFAULT_NAME){
+				$message .= " (" . ($options === "" ? "Leveryl MC:PE Server" : $options) . ")";
+			}else{
+				$message .= " (" . ($options === "" ? $default : $options) . ")";
+			}
+		}
+		$message .= ": ";
+
+		echo $message;
+
+		$input = $this->readLine();
 
 		return $input === "" ? $default : $input;
 	}
-
 
 }

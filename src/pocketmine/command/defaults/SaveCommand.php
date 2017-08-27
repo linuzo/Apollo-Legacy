@@ -23,25 +23,38 @@ namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 
 
-class SaveCommand extends VanillaCommand{
+class SaveCommand extends VanillaCommand {
 
+	/**
+	 * SaveCommand constructor.
+	 *
+	 * @param $name
+	 */
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Saves the server to disk",
-			"/save-all"
+			"%pocketmine.command.save.description",
+			"%pocketmine.command.save.usage"
 		);
 		$this->setPermission("pocketmine.command.save.perform");
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $currentAlias
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
-		Command::broadcastCommandMessage($sender, "Forcing save...");
+		Command::broadcastCommandMessage($sender, new TranslationContainer("commands.save.start"));
 
 		foreach($sender->getServer()->getOnlinePlayers() as $player){
 			$player->save();
@@ -51,7 +64,7 @@ class SaveCommand extends VanillaCommand{
 			$level->save(true);
 		}
 
-		Command::broadcastCommandMessage($sender, "Save complete.");
+		Command::broadcastCommandMessage($sender, new TranslationContainer("commands.save.success"));
 
 		return true;
 	}

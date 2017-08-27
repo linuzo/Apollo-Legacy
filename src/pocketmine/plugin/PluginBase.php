@@ -27,7 +27,7 @@ use pocketmine\command\PluginIdentifiableCommand;
 use pocketmine\Server;
 use pocketmine\utils\Config;
 
-abstract class PluginBase implements Plugin{
+abstract class PluginBase implements Plugin {
 
 	/** @var PluginLoader */
 	private $loader;
@@ -53,33 +53,6 @@ abstract class PluginBase implements Plugin{
 
 	/** @var PluginLogger */
 	private $logger;
-	
-	/** @var array */
-	private $jsonCommands = [];
-	
-	private static $defaultCommand = [
-		"versions" => [
-			[
-				"description" => "description",
-				"permission" => "any",
-				"aliases" => [],
-				"overloads" => [
-					"default" => [
-						"input" => [
-							"parameters" => [
-								[
-									"name" => "args",
-									"type" => "rawtext",
-									"optional" => true
-								]
-							]
-						],
-						"output" => []
-					]
-				]
-			]
-		]
-	];
 
 	/**
 	 * Called when the plugin is loaded, before calling onEnable()
@@ -124,14 +97,27 @@ abstract class PluginBase implements Plugin{
 		return $this->isEnabled === false;
 	}
 
+	/**
+	 * @return string
+	 */
 	public final function getDataFolder(){
 		return $this->dataFolder;
 	}
 
+	/**
+	 * @return PluginDescription
+	 */
 	public final function getDescription(){
 		return $this->description;
 	}
 
+	/**
+	 * @param PluginLoader $loader
+	 * @param Server $server
+	 * @param PluginDescription $description
+	 * @param                   $dataFolder
+	 * @param                   $file
+	 */
 	public final function init(PluginLoader $loader, Server $server, PluginDescription $description, $dataFolder, $file){
 		if($this->initialized === false){
 			$this->initialized = true;
@@ -142,52 +128,6 @@ abstract class PluginBase implements Plugin{
 			$this->file = rtrim($file, "\\/") . "/";
 			$this->configFile = $this->dataFolder . "config.yml";
 			$this->logger = new PluginLogger($this);
-			$this->initCommands();
-		}
-	}
-	
-	protected final function initCommands() {
-		$jsonFilePath = 'commands.json';
-		
-		// костыль для devtools
-		if (substr($this->file, 0, 4) === 'phar') {
-			// ordinary situation
-			$phar = new \Phar($this->file);
-			if (!isset($phar[$jsonFilePath]) || !($phar[$jsonFilePath] instanceof \PharFileInfo)) {
-				return;
-			}
-			$json = $phar[$jsonFilePath]->getContent();
-		} else {
-			// using devtools
-			if (!file_exists($this->file . $jsonFilePath) || ($json = file_get_contents($this->file . $jsonFilePath)) === false) {
-				return;
-			}
-		}
-
-		if (is_null($commands = json_decode($json, true))) {
-			return;
-		}
-		$this->jsonCommands = $commands;
-	}
-	
-	/**
-	 * @return array
-	 */
-	public function getJsonCommands() {
-		return $this->jsonCommands;
-	}
-
-	public function setJsonCommands($commands) {
-        $this->jsonCommands = $commands;
-    }
-	
-	public function generateJsonCommands($pluginCmds) {
-		foreach ($pluginCmds as $cmd) {
-			$this->jsonCommands[$cmd->getName()] = self::$defaultCommand;
-			$this->jsonCommands[$cmd->getName()]["versions"][0]["description"] = $cmd->getDescription();
-			foreach ($cmd->getAliases() as $alias) {
-				$this->jsonCommands[$cmd->getName()]["versions"][0]["aliases"][] = $alias;
-			}
 		}
 	}
 
@@ -225,9 +165,9 @@ abstract class PluginBase implements Plugin{
 
 	/**
 	 * @param CommandSender $sender
-	 * @param Command       $command
-	 * @param string        $label
-	 * @param array         $args
+	 * @param Command $command
+	 * @param string $label
+	 * @param array $args
 	 *
 	 * @return bool
 	 */
@@ -261,7 +201,7 @@ abstract class PluginBase implements Plugin{
 
 	/**
 	 * @param string $filename
-	 * @param bool   $replace
+	 * @param bool $replace
 	 *
 	 * @return bool
 	 */
@@ -275,8 +215,8 @@ abstract class PluginBase implements Plugin{
 		}
 
 		$out = $this->dataFolder . $filename;
-		if(!file_exists($this->dataFolder)){
-			mkdir($this->dataFolder, 0755, true);
+		if(!file_exists(dirname($out))){
+			mkdir(dirname($out), 0755, true);
 		}
 
 		if(file_exists($out) and $replace !== true){
@@ -286,11 +226,12 @@ abstract class PluginBase implements Plugin{
 		$ret = stream_copy_to_stream($resource, $fp = fopen($out, "wb")) > 0;
 		fclose($fp);
 		fclose($resource);
+
 		return $ret;
 	}
 
 	/**
-	 * Returns all the resources incrusted on the plugin
+	 * Returns all the resources packaged with the plugin
 	 *
 	 * @return string[]
 	 */
@@ -316,22 +257,31 @@ abstract class PluginBase implements Plugin{
 		return $this->config;
 	}
 
+	/**
+	 *
+	 */
 	public function saveConfig(){
 		if($this->getConfig()->save() === false){
 			$this->getLogger()->critical("Could not save config to " . $this->configFile);
 		}
 	}
 
+	/**
+	 *
+	 */
 	public function saveDefaultConfig(){
 		if(!file_exists($this->configFile)){
 			$this->saveResource("config.yml", false);
 		}
 	}
 
+	/**
+	 *
+	 */
 	public function reloadConfig(){
 		$this->config = new Config($this->configFile);
 		if(($configStream = $this->getResource("config.yml")) !== null){
-			$this->config->setDefaults(yaml_parse(config::fixYAMLIndexes(stream_get_contents($configStream))));
+			$this->config->setDefaults(yaml_parse(Config::fixYAMLIndexes(stream_get_contents($configStream))));
 			fclose($configStream);
 		}
 	}
@@ -357,6 +307,9 @@ abstract class PluginBase implements Plugin{
 		return $this->description->getFullName();
 	}
 
+	/**
+	 * @return mixed
+	 */
 	protected function getFile(){
 		return $this->file;
 	}

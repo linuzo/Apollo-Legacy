@@ -22,20 +22,33 @@
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 use pocketmine\Player;
 
 
-class ListCommand extends VanillaCommand{
+class ListCommand extends VanillaCommand {
 
+	/**
+	 * ListCommand constructor.
+	 *
+	 * @param $name
+	 */
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Lists all online players",
-			"/list"
+			"%pocketmine.command.list.description",
+			"%pocketmine.command.players.usage"
 		);
 		$this->setPermission("pocketmine.command.list");
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $currentAlias
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
@@ -51,7 +64,8 @@ class ListCommand extends VanillaCommand{
 			}
 		}
 
-		$sender->sendMessage("There are " . $onlineCount . "/" . $sender->getServer()->getMaxPlayers() . " players online:\n" . substr($online, 0, -2));
+		$sender->sendMessage(new TranslationContainer("commands.players.list", [$onlineCount, $sender->getServer()->getMaxPlayers()]));
+		$sender->sendMessage(substr($online, 0, -2));
 
 		return true;
 	}

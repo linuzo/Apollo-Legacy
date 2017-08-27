@@ -23,34 +23,48 @@ namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 
 
-class StopCommand extends VanillaCommand{
+class StopCommand extends VanillaCommand {
 
+	/**
+	 * StopCommand constructor.
+	 *
+	 * @param $name
+	 */
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Stops the server, with optional reason",
-			"/stop [reason]"
+			"%pocketmine.command.stop.description",
+			"%pocketmine.command.stop.usage"
 		);
 		$this->setPermission("pocketmine.command.stop");
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $currentAlias
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
-
-		Command::broadcastCommandMessage($sender, "Stopping the server...");
-
-		$reason = implode(" ", $args);
-		if($reason !== ""){
-			foreach($sender->getServer()->getOnlinePlayers() as $player){
-				$player->kick($reason);
+		$restart = false;
+		if(isset($args[0])){
+			if($args[0] == 'force'){
+				$restart = true;
+				array_shift($args);
+			}else{
+				$restart = false;
 			}
 		}
-
-		$sender->getServer()->shutdown();
+		Command::broadcastCommandMessage($sender, new TranslationContainer("commands.stop.start"));
+		$msg = implode(" ", $args);
+		$sender->getServer()->shutdown($restart, $msg);
 
 		return true;
 	}

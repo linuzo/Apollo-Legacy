@@ -23,29 +23,41 @@ namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\SetDifficultyPacket;
+use pocketmine\event\TranslationContainer;
+use pocketmine\network\mcpe\protocol\SetDifficultyPacket;
 use pocketmine\Server;
-use pocketmine\utils\TextFormat;
 
-class DifficultyCommand extends VanillaCommand{
 
+class DifficultyCommand extends VanillaCommand {
+
+	/**
+	 * DifficultyCommand constructor.
+	 *
+	 * @param $name
+	 */
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Sets the game difficulty",
-			"/difficulty <new difficulty>"
+			"%pocketmine.command.difficulty.description",
+			"%commands.difficulty.usage"
 		);
 		$this->setPermission("pocketmine.command.difficulty");
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $currentAlias
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) !== 1){
-			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
+			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
 
 			return false;
 		}
@@ -61,11 +73,13 @@ class DifficultyCommand extends VanillaCommand{
 
 			$pk = new SetDifficultyPacket();
 			$pk->difficulty = $sender->getServer()->getDifficulty();
-			Server::broadcastPacket($sender->getServer()->getOnlinePlayers(), $pk);
+			$sender->getServer()->broadcastPacket($sender->getServer()->getOnlinePlayers(), $pk);
 
-			$sender->sendMessage("Set difficulty to " . $difficulty);
+			Command::broadcastCommandMessage($sender, new TranslationContainer("commands.difficulty.success", [$difficulty]));
 		}else{
-			$sender->sendMessage("Unknown difficulty");
+			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
+
+			return false;
 		}
 
 		return true;

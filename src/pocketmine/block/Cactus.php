@@ -32,26 +32,43 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\Server;
 
-class Cactus extends Transparent{
+class Cactus extends Transparent {
 
 	protected $id = self::CACTUS;
 
+	/**
+	 * Cactus constructor.
+	 *
+	 * @param int $meta
+	 */
 	public function __construct($meta = 0){
 		$this->meta = $meta;
 	}
 
+	/**
+	 * @return float
+	 */
 	public function getHardness(){
 		return 0.4;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function hasEntityCollision(){
 		return true;
 	}
 
-	public function getName(){
+	/**
+	 * @return string
+	 */
+	public function getName(): string{
 		return "Cactus";
 	}
 
+	/**
+	 * @return AxisAlignedBB
+	 */
 	protected function recalculateBoundingBox(){
 
 		return new AxisAlignedBB(
@@ -64,13 +81,21 @@ class Cactus extends Transparent{
 		);
 	}
 
+	/**
+	 * @param Entity $entity
+	 */
 	public function onEntityCollide(Entity $entity){
-		/*
 		$ev = new EntityDamageByBlockEvent($this, $entity, EntityDamageEvent::CAUSE_CONTACT, 1);
-		$entity->attack($ev->getFinalDamage(), $ev);]
-		*/
+		if($entity->attack($ev->getFinalDamage(), $ev) === true){
+			$ev->useArmors();
+		}
 	}
 
+	/**
+	 * @param int $type
+	 *
+	 * @return bool
+	 */
 	public function onUpdate($type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
 			$down = $this->getSide(0);
@@ -108,6 +133,18 @@ class Cactus extends Transparent{
 		return false;
 	}
 
+	/**
+	 * @param Item $item
+	 * @param Block $block
+	 * @param Block $target
+	 * @param int $face
+	 * @param float $fx
+	 * @param float $fy
+	 * @param float $fz
+	 * @param Player|null $player
+	 *
+	 * @return bool
+	 */
 	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
 		$down = $this->getSide(0);
 		if($down->getId() === self::SAND or $down->getId() === self::CACTUS){
@@ -125,7 +162,12 @@ class Cactus extends Transparent{
 		return false;
 	}
 
-	public function getDrops(Item $item){
+	/**
+	 * @param Item $item
+	 *
+	 * @return array
+	 */
+	public function getDrops(Item $item): array{
 		return [
 			[$this->id, 0, 1],
 		];

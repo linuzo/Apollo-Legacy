@@ -22,9 +22,9 @@
 namespace pocketmine\permission;
 
 use pocketmine\plugin\Plugin;
-use pocketmine\utils\PluginException;
+use pocketmine\plugin\PluginException;
 
-class PermissionAttachment{
+class PermissionAttachment {
 	/** @var PermissionRemovedExecutor */
 	private $removed = null;
 
@@ -40,7 +40,7 @@ class PermissionAttachment{
 	private $plugin;
 
 	/**
-	 * @param Plugin      $plugin
+	 * @param Plugin $plugin
 	 * @param Permissible $permissible
 	 *
 	 * @throws PluginException
@@ -89,9 +89,6 @@ class PermissionAttachment{
 		return $this->permissions;
 	}
 
-	/**
-	 * @return bool[]
-	 */
 	public function clearPermissions(){
 		$this->permissions = [];
 		$this->permissible->recalculatePermissions();
@@ -102,7 +99,7 @@ class PermissionAttachment{
 	 */
 	public function setPermissions(array $permissions){
 		foreach($permissions as $key => $value){
-			$this->permissions[$key] = (bool) $value;
+			$this->permissions[$key] = (bool)$value;
 		}
 		$this->permissible->recalculatePermissions();
 	}
@@ -119,7 +116,7 @@ class PermissionAttachment{
 
 	/**
 	 * @param string|Permission $name
-	 * @param bool              $value
+	 * @param bool $value
 	 */
 	public function setPermission($name, $value){
 		$name = $name instanceof Permission ? $name->getName() : $name;

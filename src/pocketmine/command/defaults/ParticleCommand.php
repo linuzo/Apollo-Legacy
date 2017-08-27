@@ -23,20 +23,29 @@ namespace pocketmine\command\defaults;
 
 use pocketmine\block\Block;
 use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 use pocketmine\item\Item;
+use pocketmine\level\particle\AngryVillagerParticle;
+use pocketmine\level\particle\BlockForceFieldParticle;
 use pocketmine\level\particle\BubbleParticle;
 use pocketmine\level\particle\CriticalParticle;
 use pocketmine\level\particle\DustParticle;
+use pocketmine\level\particle\EnchantmentTableParticle;
 use pocketmine\level\particle\EnchantParticle;
 use pocketmine\level\particle\ExplodeParticle;
 use pocketmine\level\particle\FlameParticle;
+use pocketmine\level\particle\HappyVillagerParticle;
 use pocketmine\level\particle\HeartParticle;
+use pocketmine\level\particle\HugeExplodeParticle;
+use pocketmine\level\particle\HugeExplodeSeedParticle;
 use pocketmine\level\particle\InkParticle;
+use pocketmine\level\particle\InstantEnchantParticle;
 use pocketmine\level\particle\ItemBreakParticle;
 use pocketmine\level\particle\LavaDripParticle;
 use pocketmine\level\particle\LavaParticle;
 use pocketmine\level\particle\Particle;
 use pocketmine\level\particle\PortalParticle;
+use pocketmine\level\particle\RainSplashParticle;
 use pocketmine\level\particle\RedstoneParticle;
 use pocketmine\level\particle\SmokeParticle;
 use pocketmine\level\particle\SplashParticle;
@@ -49,8 +58,13 @@ use pocketmine\Player;
 use pocketmine\utils\Random;
 use pocketmine\utils\TextFormat;
 
-class ParticleCommand extends VanillaCommand{
+class ParticleCommand extends VanillaCommand {
 
+	/**
+	 * ParticleCommand constructor.
+	 *
+	 * @param $name
+	 */
 	public function __construct($name){
 		parent::__construct(
 			$name,
@@ -60,12 +74,21 @@ class ParticleCommand extends VanillaCommand{
 		$this->setPermission("pocketmine.command.particle");
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $currentAlias
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) < 7){
+			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
+
 			return true;
 		}
 
@@ -77,23 +100,28 @@ class ParticleCommand extends VanillaCommand{
 
 		$name = strtolower($args[0]);
 
-		$pos = new Vector3((float) $args[1], (float) $args[2], (float) $args[3]);
+		$pos = new Vector3((float)$args[1], (float)$args[2], (float)$args[3]);
 
-		$xd = (float) $args[4];
-		$yd = (float) $args[5];
-		$zd = (float) $args[6];
+		$xd = (float)$args[4];
+		$yd = (float)$args[5];
+		$zd = (float)$args[6];
 
-		$count = isset($args[7]) ? max(1, (int) $args[7]) : 1;
+		$count = isset($args[7]) ? max(1, (int)$args[7]) : 1;
 
-		$data = isset($args[8]) ? (int) $args[8] : null;
+		$data = isset($args[8]) ? (int)$args[8] : null;
 
 		$particle = $this->getParticle($name, $pos, $xd, $yd, $zd, $data);
 
 		if($particle === null){
+			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.particle.notFound", [$name]));
+
 			return true;
 		}
 
-		$random = new Random((int) (microtime(true) * 1000) + mt_rand());
+
+		$sender->sendMessage(new TranslationContainer("commands.particle.success", [$name, $count]));
+
+		$random = new Random((int)(microtime(true) * 1000) + mt_rand());
 
 		for($i = 0; $i < $count; ++$i){
 			$particle->setComponents(
@@ -107,8 +135,14 @@ class ParticleCommand extends VanillaCommand{
 		return true;
 	}
 
+
 	/**
-	 * @param $name
+	 * @param         $name
+	 * @param Vector3 $pos
+	 * @param         $xd
+	 * @param         $yd
+	 * @param         $zd
+	 * @param         $data
 	 *
 	 * @return Particle
 	 */
@@ -116,6 +150,10 @@ class ParticleCommand extends VanillaCommand{
 		switch($name){
 			case "explode":
 				return new ExplodeParticle($pos);
+			case "hugeexplosion":
+				return new HugeExplodeParticle($pos);
+			case "hugeexplosionseed":
+				return new HugeExplodeSeedParticle($pos);
 			case "bubble":
 				return new BubbleParticle($pos);
 			case "splash":
@@ -126,9 +164,11 @@ class ParticleCommand extends VanillaCommand{
 			case "crit":
 				return new CriticalParticle($pos);
 			case "smoke":
-				return new SmokeParticle($pos, $data !== null ? $data : 0);
+				return new SmokeParticle($pos, $data ?? 0);
 			case "spell":
 				return new EnchantParticle($pos);
+			case "instantspell":
+				return new InstantEnchantParticle($pos);
 			case "dripwater":
 				return new WaterDripParticle($pos);
 			case "driplava":
@@ -143,9 +183,11 @@ class ParticleCommand extends VanillaCommand{
 			case "lava":
 				return new LavaParticle($pos);
 			case "reddust":
-				return new RedstoneParticle($pos, $data !== null ? $data : 1);
+				return new RedstoneParticle($pos, $data ?? 1);
 			case "snowballpoof":
 				return new ItemBreakParticle($pos, Item::get(Item::SNOWBALL));
+			case "slime":
+				return new ItemBreakParticle($pos, Item::get(Item::SLIMEBALL));
 			case "itembreak":
 				if($data !== null and $data !== 0){
 					return new ItemBreakParticle($pos, $data);
@@ -157,16 +199,26 @@ class ParticleCommand extends VanillaCommand{
 				}
 				break;
 			case "heart":
-				return new HeartParticle($pos, $data !== null ? $data : 0);
+				return new HeartParticle($pos, $data ?? 0);
 			case "ink":
-				return new InkParticle($pos, $data !== null ? $data : 0);
+				return new InkParticle($pos, $data ?? 0);
+			case "droplet":
+				return new RainSplashParticle($pos);
+			case "enchantmenttable":
+				return new EnchantmentTableParticle($pos);
+			case "happyvillager":
+				return new HappyVillagerParticle($pos);
+			case "angryvillager":
+				return new AngryVillagerParticle($pos);
+			case "forcefield":
+				return new BlockForceFieldParticle($pos, $data ?? 0);
 
 		}
 
 		if(substr($name, 0, 10) === "iconcrack_"){
 			$d = explode("_", $name);
 			if(count($d) === 3){
-				return new ItemBreakParticle($pos, Item::get((int) $d[1], (int) $d[2]));
+				return new ItemBreakParticle($pos, Item::get((int)$d[1], (int)$d[2]));
 			}
 		}elseif(substr($name, 0, 11) === "blockcrack_"){
 			$d = explode("_", $name);

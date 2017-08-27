@@ -23,7 +23,7 @@ namespace pocketmine\scheduler;
 
 use pocketmine\event\Timings;
 
-class TaskHandler{
+class TaskHandler {
 
 	/** @var Task */
 	protected $task;
@@ -50,10 +50,10 @@ class TaskHandler{
 
 	/**
 	 * @param string $timingName
-	 * @param Task   $task
-	 * @param int    $taskId
-	 * @param int    $delay
-	 * @param int    $period
+	 * @param Task $task
+	 * @param int $taskId
+	 * @param int $delay
+	 * @param int $period
 	 */
 	public function __construct($timingName, Task $task, $taskId, $delay = -1, $period = -1){
 		$this->task = $task;
@@ -62,6 +62,7 @@ class TaskHandler{
 		$this->period = $period;
 		$this->timingName = $timingName === null ? "Unknown" : $timingName;
 		$this->timings = Timings::getPluginTaskTimings($this, $period);
+		$this->task->setHandler($this);
 	}
 
 	/**

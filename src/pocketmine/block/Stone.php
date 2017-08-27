@@ -21,10 +21,11 @@
 
 namespace pocketmine\block;
 
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
 
-class Stone extends Solid{
+class Stone extends Solid {
 	const NORMAL = 0;
 	const GRANITE = 1;
 	const POLISHED_GRANITE = 2;
@@ -35,37 +36,63 @@ class Stone extends Solid{
 
 	protected $id = self::STONE;
 
+	/**
+	 * Stone constructor.
+	 *
+	 * @param int $meta
+	 */
 	public function __construct($meta = 0){
 		$this->meta = $meta;
 
 	}
 
+	/**
+	 * @return float
+	 */
 	public function getHardness(){
 		return 1.5;
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getToolType(){
 		return Tool::TYPE_PICKAXE;
 	}
 
-	public function getName(){
+	/**
+	 * @return string
+	 */
+	public function getName(): string{
 		static $names = [
-			self::NORMAL => "Stone",
-			self::GRANITE => "Granite",
-			self::POLISHED_GRANITE => "Polished Granite",
-			self::DIORITE => "Diorite",
-			self::POLISHED_DIORITE => "Polished Diorite",
-			self::ANDESITE => "Andesite",
+			self::NORMAL            => "Stone",
+			self::GRANITE           => "Granite",
+			self::POLISHED_GRANITE  => "Polished Granite",
+			self::DIORITE           => "Diorite",
+			self::POLISHED_DIORITE  => "Polished Diorite",
+			self::ANDESITE          => "Andesite",
 			self::POLISHED_ANDESITE => "Polished Andesite",
-			7 => "Unknown Stone",
+			7                       => "Unknown Stone",
 		];
+
 		return $names[$this->meta & 0x07];
 	}
 
-	public function getDrops(Item $item){
+	/**
+	 * @param Item $item
+	 *
+	 * @return array
+	 */
+	public function getDrops(Item $item): array{
 		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+			if($item->getEnchantmentLevel(Enchantment::SILK_TOUCH) > 0 and $this->getDamage() === 0){
+				return [
+					[Item::STONE, 0, 1],
+				];
+			}
+
 			return [
-				[$this->getDamage() === 0 ? Item::STONE : Item::STONE, $this->getDamage(), 1],
+				[$this->getDamage() === 0 ? Item::COBBLESTONE : Item::STONE, $this->getDamage(), 1],
 			];
 		}else{
 			return [];

@@ -27,12 +27,11 @@ use pocketmine\item\Item;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
-use pocketmine\item\Armor;
 
 /**
  * Called when a player interacts or touches a block (including air?)
  */
-class PlayerInteractEvent extends PlayerEvent implements Cancellable{
+class PlayerInteractEvent extends PlayerEvent implements Cancellable {
 	public static $handlerList = null;
 
 	const LEFT_CLICK_BLOCK = 0;
@@ -56,6 +55,15 @@ class PlayerInteractEvent extends PlayerEvent implements Cancellable{
 
 	protected $action;
 
+	/**
+	 * PlayerInteractEvent constructor.
+	 *
+	 * @param Player $player
+	 * @param Item $item
+	 * @param Vector3 $block
+	 * @param         $face
+	 * @param int $action
+	 */
 	public function __construct(Player $player, Item $item, Vector3 $block, $face, $action = PlayerInteractEvent::RIGHT_CLICK_BLOCK){
 		if($block instanceof Block){
 			$this->blockTouched = $block;
@@ -66,16 +74,8 @@ class PlayerInteractEvent extends PlayerEvent implements Cancellable{
 		}
 		$this->player = $player;
 		$this->item = $item;
-		$this->blockFace = (int) $face;
-		$this->action = (int) $action;
-		if($item instanceof Armor){
-			if($player->getInventory()->getArmorItem($item::SLOT_NUMBER)->getId() == Item::AIR){
-				$player->getInventory()->setItem($player->getInventory()->getHeldItemSlot(), Item::get(Item::AIR));
-				$player->getInventory()->setArmorItem($item::SLOT_NUMBER, $item);
-				$player->getInventory()->sendArmorContents($player);
-				$player->getInventory()->sendContents($player);
-			}
-		}
+		$this->blockFace = (int)$face;
+		$this->action = (int)$action;
 	}
 
 	/**

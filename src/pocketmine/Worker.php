@@ -24,17 +24,23 @@ namespace pocketmine;
 /**
  * This class must be extended by all custom threading classes
  */
-abstract class Worker extends \Worker{
+abstract class Worker extends \Worker {
 
 	/** @var \ClassLoader */
 	protected $classLoader;
-	
+
 	protected $isKilled = false;
 
+	/**
+	 * @return \ClassLoader
+	 */
 	public function getClassLoader(){
 		return $this->classLoader;
 	}
 
+	/**
+	 * @param \ClassLoader|null $loader
+	 */
 	public function setClassLoader(\ClassLoader $loader = null){
 		if($loader === null){
 			$loader = Server::getInstance()->getLoader();
@@ -46,13 +52,17 @@ abstract class Worker extends \Worker{
 		if(!interface_exists("ClassLoader", false)){
 			require(\pocketmine\PATH . "src/spl/ClassLoader.php");
 			require(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
-			require(\pocketmine\PATH . "src/pocketmine/CompatibleClassLoader.php");
 		}
 		if($this->classLoader !== null){
 			$this->classLoader->register(true);
 		}
 	}
 
+	/**
+	 * @param int $options
+	 *
+	 * @return bool
+	 */
 	public function start(int $options = PTHREADS_INHERIT_ALL){
 		ThreadManager::getInstance()->add($this);
 
@@ -60,6 +70,7 @@ abstract class Worker extends \Worker{
 			if($this->getClassLoader() === null){
 				$this->setClassLoader();
 			}
+
 			return parent::start($options);
 		}
 
@@ -73,16 +84,23 @@ abstract class Worker extends \Worker{
 		$this->isKilled = true;
 
 		$this->notify();
-		
+
 		if($this->isRunning()){
 			$this->shutdown();
 			$this->notify();
 			$this->unstack();
+		}elseif(!$this->isJoined()){
+			if(!$this->isTerminated()){
+				$this->join();
+			}
 		}
 
 		ThreadManager::getInstance()->remove($this);
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getThreadName(){
 		return (new \ReflectionClass($this))->getShortName();
 	}

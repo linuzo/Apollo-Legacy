@@ -24,7 +24,7 @@ namespace pocketmine\event\inventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\Player;
 
-class InventoryCloseEvent extends InventoryEvent{
+class InventoryCloseEvent extends InventoryEvent {
 	public static $handlerList = null;
 
 	/** @var Player */
@@ -32,7 +32,7 @@ class InventoryCloseEvent extends InventoryEvent{
 
 	/**
 	 * @param Inventory $inventory
-	 * @param Player    $who
+	 * @param Player $who
 	 */
 	public function __construct(Inventory $inventory, Player $who){
 		$this->who = $who;

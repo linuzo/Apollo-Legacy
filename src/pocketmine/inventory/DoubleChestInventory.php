@@ -21,46 +21,76 @@
 
 namespace pocketmine\inventory;
 
-use pocketmine\Player;
-use pocketmine\Server;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
-use pocketmine\network\protocol\TileEventPacket;
+use pocketmine\network\mcpe\protocol\BlockEventPacket;
+use pocketmine\Player;
 use pocketmine\tile\Chest;
 
-class DoubleChestInventory extends ChestInventory implements InventoryHolder{
+class DoubleChestInventory extends ChestInventory implements InventoryHolder {
 	/** @var ChestInventory */
 	private $left;
 	/** @var ChestInventory */
 	private $right;
 
+	/**
+	 * DoubleChestInventory constructor.
+	 *
+	 * @param Chest $left
+	 * @param Chest $right
+	 */
 	public function __construct(Chest $left, Chest $right){
 		$this->left = $left->getRealInventory();
 		$this->right = $right->getRealInventory();
-		$items = array_merge($this->left->getContents(), $this->right->getContents());
-		BaseInventory::__construct($left, InventoryType::get(InventoryType::DOUBLE_CHEST), $items);
+		$items = array_merge($this->left->getContents(true), $this->right->getContents(true));
+		BaseInventory::__construct($this, InventoryType::get(InventoryType::DOUBLE_CHEST), $items);
 	}
 
+	/**
+	 * @return $this
+	 */
 	public function getInventory(){
 		return $this;
 	}
 
+	/**
+	 * @return Chest
+	 */
 	public function getHolder(){
 		return $this->left->getHolder();
 	}
 
+	/**
+	 * @param int $index
+	 *
+	 * @return Item
+	 */
 	public function getItem($index){
 		return $index < $this->left->getSize() ? $this->left->getItem($index) : $this->right->getItem($index - $this->right->getSize());
 	}
 
+	/**
+	 * @param int $index
+	 * @param Item $item
+	 *
+	 * @return bool
+	 */
 	public function setItem($index, Item $item){
 		return $index < $this->left->getSize() ? $this->left->setItem($index, $item) : $this->right->setItem($index - $this->right->getSize(), $item);
 	}
 
+	/**
+	 * @param int $index
+	 *
+	 * @return bool
+	 */
 	public function clear($index){
 		return $index < $this->left->getSize() ? $this->left->clear($index) : $this->right->clear($index - $this->right->getSize());
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getContents(){
 		$contents = [];
 		for($i = 0; $i < $this->getSize(); ++$i){
@@ -81,7 +111,7 @@ class DoubleChestInventory extends ChestInventory implements InventoryHolder{
 
 		for($i = 0; $i < $this->size; ++$i){
 			if(!isset($items[$i])){
-				if ($i < $this->left->size){
+				if($i < $this->left->size){
 					if(isset($this->left->slots[$i])){
 						$this->clear($i);
 					}
@@ -94,32 +124,38 @@ class DoubleChestInventory extends ChestInventory implements InventoryHolder{
 		}
 	}
 
+	/**
+	 * @param Player $who
+	 */
 	public function onOpen(Player $who){
 		parent::onOpen($who);
 
 		if(count($this->getViewers()) === 1){
-			$pk = new TileEventPacket();
+			$pk = new BlockEventPacket();
 			$pk->x = $this->right->getHolder()->getX();
 			$pk->y = $this->right->getHolder()->getY();
 			$pk->z = $this->right->getHolder()->getZ();
 			$pk->case1 = 1;
 			$pk->case2 = 2;
 			if(($level = $this->right->getHolder()->getLevel()) instanceof Level){
-				Server::broadcastPacket($level->getUsingChunk($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4), $pk);
+				$level->addChunkPacket($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4, $pk);
 			}
 		}
 	}
 
+	/**
+	 * @param Player $who
+	 */
 	public function onClose(Player $who){
 		if(count($this->getViewers()) === 1){
-			$pk = new TileEventPacket();
+			$pk = new BlockEventPacket();
 			$pk->x = $this->right->getHolder()->getX();
 			$pk->y = $this->right->getHolder()->getY();
 			$pk->z = $this->right->getHolder()->getZ();
 			$pk->case1 = 1;
 			$pk->case2 = 0;
 			if(($level = $this->right->getHolder()->getLevel()) instanceof Level){
-				Server::broadcastPacket($level->getUsingChunk($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4), $pk);
+				$level->addChunkPacket($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4, $pk);
 			}
 		}
 		parent::onClose($who);

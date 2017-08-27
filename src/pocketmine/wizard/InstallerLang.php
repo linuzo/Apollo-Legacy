@@ -22,32 +22,29 @@
 namespace pocketmine\wizard;
 
 
-class InstallerLang{
+class InstallerLang {
 	public static $languages = [
-		"en" => "English",
-		"es" => "Español",
-		"zh" => "中文",
-		"ru" => "Pyccĸий",
-		"ja" => "日本語",
-		"de" => "Deutsch",
-		//"vi" => "Tiếng Việt",
-		"ko" => "한국어",
-		"nl" => "Nederlands",
-		"fr" => "Français",
-		"it" => "Italiano",
-		//"lv" => "Latviešu",
-		"ms" => "Melayu",
-		"no" => "Norsk",
-		//"pt" => "Português",
-		"sv" => "Svenska",
-		"fi" => "Suomi",
-		"tr" => "Türkçe",
-		//"et" => "Eesti",
+		"eng" => "English",
+		"chs" => "简体中文",
+		"zho" => "繁體中文",
+		"jpn" => "日本語",
+		"rus" => "Русский",
+		"ita" => "Italiano",
+		"kor" => "한국어",
+		"deu" => "Deutsch",
+		"fra" => "Français",
+		"ind" => "Bahasa Indonesia",
+		"ukr" => "Україна",
 	];
 	private $texts = [];
 	private $lang;
 	private $langfile;
 
+	/**
+	 * InstallerLang constructor.
+	 *
+	 * @param string $lang
+	 */
 	public function __construct($lang = ""){
 		if(file_exists(\pocketmine\PATH . "src/pocketmine/lang/Installer/" . $lang . ".ini")){
 			$this->lang = $lang;
@@ -69,21 +66,28 @@ class InstallerLang{
 				$this->langfile = \pocketmine\PATH . "src/pocketmine/lang/Installer/" . $l . ".ini";
 			}else{
 				$this->lang = "en";
-				$this->langfile = \pocketmine\PATH . "src/pocketmine/lang/Installer/en.ini";
+				$this->langfile = \pocketmine\PATH . "src/pocketmine/lang/Installer/eng.ini";
 			}
 		}
 
-		$this->loadLang(\pocketmine\PATH . "src/pocketmine/lang/Installer/en.ini", "en");
+		$this->loadLang(\pocketmine\PATH . "src/pocketmine/lang/Installer/eng.ini", "eng");
 		if($this->lang !== "en"){
 			$this->loadLang($this->langfile, $this->lang);
 		}
 
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getLang(){
 		return ($this->lang);
 	}
 
+	/**
+	 * @param        $langfile
+	 * @param string $lang
+	 */
 	public function loadLang($langfile, $lang = "en"){
 		$this->texts[$lang] = [];
 		$texts = explode("\n", str_replace(["\r", "\\/\\/"], ["", "//"], file_get_contents($langfile)));
@@ -97,6 +101,13 @@ class InstallerLang{
 		}
 	}
 
+	/**
+	 * @param       $name
+	 * @param array $search
+	 * @param array $replace
+	 *
+	 * @return mixed
+	 */
 	public function get($name, $search = [], $replace = []){
 		if(!isset($this->texts[$this->lang][$name])){
 			if($this->lang !== "en" and isset($this->texts["en"][$name])){
@@ -109,10 +120,6 @@ class InstallerLang{
 		}else{
 			return $this->texts[$this->lang][$name];
 		}
-	}
-
-	public function __get($name){
-		return $this->get($name);
 	}
 
 }

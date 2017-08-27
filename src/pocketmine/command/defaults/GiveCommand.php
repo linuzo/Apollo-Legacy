@@ -23,30 +23,45 @@ namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 use pocketmine\item\Item;
+use pocketmine\nbt\NBT;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
-class GiveCommand extends VanillaCommand{
+class GiveCommand extends VanillaCommand {
 
+	/**
+	 * GiveCommand constructor.
+	 *
+	 * @param $name
+	 */
 	public function __construct($name){
 		parent::__construct(
 			$name,
-			"Gives the specified player a certain amount of items",
-			"/give <player> <item[:damage]> [amount]"
+			"%pocketmine.command.give.description",
+			"%pocketmine.command.give.usage"
 		);
 		$this->setPermission("pocketmine.command.give");
 	}
 
+	/**
+	 * @param CommandSender $sender
+	 * @param string $currentAlias
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) < 2){
-			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
+			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
 
-			return false;
+			return true;
 		}
 
 		$player = $sender->getServer()->getPlayer($args[0]);
@@ -55,31 +70,47 @@ class GiveCommand extends VanillaCommand{
 		if(!isset($args[2])){
 			$item->setCount($item->getMaxStackSize());
 		}else{
-			$item->setCount((int) $args[2]);
+			$item->setCount((int)$args[2]);
 		}
 
-		if($player instanceof Player){
-			if(($player->getGamemode() & 0x01) === 0x01){
-				$sender->sendMessage(TextFormat::RED . "Player is in creative mode");
+		if(isset($args[3])){
+			$tags = $exception = null;
+			$data = implode(" ", array_slice($args, 3));
+			try{
+				$tags = NBT::parseJSON($data);
+			}catch(\Throwable $ex){
+				$exception = $ex;
+			}
+
+			if(!($tags instanceof CompoundTag) or $exception !== null){
+				$sender->sendMessage(new TranslationContainer("commands.give.tagError", [$exception !== null ? $exception->getMessage() : "Invalid tag conversion"]));
 
 				return true;
 			}
-			if($item->getId() == 0){
-				$sender->sendMessage(TextFormat::RED . "There is no item called " . $args[1] . ".");
+
+			$item->setNamedTag($tags);
+		}
+
+		if($player instanceof Player){
+			if($item->getId() === 0){
+				$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.give.item.notFound", [$args[1]]));
 
 				return true;
 			}
 
 			//TODO: overflow
 			$player->getInventory()->addItem(clone $item);
-			$player->getInventory()->sendContents($player);
 		}else{
-			$sender->sendMessage(TextFormat::RED . "Can't find player " . $args[0]);
+			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.player.notFound"));
 
 			return true;
 		}
 
-		Command::broadcastCommandMessage($sender, "Gave " . $player->getName() . " " . $item->getCount() . " of " . $item->getName() . " (" . $item->getId() . ":" . $item->getDamage() . ")");
+		Command::broadcastCommandMessage($sender, new TranslationContainer("%commands.give.success", [
+			$item->getName() . " (" . $item->getId() . ":" . $item->getDamage() . ")",
+			(string)$item->getCount(),
+			$player->getName(),
+		]));
 
 		return true;
 	}
