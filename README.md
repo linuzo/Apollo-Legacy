@@ -29,7 +29,7 @@ You can download the latest phar from our [download](https://circleci.com/gh/Spi
 
 # Builds, Gitter Chat & Discord Server:
 #### Discord Server (Talk to a Human For Support): [Join Server]((https://discord.gg/GYCnkM2)
-[![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-
+[![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-TEeam)
 
 # Windows & Linux Installation:
 Read (coming soon)
