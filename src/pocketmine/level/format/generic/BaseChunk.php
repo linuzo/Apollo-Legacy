@@ -27,6 +27,8 @@ use pocketmine\level\format\LevelProvider;
 use pocketmine\nbt\tag\Compound;
 use pocketmine\utils\Binary;
 use pocketmine\utils\ChunkException;
+use pocketmine\level\format\BaseChunk;
+
 
 abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
