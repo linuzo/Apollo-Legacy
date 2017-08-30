@@ -2,133 +2,169 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ *  _____   _____   __   _   _   _____  __    __  _____
+ * /  ___| | ____| |  \ | | | | /  ___/ \ \  / / /  ___/
+ * | |     | |__   |   \| | | | | |___   \ \/ /  | |___
+ * | |  _  |  __|  | |\   | | | \___  \   \  /   \___  \
+ * | |_| | | |___  | | \  | | |  ___| |   / /     ___| |
+ * \_____/ |_____| |_|  \_| |_| /_____/  /_/     /_____/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- * 
+ * @author iTX Technologies
+ * @link https://itxtech.org
  *
-*/
+ */
 
-namespace pocketmine\block;
+namespace pocketmine\entity;
 
-use pocketmine\item\Item;
+use pocketmine\item\Item as ItemItem;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
-use pocketmine\Server;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\network\mcpe\protocol\AddEntityPacket;
+use pocketmine\Player;
+use pocketmine\math\Math;
 
-class Sponge extends Solid {
+class Boat extends Vehicle {
 
-	protected $id = self::SPONGE;
-	protected $absorbRange = 6;
+    const NETWORK_ID = 90;
 
-	/**
-	 * Sponge constructor.
-	 *
-	 * @param int $meta
-	 */
-	public function __construct($meta = 0){
-		$this->meta = $meta;
-	}
+    public $height = 0.7;
+    public $width = 1.6;
+    public $gravity = 0.5;
+    public $drag = 0.1;
 
-	/**
-	 * @return float
-	 */
-	public function getHardness(){
-		return 0.6;
-	}
+    /** @var boolean */
+    public $canInteract = true;
 
-	public function absorbWater(){
-		if(Server::getInstance()->absorbWater){
-			$range = $this->absorbRange / 2;
-			for($xx = -$range; $xx <= $range; $xx++){
-				for($yy = -$range; $yy <= $range; $yy++){
-					for($zz = -$range; $zz <= $range; $zz++){
-						$block = $this->getLevel()->getBlock(new Vector3($this->x + $xx, $this->y + $yy, $this->z + $zz));
-						if($block->getId() === Block::WATER) $this->getLevel()->setBlock($block, Block::get(Block::AIR), true, true);
-						if($block->getId() === Block::STILL_WATER) $this->getLevel()->setBlock($block, Block::get(Block::AIR), true, true);
-					}
-				}
-			}
-		}
-	}
+    /**
+     * Boat constructor.
+     *
+     * @param Level       $level
+     * @param CompoundTag $nbt
+     */
+    public function __construct(Level $level, CompoundTag $nbt) {
+        if (!isset($nbt->WoodID)) {
+            $nbt->WoodID = new IntTag("WoodID", 0);
+        }
+        parent::__construct($level, $nbt);
+        $this->setDataProperty(self::DATA_VARIANT, self::DATA_TYPE_INT, $this->getWoodID());
+    }
 
-	/**
-	 * @param int $type
-	 *
-	 * @return bool|int
-	 */
-	public function onUpdate($type){
-		if($this->meta == 0){
-			if($type === Level::BLOCK_UPDATE_NORMAL){
-				$blockAbove = $this->getSide(Vector3::SIDE_UP)->getId();
-				$blockBeneath = $this->getSide(Vector3::SIDE_DOWN)->getId();
-				$blockNorth = $this->getSide(Vector3::SIDE_NORTH)->getId();
-				$blockSouth = $this->getSide(Vector3::SIDE_SOUTH)->getId();
-				$blockEast = $this->getSide(Vector3::SIDE_EAST)->getId();
-				$blockWest = $this->getSide(Vector3::SIDE_WEST)->getId();
+    public function initEntity() {
+        parent::initEntity();
+        $this->mountOffset = 1;
+    }
 
-				if($blockAbove === Block::WATER ||
-					$blockBeneath === Block::WATER ||
-					$blockNorth === Block::WATER ||
-					$blockSouth === Block::WATER ||
-					$blockEast === Block::WATER ||
-					$blockWest === Block::WATER
-				){
-					$this->absorbWater();
-					$this->getLevel()->setBlock($this, Block::get(Block::SPONGE, 1), true, true);
+    public function onInteract(Player $player, ItemItem $item): bool {
+        if (!is_null($this->passenger)) {
+            return false;
+        }
 
-					return Level::BLOCK_UPDATE_NORMAL;
-				}
-				if($blockAbove === Block::STILL_WATER ||
-					$blockBeneath === Block::STILL_WATER ||
-					$blockNorth === Block::STILL_WATER ||
-					$blockSouth === Block::STILL_WATER ||
-					$blockEast === Block::STILL_WATER ||
-					$blockWest === Block::STILL_WATER
-				){
-					$this->absorbWater();
-					$this->getLevel()->setBlock($this, Block::get(Block::SPONGE, 1), true, true);
+        $this->mountEntity($player);
+        return true;
+    }
 
-					return Level::BLOCK_UPDATE_NORMAL;
-				}
-			}
+    public function getButtonText(): string {
+        return "Board";
+    }
 
-			return false;
-		}
+    /**
+     * @return int
+     */
+    public function getWoodID(): int {
+        return (int) $this->namedtag["WoodID"];
+    }
 
-		return true;
-	}
+    /**
+     * @param Player $player
+     */
+    public function spawnTo(Player $player) {
+        $pk = new AddEntityPacket();
+        $pk->eid = $this->getId();
+        $pk->type = Boat::NETWORK_ID;
+        $pk->x = $this->x;
+        $pk->y = $this->y;
+        $pk->z = $this->z;
+        $pk->speedX = 0;
+        $pk->speedY = 0;
+        $pk->speedZ = 0;
+        $pk->yaw = 0;
+        $pk->pitch = 0;
+        $pk->metadata = $this->dataProperties;
+        $player->dataPacket($pk);
 
-	/**
-	 * @return string
-	 */
-	public function getName(): string{
-		static $names = [
-			0 => "Sponge",
-			1 => "Wet Sponge",
-		];
+        parent::spawnTo($player);
+    }
 
-		return $names[$this->meta & 0x0f];
-	}
+    /**
+     * @param $currentTick
+     *
+     * @return bool
+     */
+    public function onUpdate($currentTick) {
+        if ($this->closed) {
+            return false;
+        }
+        $tickDiff = $currentTick - $this->lastUpdate;
+        if ($tickDiff <= 0 and ! $this->justCreated) {
+            return true;
+        }
+        $this->lastUpdate = $currentTick;
 
-	/**
-	 * @param Item $item
-	 *
-	 * @return array
-	 */
-	public function getDrops(Item $item): array{
-		return [
-			[$this->id, $this->meta & 0x0f, 1],
-		];
-	}
+        if ($this->isAlive()) {
+            parent::onUpdate($currentTick);
+
+            $this->timings->startTiming();
+            $hasUpdate = $this->entityBaseTick($tickDiff);
+
+            if ($this->level->getBlock(new Vector3($this->x, $this->y, $this->z))->getBoundingBox() !== null or $this->isInsideOfWater()) {
+                $this->motionY = 0;
+            } else {
+                $this->motionY = -0.08;
+            }
+            $this->motionX *= 0.95;
+            $this->motionZ *= 0.95;
+
+            $this->move($this->motionX, $this->motionY, $this->motionZ);
+            $this->updateMovement();
+
+            if ($this->passenger == null) {
+                if ($this->age > 1500) {
+                    $this->close();
+                    $hasUpdate = true;
+                    $this->age = 0;
+                }
+                $this->age++;
+            } else {
+                $this->age = 0;
+            }
+            $this->timings->stopTiming();
+        }
+
+        return $hasUpdate or ! $this->onGround or abs($this->motionX) > 0.00001 or abs($this->motionY) > 0.00001 or abs($this->motionZ) > 0.00001;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDrops() {
+        return [
+            ItemItem::get(ItemItem::BOAT, 0, 1)
+        ];
+    }
+
+    /**
+     * @return string
+     */
+    public function getSaveId() {
+        $class = new \ReflectionClass(static::class);
+        return $class->getShortName();
+    }
+
 }
