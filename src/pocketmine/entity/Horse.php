@@ -26,7 +26,7 @@
 
 namespace pocketmine\entity;
 
-use pocketmine\item\Item;
+use pocketmine\item\Item as ItemItem;
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
 use pocketmine\Player;
@@ -52,10 +52,10 @@ class Horse extends Living {
 		$pk = new MobArmorEquipmentPacket();
 		$pk->eid = $this->getId();
 		$pk->slots = [
-			Item::get(0, 0),
-			Item::get($id, 0),
-			Item::get(0, 0),
-			Item::get(0, 0),
+			ItemItem::get(0, 0),
+			ItemItem::get($id, 0),
+			ItemItem::get(0, 0),
+			ItemItem::get(0, 0),
 		];
 		foreach($this->level->getPlayers() as $player){
 			$player->dataPacket($pk);
