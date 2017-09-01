@@ -13,7 +13,6 @@ _All other branches are in testing and may be unstable. Do not use builds from o
 You can download the latest phar from our [download center](https://circleci.com/gh/SpigotPE-Team) :smile:
 
 # Features:
-- [X] **CustomPotions**
 - [X] **Fully Support UserNames with spaces**
 - [X] **XBox Live Authentication**
 - [X] **Integrated DevTools**
@@ -28,11 +27,11 @@ You can download the latest phar from our [download center](https://circleci.com
 ***Other List Entries are on "spigotpe.yml"....***
 
 # Builds, Gitter Chat & Discord Server:
-#### Discord Server (Talk to a Human For Support): [Join Server]((https://discord.gg/GYCnkM2)
+#### Discord Server (Talk to a Human For Support): [Join Server](https://discord.gg/GYCnkM2)
 [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
 
 # Windows & Linux Installation:
-Read (coming soon)
+(coming soon)
 
 # Resources:
 To be able to run this on Windows, You'll need Visual Studio C++ Redistributable 2015,
