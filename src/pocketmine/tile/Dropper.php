@@ -48,7 +48,7 @@ class Dropper extends Spawnable implements InventoryHolder, Container, Nameable 
 	/**
 	 * Dropper constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -99,8 +99,8 @@ class Dropper extends Spawnable implements InventoryHolder, Container, Nameable 
 	 */
 	protected function getSlotIndex($index){
 		foreach($this->namedtag->Items as $i => $slot){
-			if((int)$slot["Slot"] === (int)$index){
-				return (int)$i;
+			if((int) $slot["Slot"] === (int) $index){
+				return (int) $i;
 			}
 		}
 
@@ -126,7 +126,7 @@ class Dropper extends Spawnable implements InventoryHolder, Container, Nameable 
 	/**
 	 * This method should not be used by plugins, use the Inventory
 	 *
-	 * @param int $index
+	 * @param int  $index
 	 * @param Item $item
 	 *
 	 * @return bool
@@ -162,7 +162,7 @@ class Dropper extends Spawnable implements InventoryHolder, Container, Nameable 
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return isset($this->namedtag->CustomName) ? $this->namedtag->CustomName->getValue() : "Dropper";
 	}
 
@@ -179,7 +179,6 @@ class Dropper extends Spawnable implements InventoryHolder, Container, Nameable 
 	public function setName($str){
 		if($str === ""){
 			unset($this->namedtag->CustomName);
-
 			return;
 		}
 
@@ -242,30 +241,29 @@ class Dropper extends Spawnable implements InventoryHolder, Container, Nameable 
 					if($t instanceof Tile){
 						if($t->getInventory()->canAddItem($needItem)){
 							$t->getInventory()->addItem($needItem);
-
 							return;
 						}
 					}
 			}
 
 			$nbt = new CompoundTag("", [
-				"Pos"         => new ListTag("Pos", [
+				"Pos" => new ListTag("Pos", [
 					new DoubleTag("", $this->x + $motion[0] * 2 + 0.5),
 					new DoubleTag("", $this->y + ($motion[1] > 0 ? $motion[1] : 0.5)),
-					new DoubleTag("", $this->z + $motion[2] * 2 + 0.5),
+					new DoubleTag("", $this->z + $motion[2] * 2 + 0.5)
 				]),
-				"Motion"      => new ListTag("Motion", [
+				"Motion" => new ListTag("Motion", [
 					new DoubleTag("", $motion[0]),
 					new DoubleTag("", $motion[1]),
-					new DoubleTag("", $motion[2]),
+					new DoubleTag("", $motion[2])
 				]),
-				"Rotation"    => new ListTag("Rotation", [
+				"Rotation" => new ListTag("Rotation", [
 					new FloatTag("", lcg_value() * 360),
-					new FloatTag("", 0),
+					new FloatTag("", 0)
 				]),
-				"Health"      => new ShortTag("Health", 5),
-				"Item"        => $needItem->nbtSerialize(-1, "Item"),
-				"PickupDelay" => new ShortTag("PickupDelay", 10),
+				"Health" => new ShortTag("Health", 5),
+				"Item" => $needItem->nbtSerialize(-1, "Item"),
+				"PickupDelay" => new ShortTag("PickupDelay", 10)
 			]);
 
 			$f = 0.3;
@@ -285,9 +283,9 @@ class Dropper extends Spawnable implements InventoryHolder, Container, Nameable 
 	public function getSpawnCompound(){
 		$c = new CompoundTag("", [
 			new StringTag("id", Tile::DROPPER),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z)
 		]);
 
 		if($this->hasName()){

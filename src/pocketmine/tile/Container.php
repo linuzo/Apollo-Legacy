@@ -33,7 +33,7 @@ interface Container {
 	public function getItem($index);
 
 	/**
-	 * @param int $index
+	 * @param int  $index
 	 * @param Item $item
 	 */
 	public function setItem($index, Item $item);

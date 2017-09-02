@@ -40,21 +40,21 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
 	protected $inventory;
 
 	public static $ingredients = [
-		Item::NETHER_WART          => 0,
-		Item::GLOWSTONE_DUST       => 0,
-		Item::REDSTONE             => 0,
+		Item::NETHER_WART => 0,
+		Item::GLOWSTONE_DUST => 0,
+		Item::REDSTONE => 0,
 		Item::FERMENTED_SPIDER_EYE => 0,
 
-		Item::MAGMA_CREAM      => 0,
-		Item::SUGAR            => 0,
+		Item::MAGMA_CREAM => 0,
+		Item::SUGAR => 0,
 		Item::GLISTERING_MELON => 0,
-		Item::SPIDER_EYE       => 0,
-		Item::GHAST_TEAR       => 0,
-		Item::BLAZE_POWDER     => 0,
-		Item::GOLDEN_CARROT    => 0,
+		Item::SPIDER_EYE => 0,
+		Item::GHAST_TEAR => 0,
+		Item::BLAZE_POWDER => 0,
+		Item::GOLDEN_CARROT => 0,
 		//Item::RAW_FISH => Fish::FISH_PUFFERFISH,
 		Item::PUFFER_FISH,
-		Item::RABBIT_FOOT      => 0,
+		Item::RABBIT_FOOT => 0,
 
 		Item::GUNPOWDER => 0,
 	];
@@ -62,7 +62,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
 	/**
 	 * BrewingStand constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -86,7 +86,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return $this->hasName() ? $this->namedtag->CustomName->getValue() : "Brewing Stand";
 	}
 
@@ -103,7 +103,6 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
 	public function setName($str){
 		if($str === ""){
 			unset($this->namedtag->CustomName);
-
 			return;
 		}
 
@@ -168,7 +167,7 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
 	/**
 	 * This method should not be used by plugins, use the Inventory
 	 *
-	 * @param int $index
+	 * @param int  $index
 	 * @param Item $item
 	 *
 	 * @return bool
@@ -212,7 +211,6 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
 				return true;
 			}
 		}
-
 		return false;
 	}
 
@@ -322,9 +320,9 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
 	public function getSpawnCompound(){
 		$nbt = new CompoundTag("", [
 			new StringTag("id", Tile::BREWING_STAND),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
 			new ShortTag("CookTime", self::MAX_BREW_TIME),
 			$this->namedtag->Items,
 		]);
@@ -332,7 +330,6 @@ class BrewingStand extends Spawnable implements InventoryHolder, Container, Name
 		if($this->hasName()){
 			$nbt->CustomName = $this->namedtag->CustomName;
 		}
-
 		return $nbt;
 	}
 }

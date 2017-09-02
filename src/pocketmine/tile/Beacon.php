@@ -24,10 +24,10 @@
 
 namespace pocketmine\tile;
 
-use pocketmine\block\Block;
-use pocketmine\entity\Effect;
 use pocketmine\inventory\BeaconInventory;
 use pocketmine\inventory\InventoryHolder;
+use pocketmine\block\Block;
+use pocketmine\entity\Effect;
 use pocketmine\level\Level;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\CompoundTag;
@@ -44,7 +44,7 @@ class Beacon extends Spawnable implements Nameable, InventoryHolder {
 	/**
 	 * Beacon constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -69,24 +69,23 @@ class Beacon extends Spawnable implements Nameable, InventoryHolder {
 	public function getSpawnCompound(){
 		$c = new CompoundTag("", [
 			new StringTag("id", Tile::BEACON),
-			new ByteTag("isMovable", (bool)true),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new ByteTag("isMovable", (bool) true),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
 			new IntTag("primary", $this->namedtag["primary"]),
-			new IntTag("secondary", $this->namedtag["secondary"]),
+			new IntTag("secondary", $this->namedtag["secondary"])
 		]);
 		if($this->hasName()){
 			$c->CustomName = $this->namedtag->CustomName;
 		}
-
 		return $c;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return $this->hasName() ? $this->namedtag->CustomName->getValue() : "Beacon";
 	}
 
@@ -103,7 +102,6 @@ class Beacon extends Spawnable implements Nameable, InventoryHolder {
 	public function setName($str){
 		if($str === ""){
 			unset($this->namedtag->CustomName);
-
 			return;
 		}
 		$this->namedtag->CustomName = new StringTag("CustomName", $str);
@@ -118,17 +116,16 @@ class Beacon extends Spawnable implements Nameable, InventoryHolder {
 
 	/**
 	 * @param CompoundTag $nbt
-	 * @param Player $player
+	 * @param Player      $player
 	 *
 	 * @return bool
 	 */
-	public function updateCompoundTag(CompoundTag $nbt, Player $player): bool{
+	public function updateCompoundTag(CompoundTag $nbt, Player $player) : bool{
 		if($nbt["id"] !== Tile::BEACON){
 			return false;
 		}
 		$this->namedtag->primary = new IntTag("primary", $nbt["primary"]);
 		$this->namedtag->secondary = new IntTag("secondary", $nbt["secondary"]);
-
 		return true;
 	}
 
@@ -152,7 +149,7 @@ class Beacon extends Spawnable implements Nameable, InventoryHolder {
 		if($level > 0){
 			if(isset($this->namedtag->secondary) && $this->namedtag["primary"] != 0){
 				$id = $this->namedtag["primary"];
-			}elseif(isset($this->namedtag->secondary) && $this->namedtag["secondary"] != 0){
+			}else if(isset($this->namedtag->secondary) && $this->namedtag["secondary"] != 0){
 				$id = $this->namedtag["secondary"];
 			}
 			if($id != 0){
@@ -198,7 +195,6 @@ class Beacon extends Spawnable implements Nameable, InventoryHolder {
 				}
 			}
 		}
-
 		return self::POWER_LEVEL_MAX;
 	}
 

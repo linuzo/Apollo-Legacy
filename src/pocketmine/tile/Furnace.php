@@ -44,7 +44,7 @@ class Furnace extends Spawnable implements InventoryHolder, Container, Nameable 
 	/**
 	 * Furnace constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -76,7 +76,7 @@ class Furnace extends Spawnable implements InventoryHolder, Container, Nameable 
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return isset($this->namedtag->CustomName) ? $this->namedtag->CustomName->getValue() : "Furnace";
 	}
 
@@ -93,7 +93,6 @@ class Furnace extends Spawnable implements InventoryHolder, Container, Nameable 
 	public function setName($str){
 		if($str === ""){
 			unset($this->namedtag->CustomName);
-
 			return;
 		}
 
@@ -158,7 +157,7 @@ class Furnace extends Spawnable implements InventoryHolder, Container, Nameable 
 	/**
 	 * This method should not be used by plugins, use the Inventory
 	 *
-	 * @param int $index
+	 * @param int  $index
 	 * @param Item $item
 	 *
 	 * @return bool
@@ -314,9 +313,9 @@ class Furnace extends Spawnable implements InventoryHolder, Container, Nameable 
 	public function getSpawnCompound(){
 		$nbt = new CompoundTag("", [
 			new StringTag("id", Tile::FURNACE),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
 			new ShortTag("BurnTime", $this->namedtag["BurnTime"]),
 			new ShortTag("CookTime", $this->namedtag["CookTime"]),
 			//new ShortTag("BurnDuration", $this->namedtag["BurnTicks"])
@@ -325,7 +324,6 @@ class Furnace extends Spawnable implements InventoryHolder, Container, Nameable 
 		if($this->hasName()){
 			$nbt->CustomName = $this->namedtag->CustomName;
 		}
-
 		return $nbt;
 	}
 }

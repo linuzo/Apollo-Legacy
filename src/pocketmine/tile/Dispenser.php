@@ -47,7 +47,7 @@ class Dispenser extends Spawnable implements InventoryHolder, Container, Nameabl
 	/**
 	 * Dispenser constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -94,8 +94,8 @@ class Dispenser extends Spawnable implements InventoryHolder, Container, Nameabl
 	 */
 	protected function getSlotIndex($index){
 		foreach($this->namedtag->Items as $i => $slot){
-			if((int)$slot["Slot"] === (int)$index){
-				return (int)$i;
+			if((int) $slot["Slot"] === (int) $index){
+				return (int) $i;
 			}
 		}
 
@@ -121,7 +121,7 @@ class Dispenser extends Spawnable implements InventoryHolder, Container, Nameabl
 	/**
 	 * This method should not be used by plugins, use the Inventory
 	 *
-	 * @param int $index
+	 * @param int  $index
 	 * @param Item $item
 	 *
 	 * @return bool
@@ -157,7 +157,7 @@ class Dispenser extends Spawnable implements InventoryHolder, Container, Nameabl
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return isset($this->namedtag->CustomName) ? $this->namedtag->CustomName->getValue() : "Dispenser";
 	}
 
@@ -174,7 +174,6 @@ class Dispenser extends Spawnable implements InventoryHolder, Container, Nameabl
 	public function setName($str){
 		if($str === ""){
 			unset($this->namedtag->CustomName);
-
 			return;
 		}
 
@@ -226,19 +225,19 @@ class Dispenser extends Spawnable implements InventoryHolder, Container, Nameabl
 			$needItem = Item::get($item->getId(), $item->getDamage());
 			$f = 1.5;
 			$nbt = new CompoundTag("", [
-				"Pos"      => new ListTag("Pos", [
+				"Pos" => new ListTag("Pos", [
 					new DoubleTag("", $this->x + $motion[0] * 2 + 0.5),
 					new DoubleTag("", $this->y + ($motion[1] > 0 ? $motion[1] : 0.5)),
-					new DoubleTag("", $this->z + $motion[2] * 2 + 0.5),
+					new DoubleTag("", $this->z + $motion[2] * 2 + 0.5)
 				]),
-				"Motion"   => new ListTag("Motion", [
+				"Motion" => new ListTag("Motion", [
 					new DoubleTag("", $motion[0]),
 					new DoubleTag("", $motion[1]),
-					new DoubleTag("", $motion[2]),
+					new DoubleTag("", $motion[2])
 				]),
 				"Rotation" => new ListTag("Rotation", [
 					new FloatTag("", lcg_value() * 360),
-					new FloatTag("", 0),
+					new FloatTag("", 0)
 				]),
 			]);
 			switch($needItem->getId()){
@@ -283,9 +282,9 @@ class Dispenser extends Spawnable implements InventoryHolder, Container, Nameabl
 	public function getSpawnCompound(){
 		$c = new CompoundTag("", [
 			new StringTag("id", Tile::DISPENSER),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z)
 		]);
 
 		if($this->hasName()){

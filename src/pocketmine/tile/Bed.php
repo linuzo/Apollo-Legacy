@@ -19,7 +19,7 @@ class Bed extends Spawnable {
 	/**
 	 * Bed constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -32,7 +32,7 @@ class Bed extends Spawnable {
 	/**
 	 * @return int
 	 */
-	public function getColor(): int{
+	public function getColor() : int{
 		return $this->namedtag->color->getValue();
 	}
 
@@ -50,10 +50,10 @@ class Bed extends Spawnable {
 	public function getSpawnCompound(){
 		return new CompoundTag("", [
 			new StringTag("id", Tile::BED),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
-			$this->namedtag->color,
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
+			$this->namedtag->color
 		]);
 	}
 

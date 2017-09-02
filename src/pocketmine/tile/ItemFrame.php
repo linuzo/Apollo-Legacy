@@ -36,7 +36,7 @@ class ItemFrame extends Spawnable {
 	/**
 	 * ItemFrame constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -54,14 +54,14 @@ class ItemFrame extends Spawnable {
 	/**
 	 * @return bool
 	 */
-	public function hasItem(): bool{
+	public function hasItem() : bool{
 		return $this->getItem()->getId() !== Item::AIR;
 	}
 
 	/**
 	 * @return Item
 	 */
-	public function getItem(): Item{
+	public function getItem() : Item{
 		if(isset($this->namedtag->Item)){
 			return Item::nbtDeserialize($this->namedtag->Item);
 		}else{
@@ -84,7 +84,7 @@ class ItemFrame extends Spawnable {
 	/**
 	 * @return int
 	 */
-	public function getItemRotation(): int{
+	public function getItemRotation() : int{
 		return $this->namedtag->ItemRotation->getValue();
 	}
 
@@ -99,7 +99,7 @@ class ItemFrame extends Spawnable {
 	/**
 	 * @return float
 	 */
-	public function getItemDropChance(): float{
+	public function getItemDropChance() : float{
 		return $this->namedtag->ItemDropChance->getValue();
 	}
 
@@ -123,7 +123,7 @@ class ItemFrame extends Spawnable {
 	/**
 	 * @return string
 	 */
-	public function getMapID(): string{
+	public function getMapID() : string{
 		return $this->map_uuid;
 	}
 
@@ -133,9 +133,9 @@ class ItemFrame extends Spawnable {
 	public function getSpawnCompound(){
 		$tag = new CompoundTag("", [
 			new StringTag("id", Tile::ITEM_FRAME),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
 			$this->namedtag->ItemDropChance,
 			$this->namedtag->ItemRotation,
 		]);

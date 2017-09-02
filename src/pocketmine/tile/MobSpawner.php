@@ -40,7 +40,7 @@ class MobSpawner extends Spawnable {
 	/**
 	 * MobSpawner constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -157,14 +157,14 @@ class MobSpawner extends Spawnable {
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return "Monster Spawner";
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function canUpdate(): bool{
+	public function canUpdate() : bool{
 		if($this->getEntityId() === 0) return false;
 		$hasPlayer = false;
 		$count = 0;
@@ -179,7 +179,6 @@ class MobSpawner extends Spawnable {
 		if($hasPlayer and $count < 15){ // Spawn limit = 15
 			return true;
 		}
-
 		return false;
 	}
 
@@ -208,19 +207,19 @@ class MobSpawner extends Spawnable {
 						$this->getLevel()->getServer()->getPluginManager()->callEvent($ev = new EntityGenerateEvent($pos, $this->getEntityId(), EntityGenerateEvent::CAUSE_MOB_SPAWNER));
 						if(!$ev->isCancelled()){
 							$nbt = new CompoundTag("", [
-								"Pos"      => new ListTag("Pos", [
+								"Pos" => new ListTag("Pos", [
 									new DoubleTag("", $pos->x),
 									new DoubleTag("", $pos->y),
-									new DoubleTag("", $pos->z),
+									new DoubleTag("", $pos->z)
 								]),
-								"Motion"   => new ListTag("Motion", [
+								"Motion" => new ListTag("Motion", [
 									new DoubleTag("", 0),
 									new DoubleTag("", 0),
-									new DoubleTag("", 0),
+									new DoubleTag("", 0)
 								]),
 								"Rotation" => new ListTag("Rotation", [
 									new FloatTag("", mt_rand() / mt_getrandmax() * 360),
-									new FloatTag("", 0),
+									new FloatTag("", 0)
 								]),
 							]);
 							$entity = Entity::createEntity($this->getEntityId(), $this->getLevel(), $nbt);
@@ -247,10 +246,10 @@ class MobSpawner extends Spawnable {
 	public function getSpawnCompound(){
 		$c = new CompoundTag("", [
 			new StringTag("id", Tile::MOB_SPAWNER),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
-			new IntTag("EntityId", (int)$this->getEntityId()),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
+			new IntTag("EntityId", (int) $this->getEntityId())
 		]);
 
 		return $c;

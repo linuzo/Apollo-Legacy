@@ -33,7 +33,7 @@ class FlowerPot extends Spawnable {
 	/**
 	 * FlowerPot constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -51,7 +51,7 @@ class FlowerPot extends Spawnable {
 	 *
 	 * @return bool
 	 */
-	public function canAddItem(Item $item): bool{
+	public function canAddItem(Item $item) : bool{
 		if(!$this->isEmpty()){
 			return false;
 		}
@@ -77,8 +77,8 @@ class FlowerPot extends Spawnable {
 	/**
 	 * @return Item
 	 */
-	public function getItem(): Item{
-		return Item::get((int)($this->namedtag["item"] ?? 0), (int)($this->namedtag["mData"] ?? 0), 1);
+	public function getItem() : Item{
+		return Item::get((int) ($this->namedtag["item"] ?? 0), (int) ($this->namedtag["mData"] ?? 0), 1);
 	}
 
 	/**
@@ -97,21 +97,21 @@ class FlowerPot extends Spawnable {
 	/**
 	 * @return bool
 	 */
-	public function isEmpty(): bool{
+	public function isEmpty() : bool{
 		return $this->getItem()->getId() === Item::AIR;
 	}
 
 	/**
 	 * @return CompoundTag
 	 */
-	public function getSpawnCompound(): CompoundTag{
+	public function getSpawnCompound() : CompoundTag{
 		return new CompoundTag("", [
 			new StringTag("id", Tile::FLOWER_POT),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
 			$this->namedtag->item,
-			$this->namedtag->mData,
+			$this->namedtag->mData
 		]);
 	}
 }

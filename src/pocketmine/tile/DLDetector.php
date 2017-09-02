@@ -34,7 +34,7 @@ class DLDetector extends Spawnable {
 	/**
 	 * DLDetector constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -89,21 +89,18 @@ class DLDetector extends Spawnable {
 		if(($time >= Level::TIME_DAY and $time <= Level::TIME_SUNSET) or
 			($time >= Level::TIME_SUNRISE and $time <= Level::TIME_FULL)
 		) return 15;
-
 		return 0;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isActivated(): bool{
+	public function isActivated() : bool{
 		if($this->getType() == Block::DAYLIGHT_SENSOR){
 			if($this->getLightByTime() == 15) return true;
-
 			return false;
 		}else{
 			if($this->getLightByTime() == 0) return true;
-
 			return false;
 		}
 	}
@@ -111,7 +108,7 @@ class DLDetector extends Spawnable {
 	/**
 	 * @return int
 	 */
-	private function getType(): int{
+	private function getType() : int{
 		return $this->getBlock()->getId();
 	}
 
@@ -131,7 +128,6 @@ class DLDetector extends Spawnable {
 				$this->lastType = $block->getId();
 			}
 		}
-
 		return true;
 	}
 
@@ -141,9 +137,9 @@ class DLDetector extends Spawnable {
 	public function getSpawnCompound(){
 		return new CompoundTag("", [
 			new StringTag("id", Tile::DAY_LIGHT_DETECTOR),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
 		]);
 	}
 }

@@ -39,7 +39,7 @@ class Skull extends Spawnable {
 	/**
 	 * Skull constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -61,10 +61,8 @@ class Skull extends Spawnable {
 		if($type >= 0 && $type <= 4){
 			$this->namedtag->SkullType = new ByteTag("SkullType", $type);
 			$this->onChanged();
-
 			return true;
 		}
-
 		return false;
 	}
 
@@ -88,9 +86,9 @@ class Skull extends Spawnable {
 			new StringTag("id", Tile::SKULL),
 			$this->namedtag->SkullType,
 			$this->namedtag->Rot,
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
 		]);
 	}
 }

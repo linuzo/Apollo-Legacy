@@ -35,7 +35,7 @@ class Cauldron extends Spawnable {
 	/**
 	 * Cauldron constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -97,10 +97,8 @@ class Cauldron extends Spawnable {
 			$green = ($color >> 8) & 0xff;
 			$red = ($color >> 16) & 0xff;
 			$blue = ($color) & 0xff;
-
 			return Color::getRGB($red, $green, $blue);
 		}
-
 		return null;
 	}
 
@@ -160,9 +158,9 @@ class Cauldron extends Spawnable {
 	public function getSpawnCompound(){
 		$nbt = new CompoundTag("", [
 			new StringTag("id", Tile::CAULDRON),
-			new IntTag("x", (Int)$this->x),
-			new IntTag("y", (Int)$this->y),
-			new IntTag("z", (Int)$this->z),
+			new IntTag("x", (Int) $this->x),
+			new IntTag("y", (Int) $this->y),
+			new IntTag("z", (Int) $this->z),
 			new ShortTag("PotionId", $this->namedtag["PotionId"]),
 			new ByteTag("SplashPotion", $this->namedtag["SplashPotion"]),
 			new ListTag("Items", $this->namedtag["Items"])//unused?
@@ -171,7 +169,6 @@ class Cauldron extends Spawnable {
 		if($this->getPotionId() === 0xffff and $this->isCustomColor()){
 			$nbt->CustomColor = $this->namedtag->CustomColor;
 		}
-
 		return $nbt;
 	}
 }

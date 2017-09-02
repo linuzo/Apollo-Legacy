@@ -31,7 +31,7 @@ class EnchantTable extends Spawnable implements Nameable {
 	/**
 	 * EnchantTable constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -41,7 +41,7 @@ class EnchantTable extends Spawnable implements Nameable {
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return $this->hasName() ? $this->namedtag->CustomName->getValue() : "Enchanting Table";
 	}
 
@@ -58,7 +58,6 @@ class EnchantTable extends Spawnable implements Nameable {
 	public function setName($str){
 		if($str === ""){
 			unset($this->namedtag->CustomName);
-
 			return;
 		}
 
@@ -71,9 +70,9 @@ class EnchantTable extends Spawnable implements Nameable {
 	public function getSpawnCompound(){
 		$nbt = new CompoundTag("", [
 			new StringTag("id", Tile::ENCHANT_TABLE),
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z)
 		]);
 
 		if($this->hasName()){

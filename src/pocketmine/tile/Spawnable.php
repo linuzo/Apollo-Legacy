@@ -54,7 +54,7 @@ abstract class Spawnable extends Tile {
 	/**
 	 * Spawnable constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -93,11 +93,11 @@ abstract class Spawnable extends Tile {
 	 * for example when writing on a sign.
 	 *
 	 * @param CompoundTag $nbt
-	 * @param Player $player
+	 * @param Player      $player
 	 *
 	 * @return bool indication of success, will respawn the tile to the player if false.
 	 */
-	public function updateCompoundTag(CompoundTag $nbt, Player $player): bool{
+	public function updateCompoundTag(CompoundTag $nbt, Player $player) : bool{
 		return false;
 	}
 }

@@ -34,7 +34,7 @@ class Sign extends Spawnable {
 	/**
 	 * Sign constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -85,7 +85,7 @@ class Sign extends Spawnable {
 			$this->namedtag["Text1"],
 			$this->namedtag["Text2"],
 			$this->namedtag["Text3"],
-			$this->namedtag["Text4"],
+			$this->namedtag["Text4"]
 		];
 	}
 
@@ -99,19 +99,19 @@ class Sign extends Spawnable {
 			$this->namedtag->Text2,
 			$this->namedtag->Text3,
 			$this->namedtag->Text4,
-			new IntTag("x", (int)$this->x),
-			new IntTag("y", (int)$this->y),
-			new IntTag("z", (int)$this->z),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z)
 		]);
 	}
 
 	/**
 	 * @param CompoundTag $nbt
-	 * @param Player $player
+	 * @param Player      $player
 	 *
 	 * @return bool
 	 */
-	public function updateCompoundTag(CompoundTag $nbt, Player $player): bool{
+	public function updateCompoundTag(CompoundTag $nbt, Player $player) : bool{
 		if($nbt["id"] !== Tile::SIGN){
 			return false;
 		}
@@ -120,7 +120,7 @@ class Sign extends Spawnable {
 			TextFormat::clean($nbt["Text1"], ($removeFormat = $player->getRemoveFormat())),
 			TextFormat::clean($nbt["Text2"], $removeFormat),
 			TextFormat::clean($nbt["Text3"], $removeFormat),
-			TextFormat::clean($nbt["Text4"], $removeFormat),
+			TextFormat::clean($nbt["Text4"], $removeFormat)
 		]);
 
 		if(!isset($this->namedtag->Creator) or $this->namedtag["Creator"] !== $player->getRawUniqueId()){
@@ -131,7 +131,6 @@ class Sign extends Spawnable {
 
 		if(!$ev->isCancelled()){
 			$this->setText(...$ev->getLines());
-
 			return true;
 		}else{
 			return false;

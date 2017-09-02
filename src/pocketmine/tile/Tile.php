@@ -98,17 +98,16 @@ abstract class Tile extends Position {
 	}
 
 	/**
-	 * @param string $type
-	 * @param Level $level
+	 * @param string      $type
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
-	 * @param array $args
+	 * @param array       $args
 	 *
 	 * @return Tile
 	 */
 	public static function createTile($type, Level $level, CompoundTag $nbt, ...$args){
 		if(isset(self::$knownTiles[$type])){
 			$class = self::$knownTiles[$type];
-
 			return new $class($level, $nbt, ...$args);
 		}
 
@@ -125,7 +124,6 @@ abstract class Tile extends Position {
 		if(is_a($className, Tile::class, true) and !$class->isAbstract()){
 			self::$knownTiles[$class->getShortName()] = $className;
 			self::$shortNames[$className] = $class->getShortName();
-
 			return true;
 		}
 
@@ -144,7 +142,7 @@ abstract class Tile extends Position {
 	/**
 	 * Tile constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -159,9 +157,9 @@ abstract class Tile extends Position {
 		$this->name = "";
 		$this->lastUpdate = microtime(true);
 		$this->id = Tile::$tileCount++;
-		$this->x = (int)$this->namedtag["x"];
-		$this->y = (int)$this->namedtag["y"];
-		$this->z = (int)$this->namedtag["z"];
+		$this->x = (int) $this->namedtag["x"];
+		$this->y = (int) $this->namedtag["y"];
+		$this->z = (int) $this->namedtag["z"];
 
 		$this->chunk->addTile($this);
 		$this->getLevel()->addTile($this);
@@ -221,7 +219,7 @@ abstract class Tile extends Position {
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return $this->name;
 	}
 

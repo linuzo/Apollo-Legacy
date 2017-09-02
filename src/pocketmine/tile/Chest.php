@@ -43,7 +43,7 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 	/**
 	 * Chest constructor.
 	 *
-	 * @param Level $level
+	 * @param Level       $level
 	 * @param CompoundTag $nbt
 	 */
 	public function __construct(Level $level, CompoundTag $nbt){
@@ -93,8 +93,8 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 	 */
 	protected function getSlotIndex($index){
 		foreach($this->namedtag->Items as $i => $slot){
-			if((int)$slot["Slot"] === (int)$index){
-				return (int)$i;
+			if((int) $slot["Slot"] === (int) $index){
+				return (int) $i;
 			}
 		}
 
@@ -120,7 +120,7 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 	/**
 	 * This method should not be used by plugins, use the Inventory
 	 *
-	 * @param int $index
+	 * @param int  $index
 	 * @param Item $item
 	 *
 	 * @return bool
@@ -153,7 +153,6 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 		if($this->isPaired() and $this->doubleInventory === null){
 			$this->checkPairing();
 		}
-
 		return $this->doubleInventory instanceof DoubleChestInventory ? $this->doubleInventory : $this->inventory;
 	}
 
@@ -201,7 +200,7 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 	/**
 	 * @return string
 	 */
-	public function getName(): string{
+	public function getName() : string{
 		return isset($this->namedtag->CustomName) ? $this->namedtag->CustomName->getValue() : "Chest";
 	}
 
@@ -218,7 +217,6 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 	public function setName($str){
 		if($str === ""){
 			unset($this->namedtag->CustomName);
-
 			return;
 		}
 
@@ -241,7 +239,7 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 	 */
 	public function getPair(){
 		if($this->isPaired()){
-			$tile = $this->getLevel()->getTile(new Vector3((int)$this->namedtag["pairx"], $this->y, (int)$this->namedtag["pairz"]));
+			$tile = $this->getLevel()->getTile(new Vector3((int) $this->namedtag["pairx"], $this->y, (int) $this->namedtag["pairz"]));
 			if($tile instanceof Chest){
 				return $tile;
 			}
@@ -310,18 +308,18 @@ class Chest extends Spawnable implements InventoryHolder, Container, Nameable {
 		if($this->isPaired()){
 			$c = new CompoundTag("", [
 				new StringTag("id", Tile::CHEST),
-				new IntTag("x", (int)$this->x),
-				new IntTag("y", (int)$this->y),
-				new IntTag("z", (int)$this->z),
-				new IntTag("pairx", (int)$this->namedtag["pairx"]),
-				new IntTag("pairz", (int)$this->namedtag["pairz"]),
+				new IntTag("x", (int) $this->x),
+				new IntTag("y", (int) $this->y),
+				new IntTag("z", (int) $this->z),
+				new IntTag("pairx", (int) $this->namedtag["pairx"]),
+				new IntTag("pairz", (int) $this->namedtag["pairz"])
 			]);
 		}else{
 			$c = new CompoundTag("", [
 				new StringTag("id", Tile::CHEST),
-				new IntTag("x", (int)$this->x),
-				new IntTag("y", (int)$this->y),
-				new IntTag("z", (int)$this->z),
+				new IntTag("x", (int) $this->x),
+				new IntTag("y", (int) $this->y),
+				new IntTag("z", (int) $this->z)
 			]);
 		}
 
