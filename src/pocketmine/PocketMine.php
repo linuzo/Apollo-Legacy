@@ -79,7 +79,7 @@ namespace pocketmine {
 	use raklib\RakLib;
 
 	const VERSION = "1.1.0 beta";
-	const API_VERSION = "3.0.0-ALPHA5";
+	const API_VERSION = "3.0.0-ALPHA7";
 	const CODENAME = "NewBeginnings";
 	
 	/*
