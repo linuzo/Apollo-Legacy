@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -14,17 +14,19 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\entity;
 
 use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
 
-class EntityRegainHealthEvent extends EntityEvent implements Cancellable {
+class EntityRegainHealthEvent extends EntityEvent implements Cancellable{
 	public static $handlerList = null;
 
 	const CAUSE_REGEN = 0;
@@ -33,39 +35,42 @@ class EntityRegainHealthEvent extends EntityEvent implements Cancellable {
 	const CAUSE_CUSTOM = 3;
 	const CAUSE_SATURATION = 4;
 
+	/** @var float */
 	private $amount;
+	/** @var int */
 	private $reason;
 
 
 	/**
 	 * @param Entity $entity
-	 * @param float $amount
-	 * @param int $regainReason
+	 * @param float  $amount
+	 * @param int    $regainReason
 	 */
-	public function __construct(Entity $entity, $amount, $regainReason){
+	public function __construct(Entity $entity, float $amount, int $regainReason){
 		$this->entity = $entity;
 		$this->amount = $amount;
-		$this->reason = (int)$regainReason;
+		$this->reason = $regainReason;
 	}
 
 	/**
 	 * @return float
 	 */
-	public function getAmount(){
+	public function getAmount() : float{
 		return $this->amount;
 	}
 
 	/**
 	 * @param float $amount
 	 */
-	public function setAmount($amount){
+	public function setAmount(float $amount){
 		$this->amount = $amount;
 	}
 
 	/**
+	 * Returns one of the CAUSE_* constants to indicate why this regeneration occurred.
 	 * @return int
 	 */
-	public function getRegainReason(){
+	public function getRegainReason() : int{
 		return $this->reason;
 	}
 

@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,9 +15,11 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
@@ -31,71 +33,44 @@ use pocketmine\nbt\tag\StringTag;
 use pocketmine\Player;
 use pocketmine\tile\Tile;
 
-class SignPost extends Transparent {
+class SignPost extends Transparent{
 
 	protected $id = self::SIGN_POST;
 
-	/**
-	 * SignPost constructor.
-	 *
-	 * @param int $meta
-	 */
-	public function __construct($meta = 0){
+	protected $itemId = Item::SIGN;
+
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getHardness(){
+	public function getHardness() : float{
 		return 1;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isSolid(){
+	public function isSolid() : bool{
 		return false;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getName(): string{
+	public function getName() : string{
 		return "Sign Post";
 	}
 
-	/**
-	 * @return null
-	 */
-	public function getBoundingBox(){
+	protected function recalculateBoundingBox(){
 		return null;
 	}
 
 
-	/**
-	 * @param Item $item
-	 * @param Block $block
-	 * @param Block $target
-	 * @param int $face
-	 * @param float $fx
-	 * @param float $fy
-	 * @param float $fz
-	 * @param Player|null $player
-	 *
-	 * @return bool
-	 */
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		if($face !== 0){
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+		if($face !== Vector3::SIDE_DOWN){
 			$nbt = new CompoundTag("", [
-				"id"    => new StringTag("id", Tile::SIGN),
-				"x"     => new IntTag("x", $block->x),
-				"y"     => new IntTag("y", $block->y),
-				"z"     => new IntTag("z", $block->z),
-				"Text1" => new StringTag("Text1", ""),
-				"Text2" => new StringTag("Text2", ""),
-				"Text3" => new StringTag("Text3", ""),
-				"Text4" => new StringTag("Text4", ""),
+				new StringTag("id", Tile::SIGN),
+				new IntTag("x", $blockReplace->x),
+				new IntTag("y", $blockReplace->y),
+				new IntTag("z", $blockReplace->z),
+				new StringTag("Text1", ""),
+				new StringTag("Text2", ""),
+				new StringTag("Text3", ""),
+				new StringTag("Text4", "")
 			]);
 
 			if($player !== null){
@@ -108,12 +83,12 @@ class SignPost extends Transparent {
 				}
 			}
 
-			if($face === 1){
+			if($face === Vector3::SIDE_UP){
 				$this->meta = floor((($player->yaw + 180) * 16 / 360) + 0.5) & 0x0f;
-				$this->getLevel()->setBlock($block, $this, true);
+				$this->getLevel()->setBlock($blockReplace, $this, true);
 			}else{
 				$this->meta = $face;
-				$this->getLevel()->setBlock($block, new WallSign($this->meta), true);
+				$this->getLevel()->setBlock($blockReplace, new WallSign($this->meta), true);
 			}
 
 			Tile::createTile(Tile::SIGN, $this->getLevel(), $nbt);
@@ -124,14 +99,9 @@ class SignPost extends Transparent {
 		return false;
 	}
 
-	/**
-	 * @param int $type
-	 *
-	 * @return bool|int
-	 */
-	public function onUpdate($type){
+	public function onUpdate(int $type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
-			if($this->getSide(Vector3::SIDE_DOWN)->getId() === Block::AIR){
+			if($this->getSide(Vector3::SIDE_DOWN)->getId() === self::AIR){
 				$this->getLevel()->useBreakOn($this);
 
 				return Level::BLOCK_UPDATE_NORMAL;
@@ -141,21 +111,11 @@ class SignPost extends Transparent {
 		return false;
 	}
 
-	/**
-	 * @param Item $item
-	 *
-	 * @return array
-	 */
-	public function getDrops(Item $item): array{
-		return [
-			[Item::SIGN, 0, 1],
-		];
+	public function getToolType() : int{
+		return Tool::TYPE_AXE;
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getToolType(){
-		return Tool::TYPE_AXE;
+	public function getVariantBitmask() : int{
+		return 0;
 	}
 }

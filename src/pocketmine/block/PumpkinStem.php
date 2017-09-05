@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,51 +15,41 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\event\block\BlockGrowEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
+use pocketmine\math\Vector3;
 use pocketmine\Server;
 
-class PumpkinStem extends Crops {
+class PumpkinStem extends Crops{
 
 	protected $id = self::PUMPKIN_STEM;
 
-	/**
-	 * PumpkinStem constructor.
-	 *
-	 * @param int $meta
-	 */
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getName(): string{
+	public function getName() : string{
 		return "Pumpkin Stem";
 	}
 
-	/**
-	 * @param int $type
-	 *
-	 * @return bool|int
-	 */
-	public function onUpdate($type){
+	public function onUpdate(int $type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
-			if($this->getSide(0)->isTransparent()){
+			if($this->getSide(Vector3::SIDE_DOWN)->getId() !== Block::FARMLAND){
 				$this->getLevel()->useBreakOn($this);
-
 				return Level::BLOCK_UPDATE_NORMAL;
 			}
 		}elseif($type === Level::BLOCK_UPDATE_RANDOM){
-			if(mt_rand(0, 2) == 1){
+			if(mt_rand(0, 2) === 1){
 				if($this->meta < 0x07){
 					$block = clone $this;
 					++$block->meta;
@@ -77,9 +67,9 @@ class PumpkinStem extends Crops {
 						}
 					}
 					$side = $this->getSide(mt_rand(2, 5));
-					$d = $side->getSide(0);
+					$d = $side->getSide(Vector3::SIDE_DOWN);
 					if($side->getId() === self::AIR and ($d->getId() === self::FARMLAND or $d->getId() === self::GRASS or $d->getId() === self::DIRT)){
-						Server::getInstance()->getPluginManager()->callEvent($ev = new BlockGrowEvent($side, new Pumpkin()));
+						Server::getInstance()->getPluginManager()->callEvent($ev = new BlockGrowEvent($side, BlockFactory::get(Block::PUMPKIN)));
 						if(!$ev->isCancelled()){
 							$this->getLevel()->setBlock($side, $ev->getNewState(), true);
 						}
@@ -93,14 +83,9 @@ class PumpkinStem extends Crops {
 		return false;
 	}
 
-	/**
-	 * @param Item $item
-	 *
-	 * @return array
-	 */
-	public function getDrops(Item $item): array{
+	public function getDrops(Item $item) : array{
 		return [
-			[Item::PUMPKIN_SEEDS, 0, mt_rand(0, 2)],
+			ItemFactory::get(Item::PUMPKIN_SEEDS, 0, mt_rand(0, 2))
 		];
 	}
 }

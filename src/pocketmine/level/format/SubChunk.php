@@ -19,24 +19,18 @@
  *
 */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace pocketmine\level\format;
 
-class SubChunk {
+class SubChunk implements SubChunkInterface{
 
 	protected $ids;
 	protected $data;
 	protected $blockLight;
 	protected $skyLight;
 
-	/**
-	 * @param        $target
-	 * @param        $data
-	 * @param        $length
-	 * @param string $value
-	 */
-	private static function assignData(&$target, $data, $length, $value = "\x00"){
+	private static function assignData(&$target, string $data, int $length, string $value = "\x00"){
 		if(strlen($data) !== $length){
 			assert($data === "", "Invalid non-zero length given, expected $length, got " . strlen($data));
 			$target = str_repeat($value, $length);
@@ -45,14 +39,6 @@ class SubChunk {
 		}
 	}
 
-	/**
-	 * SubChunk constructor.
-	 *
-	 * @param string $ids
-	 * @param string $data
-	 * @param string $skyLight
-	 * @param string $blockLight
-	 */
 	public function __construct(string $ids = "", string $data = "", string $skyLight = "", string $blockLight = ""){
 		self::assignData($this->ids, $ids, 4096);
 		self::assignData($this->data, $data, 2048);
@@ -60,48 +46,26 @@ class SubChunk {
 		self::assignData($this->blockLight, $blockLight, 2048);
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isEmpty(): bool{
-		assert(strlen($this->ids) === 4096, "Wrong length of ID array, expecting 4096 bytes, got " . strlen($this->ids));
-
-		return substr_count($this->ids, "\x00") === 4096;
+	public function isEmpty(bool $checkLight = true) : bool{
+		return (
+			substr_count($this->ids, "\x00") === 4096 and
+			(!$checkLight or (
+				substr_count($this->skyLight, "\xff") === 2048 and
+				substr_count($this->blockLight, "\x00") === 2048
+			))
+		);
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 *
-	 * @return int
-	 */
-	public function getBlockId(int $x, int $y, int $z): int{
+	public function getBlockId(int $x, int $y, int $z) : int{
 		return ord($this->ids{($x << 8) | ($z << 4) | $y});
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param int $id
-	 *
-	 * @return bool
-	 */
-	public function setBlockId(int $x, int $y, int $z, int $id): bool{
+	public function setBlockId(int $x, int $y, int $z, int $id) : bool{
 		$this->ids{($x << 8) | ($z << 4) | $y} = chr($id);
-
 		return true;
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 *
-	 * @return int
-	 */
-	public function getBlockData(int $x, int $y, int $z): int{
+	public function getBlockData(int $x, int $y, int $z) : int{
 		$m = ord($this->data{($x << 7) + ($z << 3) + ($y >> 1)});
 		if(($y & 1) === 0){
 			return $m & 0x0f;
@@ -110,33 +74,17 @@ class SubChunk {
 		}
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param int $data
-	 *
-	 * @return bool
-	 */
-	public function setBlockData(int $x, int $y, int $z, int $data): bool{
+	public function setBlockData(int $x, int $y, int $z, int $data) : bool{
 		$i = ($x << 7) | ($z << 3) | ($y >> 1);
 		if(($y & 1) === 0){
 			$this->data{$i} = chr((ord($this->data{$i}) & 0xf0) | ($data & 0x0f));
 		}else{
 			$this->data{$i} = chr((($data & 0x0f) << 4) | (ord($this->data{$i}) & 0x0f));
 		}
-
 		return true;
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 *
-	 * @return int
-	 */
-	public function getFullBlock(int $x, int $y, int $z): int{
+	public function getFullBlock(int $x, int $y, int $z) : int{
 		$i = ($x << 8) | ($z << 4) | $y;
 		if(($y & 1) === 0){
 			return (ord($this->ids{$i}) << 4) | (ord($this->data{$i >> 1}) & 0x0f);
@@ -145,16 +93,7 @@ class SubChunk {
 		}
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param null $id
-	 * @param null $data
-	 *
-	 * @return bool
-	 */
-	public function setBlock(int $x, int $y, int $z, $id = null, $data = null): bool{
+	public function setBlock(int $x, int $y, int $z, $id = null, $data = null) : bool{
 		$i = ($x << 8) | ($z << 4) | $y;
 		$changed = false;
 		if($id !== null){
@@ -181,14 +120,7 @@ class SubChunk {
 		return $changed;
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 *
-	 * @return int
-	 */
-	public function getBlockLight(int $x, int $y, int $z): int{
+	public function getBlockLight(int $x, int $y, int $z) : int{
 		$byte = ord($this->blockLight{($x << 7) + ($z << 3) + ($y >> 1)});
 		if(($y & 1) === 0){
 			return $byte & 0x0f;
@@ -197,15 +129,7 @@ class SubChunk {
 		}
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param int $level
-	 *
-	 * @return bool
-	 */
-	public function setBlockLight(int $x, int $y, int $z, int $level): bool{
+	public function setBlockLight(int $x, int $y, int $z, int $level) : bool{
 		$i = ($x << 7) + ($z << 3) + ($y >> 1);
 		$byte = ord($this->blockLight{$i});
 		if(($y & 1) === 0){
@@ -213,18 +137,10 @@ class SubChunk {
 		}else{
 			$this->blockLight{$i} = chr((($level & 0x0f) << 4) | ($byte & 0x0f));
 		}
-
 		return true;
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 *
-	 * @return int
-	 */
-	public function getBlockSkyLight(int $x, int $y, int $z): int{
+	public function getBlockSkyLight(int $x, int $y, int $z) : int{
 		$byte = ord($this->skyLight{($x << 7) + ($z << 3) + ($y >> 1)});
 		if(($y & 1) === 0){
 			return $byte & 0x0f;
@@ -233,15 +149,7 @@ class SubChunk {
 		}
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param int $level
-	 *
-	 * @return bool
-	 */
-	public function setBlockSkyLight(int $x, int $y, int $z, int $level): bool{
+	public function setBlockSkyLight(int $x, int $y, int $z, int $level) : bool{
 		$i = ($x << 7) + ($z << 3) + ($y >> 1);
 		$byte = ord($this->skyLight{$i});
 		if(($y & 1) === 0){
@@ -249,114 +157,73 @@ class SubChunk {
 		}else{
 			$this->skyLight{$i} = chr((($level & 0x0f) << 4) | ($byte & 0x0f));
 		}
-
 		return true;
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return int
-	 */
-	public function getHighestBlockAt(int $x, int $z): int{
-		for($y = 15; $y >= 0; --$y){
-			if($this->ids{($x << 8) | ($z << 4) | $y} !== "\x00"){
-				return $y;
+	public function getHighestBlockAt(int $x, int $z) : int{
+		$low = ($x << 8) | ($z << 4);
+		$i = $low | 0x0f;
+		for(; $i >= $low; --$i){
+			if($this->ids{$i} !== "\x00"){
+				return $i & 0x0f;
 			}
 		}
 
 		return -1; //highest block not in this subchunk
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return string
-	 */
-	public function getBlockIdColumn(int $x, int $z): string{
-		return substr($this->ids, (($x << 8) | ($z << 4)), 16);
+	public function getBlockIdColumn(int $x, int $z) : string{
+		return substr($this->ids, ($x << 8) | ($z << 4), 16);
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return string
-	 */
-	public function getBlockDataColumn(int $x, int $z): string{
-		return substr($this->data, (($x << 7) | ($z << 3)), 8);
+	public function getBlockDataColumn(int $x, int $z) : string{
+		return substr($this->data, ($x << 7) | ($z << 3), 8);
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return string
-	 */
-	public function getBlockLightColumn(int $x, int $z): string{
-		return substr($this->blockLight, (($x << 7) | ($z << 3)), 8);
+	public function getBlockLightColumn(int $x, int $z) : string{
+		return substr($this->blockLight, ($x << 7) | ($z << 3), 8);
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return string
-	 */
-	public function getSkyLightColumn(int $x, int $z): string{
-		return substr($this->skyLight, (($x << 7) | ($z << 3)), 8);
+	public function getBlockSkyLightColumn(int $x, int $z) : string{
+		return substr($this->skyLight, ($x << 7) | ($z << 3), 8);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getBlockIdArray(): string{
+	public function getBlockIdArray() : string{
 		assert(strlen($this->ids) === 4096, "Wrong length of ID array, expecting 4096 bytes, got " . strlen($this->ids));
-
 		return $this->ids;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getBlockDataArray(): string{
+	public function getBlockDataArray() : string{
 		assert(strlen($this->data) === 2048, "Wrong length of data array, expecting 2048 bytes, got " . strlen($this->data));
-
 		return $this->data;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getSkyLightArray(): string{
+	public function getBlockSkyLightArray() : string{
 		assert(strlen($this->skyLight) === 2048, "Wrong length of skylight array, expecting 2048 bytes, got " . strlen($this->skyLight));
-
 		return $this->skyLight;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getBlockLightArray(): string{
-		assert(strlen($this->blockLight) === 2048, "Wrong length of light array, expecting 2048 bytes, got " . strlen($this->blockLight));
+	public function setBlockSkyLightArray(string $data){
+		assert(strlen($data) === 2048, "Wrong length of skylight array, expecting 2048 bytes, got " . strlen($data));
+		$this->skyLight = $data;
+	}
 
+	public function getBlockLightArray() : string{
+		assert(strlen($this->blockLight) === 2048, "Wrong length of light array, expecting 2048 bytes, got " . strlen($this->blockLight));
 		return $this->blockLight;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function networkSerialize(): string{
+	public function setBlockLightArray(string $data){
+		assert(strlen($data) === 2048, "Wrong length of light array, expecting 2048 bytes, got " . strlen($data));
+		$this->blockLight = $data;
+	}
+
+	public function networkSerialize() : string{
 		// storage version, ids, data, skylight, blocklight
 		return "\x00" . $this->ids . $this->data . $this->skyLight . $this->blockLight;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function fastSerialize(): string{
+	public function fastSerialize() : string{
 		return
 			$this->ids .
 			$this->data .
@@ -364,14 +231,9 @@ class SubChunk {
 			$this->blockLight;
 	}
 
-	/**
-	 * @param string $data
-	 *
-	 * @return SubChunk
-	 */
-	public static function fastDeserialize(string $data): SubChunk{
+	public static function fastDeserialize(string $data) : SubChunk{
 		return new SubChunk(
-			substr($data, 0, 4096), //ids
+			substr($data,    0, 4096), //ids
 			substr($data, 4096, 2048), //data
 			substr($data, 6144, 2048), //sky light
 			substr($data, 8192, 2048)  //block light

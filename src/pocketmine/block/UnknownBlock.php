@@ -19,21 +19,19 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\block;
 
-class UnknownBlock extends Transparent {
+use pocketmine\item\Item;
 
-	/**
-	 * @return bool
-	 */
-	public function isSolid(){
-		return false;
+class UnknownBlock extends Transparent{
+
+	public function getHardness() : float{
+		return 0;
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getHardness(){
-		return 0;
+	public function getDrops(Item $item) : array{
+		return [];
 	}
 }

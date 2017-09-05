@@ -19,6 +19,8 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\scheduler;
 
 use pocketmine\plugin\Plugin;
@@ -26,7 +28,7 @@ use pocketmine\plugin\Plugin;
 /**
  * Base class for plugin tasks. Allows the Server to delete them easily when needed
  */
-abstract class PluginTask extends Task {
+abstract class PluginTask extends Task{
 
 	/** @var Plugin */
 	protected $owner;
@@ -41,7 +43,7 @@ abstract class PluginTask extends Task {
 	/**
 	 * @return Plugin
 	 */
-	public final function getOwner(){
+	final public function getOwner() : Plugin{
 		return $this->owner;
 	}
 

@@ -19,46 +19,34 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\event\TranslationContainer;
 use pocketmine\utils\TextFormat;
 
-class WhitelistCommand extends VanillaCommand {
+class WhitelistCommand extends VanillaCommand{
 
-	/**
-	 * WhitelistCommand constructor.
-	 *
-	 * @param string $name
-	 */
-	public function __construct($name){
+	public function __construct(string $name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.whitelist.description",
-			"%pocketmine.command.whitelist.usage",
-			["wl"]
+			"%commands.whitelist.usage"
 		);
 		$this->setPermission("pocketmine.command.whitelist.reload;pocketmine.command.whitelist.enable;pocketmine.command.whitelist.disable;pocketmine.command.whitelist.list;pocketmine.command.whitelist.add;pocketmine.command.whitelist.remove");
 	}
 
-	/**
-	 * @param CommandSender $sender
-	 * @param string $currentAlias
-	 * @param array $args
-	 *
-	 * @return bool
-	 */
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) === 0 or count($args) > 2){
-			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
-
-			return true;
+			throw new InvalidCommandSyntaxException();
 		}
 
 		if(count($args) === 1){
@@ -82,25 +70,21 @@ class WhitelistCommand extends VanillaCommand {
 
 					return true;
 				case "list":
-					$result = "";
-					$count = 0;
-					foreach($sender->getServer()->getWhitelisted()->getAll(true) as $player){
-						$result .= $player . ", ";
-						++$count;
-					}
+					$entries = $sender->getServer()->getWhitelisted()->getAll(true);
+					$result = implode($entries, ", ");
+					$count = count($entries);
+
 					$sender->sendMessage(new TranslationContainer("commands.whitelist.list", [$count, $count]));
-					$sender->sendMessage(substr($result, 0, -2));
+					$sender->sendMessage($result);
 
 					return true;
 
 				case "add":
 					$sender->sendMessage(new TranslationContainer("commands.generic.usage", ["%commands.whitelist.add.usage"]));
-
 					return true;
 
 				case "remove":
 					$sender->sendMessage(new TranslationContainer("commands.generic.usage", ["%commands.whitelist.remove.usage"]));
-
 					return true;
 			}
 		}elseif(count($args) === 2){
@@ -124,13 +108,7 @@ class WhitelistCommand extends VanillaCommand {
 		return true;
 	}
 
-	/**
-	 * @param CommandSender $sender
-	 * @param               $perm
-	 *
-	 * @return bool
-	 */
-	private function badPerm(CommandSender $sender, $perm){
+	private function badPerm(CommandSender $sender, string $perm) : bool{
 		if(!$sender->hasPermission("pocketmine.command.whitelist.$perm")){
 			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.permission"));
 
