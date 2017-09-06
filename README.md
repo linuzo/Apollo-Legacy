@@ -3,7 +3,6 @@
 # Introduction:
 This is an Advanced & Feature Rich Server Software to hopefully Replace [Tesseract](https://www.github.com/TesseractTeam/Tesseract).  
 (They're dead. And this is **NOT** supposed to be taken out of context.)  
-This spoon is based off of pmmp
 Report any BUGS in the issues section...
 
 NOTE: **The master branch is the only officially supported branch.**
@@ -12,17 +11,17 @@ _All other branches are in testing and may be unstable. Do not use builds from o
 # Where can I get the Latest spigotpe phar?
 You can download the latest phar from our [download center](https://circleci.com/gh/SpigotPE-Team) :smile:
 
-# TODO:
-- [ ] **Fully Support UserNames with spaces**
-- [ ] **XBox Live Authentication**
-- [ ] **Integrated DevTools**
-- [ ] **Advanced Player Functions**
-- [ ] **GeniAPI v2.0**
-- [ ] **LoginPacket variables are accessible Via plugins**
-- [ ] **CustomEnchants**
+# Features:
+- [X] **Fully Support UserNames with spaces**
+- [X] **XBox Live Authentication**
+- [X] **Integrated DevTools**
+- [X] **Advanced Player Functions**
+- [X] **GeniAPI v2.0**
+- [X] **LoginPacket variables are accessible Via plugins**
+- [X] **CustomEnchants**
 - [X] **Plugin Compatibility for PMMP Plugins**
-- [ ] **Plugin Compatibility for Tesseract & Genisys Plugins**
-- [ ] **More Advanced & Open MainLogger**
+- [X] **Plugin Compatibility for Tesseract & Genisys Plugins**
+- [X] **More Advanced & Open MainLogger**
 
 ***Other List Entries are on "spigotpe.yml"....***
 
