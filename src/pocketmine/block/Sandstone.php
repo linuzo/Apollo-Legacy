@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +15,18 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
 
-class Sandstone extends Solid {
+class Sandstone extends Solid{
 
 	const NORMAL = 0;
 	const CHISELED = 1;
@@ -32,56 +34,37 @@ class Sandstone extends Solid {
 
 	protected $id = self::SANDSTONE;
 
-	/**
-	 * Sandstone constructor.
-	 *
-	 * @param int $meta
-	 */
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	/**
-	 * @return float
-	 */
-	public function getHardness(){
+	public function getHardness() : float{
 		return 0.8;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getName(): string{
+	public function getName() : string{
 		static $names = [
-			0 => "Sandstone",
-			1 => "Chiseled Sandstone",
-			2 => "Smooth Sandstone",
-			3 => "",
+			self::NORMAL => "Sandstone",
+			self::CHISELED => "Chiseled Sandstone",
+			self::SMOOTH => "Smooth Sandstone"
 		];
-
-		return $names[$this->meta & 0x03];
+		return $names[$this->meta & 0x03] ?? "Unknown";
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getToolType(){
+	public function getToolType() : int{
 		return Tool::TYPE_PICKAXE;
 	}
 
-	/**
-	 * @param Item $item
-	 *
-	 * @return array
-	 */
-	public function getDrops(Item $item): array{
-		if($item->isPickaxe() >= 1){
-			return [
-				[$this->id, $this->meta & 0x03, 1],
-			];
-		}else{
-			return [];
+	public function getVariantBitmask() : int{
+		return 0x03;
+	}
+
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+			return parent::getDrops($item);
 		}
+
+		return [];
 	}
 
 }

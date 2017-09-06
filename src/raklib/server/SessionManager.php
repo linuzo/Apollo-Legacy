@@ -46,7 +46,7 @@ use raklib\protocol\UNCONNECTED_PING_OPEN_CONNECTIONS;
 use raklib\protocol\UNCONNECTED_PONG;
 use raklib\RakLib;
 
-class SessionManager {
+class SessionManager{
 	protected $packetPool = [];
 
 	/** @var RakLibServer */
@@ -79,8 +79,6 @@ class SessionManager {
 		$this->socket = $socket;
 		$this->registerPackets();
 
-		$this->serverId = mt_rand(0, PHP_INT_MAX);
-
 		$this->run();
 	}
 
@@ -102,8 +100,8 @@ class SessionManager {
 		while(!$this->shutdown){
 			$start = microtime(true);
 			$max = 5000;
-			while(--$max and $this->receivePacket()) ;
-			while($this->receiveStream()) ;
+			while(--$max and $this->receivePacket());
+			while($this->receiveStream());
 			$time = microtime(true) - $start;
 			if($time < 0.05){
 				time_sleep_until(microtime(true) + 0.05 - $time);
@@ -129,8 +127,8 @@ class SessionManager {
 		if(($this->ticks & 0b1111) === 0){
 			$diff = max(0.005, $time - $this->lastMeasure);
 			$this->streamOption("bandwidth", serialize([
-				"up"   => $this->sendBytes / $diff,
-				"down" => $this->receiveBytes / $diff,
+				"up" => $this->sendBytes / $diff,
+				"down" => $this->receiveBytes / $diff
 			]));
 			$this->lastMeasure = $time;
 			$this->sendBytes = 0;
@@ -168,26 +166,31 @@ class SessionManager {
 			}
 
 			if($len > 0){
-				$pid = ord($buffer{0});
+				try{
+					$pid = ord($buffer{0});
 
-				if($pid === UNCONNECTED_PING::$ID){
-					//No need to create a session for just pings
-					$packet = new UNCONNECTED_PING;
-					$packet->buffer = $buffer;
-					$packet->decode();
+					if($pid === UNCONNECTED_PING::$ID){
+						//No need to create a session for just pings
+						$packet = new UNCONNECTED_PING;
+						$packet->buffer = $buffer;
+						$packet->decode();
 
-					$pk = new UNCONNECTED_PONG();
-					$pk->serverID = $this->getID();
-					$pk->pingID = $packet->pingID;
-					$pk->serverName = $this->getName();
-					$this->sendPacket($pk, $source, $port);
-				}elseif($pid === UNCONNECTED_PONG::$ID){
-					//ignored
-				}elseif(($packet = $this->getPacketFromPool($pid)) !== null){
-					$packet->buffer = $buffer;
-					$this->getSession($source, $port)->handlePacket($packet);
-				}else{
-					$this->streamRaw($source, $port, $buffer);
+						$pk = new UNCONNECTED_PONG();
+						$pk->serverID = $this->getID();
+						$pk->pingID = $packet->pingID;
+						$pk->serverName = $this->getName();
+						$this->sendPacket($pk, $source, $port);
+					}elseif($pid === UNCONNECTED_PONG::$ID){
+						//ignored
+					}elseif(($packet = $this->getPacketFromPool($pid)) !== null){
+						$packet->buffer = $buffer;
+						$this->getSession($source, $port)->handlePacket($packet);
+					}else{
+						$this->streamRaw($source, $port, $buffer);
+					}
+				}catch(\Throwable $e){
+					$this->getLogger()->logException($e);
+					$this->blockAddress($source, 5);
 				}
 			}
 
@@ -299,10 +302,10 @@ class SessionManager {
 						$this->name = $value;
 						break;
 					case "portChecking":
-						$this->portChecking = (bool)$value;
+						$this->portChecking = (bool) $value;
 						break;
 					case "packetLimit":
-						$this->packetLimit = (int)$value;
+						$this->packetLimit = (int) $value;
 						break;
 				}
 			}elseif($id === RakLib::PACKET_BLOCK_ADDRESS){
@@ -314,7 +317,6 @@ class SessionManager {
 			}elseif($id === RakLib::PACKET_UNBLOCK_ADDRESS){
 				$len = ord($packet{$offset++});
 				$address = substr($packet, $offset, $len);
-				$offset += $len;
 				$this->unblockAddress($address);
 			}elseif($id === RakLib::PACKET_SHUTDOWN){
 				foreach($this->sessions as $session){
@@ -349,13 +351,14 @@ class SessionManager {
 		}
 	}
 
-	public function unblockAddress($address){
+	public function unblockAddress(string $address){
 		unset($this->block[$address]);
+		$this->getLogger()->debug("Unblocked $address");
 	}
 
 	/**
 	 * @param string $ip
-	 * @param int $port
+	 * @param int    $port
 	 *
 	 * @return Session
 	 */
@@ -391,7 +394,7 @@ class SessionManager {
 	}
 
 	public function getID(){
-		return $this->serverId;
+		return $this->server->getServerId();
 	}
 
 	private function registerPacket($id, $class){
@@ -401,7 +404,7 @@ class SessionManager {
 	/**
 	 * @param $id
 	 *
-	 * @return Packet
+	 * @return Packet|null
 	 */
 	public function getPacketFromPool($id){
 		if(isset($this->packetPool[$id])){

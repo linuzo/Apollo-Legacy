@@ -19,7 +19,7 @@ if(!defined("ENDIANNESS")){
 	define("ENDIANNESS", (pack("d", 1) === "\77\360\0\0\0\0\0\0" ? Binary::BIG_ENDIAN : Binary::LITTLE_ENDIAN));
 }
 
-class Binary {
+class Binary{
 	const BIG_ENDIAN = 0x00;
 	const LITTLE_ENDIAN = 0x01;
 
@@ -94,7 +94,7 @@ class Binary {
 	 * Reads an unsigned/signed byte
 	 *
 	 * @param string $c
-	 * @param bool $signed
+	 * @param bool   $signed
 	 *
 	 * @return int
 	 */

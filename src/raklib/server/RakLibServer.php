@@ -16,7 +16,7 @@
 namespace raklib\server;
 
 
-class RakLibServer extends \Thread {
+class RakLibServer extends \Thread{
 	protected $port;
 	protected $interface;
 	/** @var \ThreadedLogger */
@@ -34,21 +34,28 @@ class RakLibServer extends \Thread {
 
 	protected $mainPath;
 
+	/** @var int */
+	protected $serverId = 0;
+
 	/**
 	 * @param \ThreadedLogger $logger
-	 * @param \ClassLoader $loader
-	 * @param int $port
-	 * @param string $interface
+	 * @param \ClassLoader    $loader
+	 * @param int             $port
+	 * @param string          $interface
+	 * @param bool            $autoStart
 	 *
 	 * @throws \Exception
 	 */
-	public function __construct(\ThreadedLogger $logger, \ClassLoader $loader, $port, $interface = "0.0.0.0"){
-		$this->port = (int)$port;
+	public function __construct(\ThreadedLogger $logger, \ClassLoader $loader, $port, $interface = "0.0.0.0", bool $autoStart = true){
+		$this->port = (int) $port;
 		if($port < 1 or $port > 65536){
 			throw new \Exception("Invalid port range");
 		}
 
 		$this->interface = $interface;
+
+		$this->serverId = mt_rand(0, PHP_INT_MAX);
+
 		$this->logger = $logger;
 		$this->loader = $loader;
 		$loadPaths = [];
@@ -63,9 +70,12 @@ class RakLibServer extends \Thread {
 		if(\Phar::running(true) !== ""){
 			$this->mainPath = \Phar::running(true);
 		}else{
-			$this->mainPath = \getcwd() . DIRECTORY_SEPARATOR;
+			$this->mainPath = \realpath(\getcwd()) . DIRECTORY_SEPARATOR;
 		}
-		$this->start();
+
+		if($autoStart){
+			$this->start();
+		}
 	}
 
 	protected function addDependency(array &$loadPaths, \ReflectionClass $dep){
@@ -96,6 +106,14 @@ class RakLibServer extends \Thread {
 
 	public function getInterface(){
 		return $this->interface;
+	}
+
+	/**
+	 * Returns the RakNet server ID
+	 * @return int
+	 */
+	public function getServerId() : int{
+		return $this->serverId;
 	}
 
 	/**
@@ -146,39 +164,38 @@ class RakLibServer extends \Thread {
 			return false;
 		}
 		$errorConversion = [
-			E_ERROR             => "E_ERROR",
-			E_WARNING           => "E_WARNING",
-			E_PARSE             => "E_PARSE",
-			E_NOTICE            => "E_NOTICE",
-			E_CORE_ERROR        => "E_CORE_ERROR",
-			E_CORE_WARNING      => "E_CORE_WARNING",
-			E_COMPILE_ERROR     => "E_COMPILE_ERROR",
-			E_COMPILE_WARNING   => "E_COMPILE_WARNING",
-			E_USER_ERROR        => "E_USER_ERROR",
-			E_USER_WARNING      => "E_USER_WARNING",
-			E_USER_NOTICE       => "E_USER_NOTICE",
-			E_STRICT            => "E_STRICT",
+			E_ERROR => "E_ERROR",
+			E_WARNING => "E_WARNING",
+			E_PARSE => "E_PARSE",
+			E_NOTICE => "E_NOTICE",
+			E_CORE_ERROR => "E_CORE_ERROR",
+			E_CORE_WARNING => "E_CORE_WARNING",
+			E_COMPILE_ERROR => "E_COMPILE_ERROR",
+			E_COMPILE_WARNING => "E_COMPILE_WARNING",
+			E_USER_ERROR => "E_USER_ERROR",
+			E_USER_WARNING => "E_USER_WARNING",
+			E_USER_NOTICE => "E_USER_NOTICE",
+			E_STRICT => "E_STRICT",
 			E_RECOVERABLE_ERROR => "E_RECOVERABLE_ERROR",
-			E_DEPRECATED        => "E_DEPRECATED",
-			E_USER_DEPRECATED   => "E_USER_DEPRECATED",
+			E_DEPRECATED => "E_DEPRECATED",
+			E_USER_DEPRECATED => "E_USER_DEPRECATED"
 		];
-		$errno = isset($errorConversion[$errno]) ? $errorConversion[$errno] : $errno;
-		if(($pos = strpos($errstr, "\n")) !== false){
-			$errstr = substr($errstr, 0, $pos);
-		}
 
+		$errno = $errorConversion[$errno] ?? $errno;
+
+		$errstr = preg_replace('/\s+/', ' ', trim($errstr));
 		$errfile = $this->cleanPath($errfile);
 
 		$this->getLogger()->debug("An $errno error happened: \"$errstr\" in \"$errfile\" at line $errline");
 
-		foreach(($trace = $this->getTrace($trace === null ? 3 : 0, $trace)) as $i => $line){
+		foreach(($trace = $this->getTrace($trace === null ? 2 : 0, $trace)) as $i => $line){
 			$this->getLogger()->debug($line);
 		}
 
 		return true;
 	}
 
-	public function getTrace($start = 1, $trace = null){
+	public function getTrace($start = 0, $trace = null){
 		if($trace === null){
 			if(function_exists("xdebug_get_function_stack")){
 				$trace = array_reverse(xdebug_get_function_stack());
@@ -190,7 +207,7 @@ class RakLibServer extends \Thread {
 
 		$messages = [];
 		$j = 0;
-		for($i = (int)$start; isset($trace[$i]); ++$i, ++$j){
+		for($i = (int) $start; isset($trace[$i]); ++$i, ++$j){
 			$params = "";
 			if(isset($trace[$i]["args"]) or isset($trace[$i]["params"])){
 				if(isset($trace[$i]["args"])){
@@ -209,7 +226,7 @@ class RakLibServer extends \Thread {
 	}
 
 	public function cleanPath($path){
-		return rtrim(str_replace(["\\", ".php", "phar://", rtrim(str_replace(["\\", "phar://"], ["/", ""], $this->mainPath), "/")], ["/", "", "", ""], $path), "/");
+		return str_replace(["\\", ".php", "phar://", str_replace(["\\", "phar://"], ["/", ""], $this->mainPath)], ["/", "", "", ""], $path);
 	}
 
 	public function run(){

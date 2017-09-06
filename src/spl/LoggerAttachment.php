@@ -15,10 +15,10 @@
  * GNU General Public License for more details.
 */
 
-interface LoggerAttachment {
+interface LoggerAttachment{
 
 	/**
-	 * @param mixed $level
+	 * @param mixed  $level
 	 * @param string $message
 	 */
 	public function log($level, $message);

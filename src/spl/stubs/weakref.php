@@ -6,7 +6,7 @@
  * WARNING: Do not include this file
  *
  */
-class WeakRef {
+class WeakRef{
 
 	/**
 	 * Constructs a new weak reference.
@@ -51,7 +51,7 @@ class WeakRef {
 	}
 }
 
-class WeakMap implements Countable, ArrayAccess, Iterator {
+class WeakMap implements Countable, ArrayAccess, Iterator{
 
 	/**
 	 * Constructs a new map
@@ -114,7 +114,7 @@ class WeakMap implements Countable, ArrayAccess, Iterator {
 	 * If the key already existed in the map, the old value is replaced with the new.
 	 *
 	 * @param object $object
-	 * @param mixed $value
+	 * @param mixed  $value
 	 */
 	public function offsetSet($object, $value){
 	}

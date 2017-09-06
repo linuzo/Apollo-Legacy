@@ -19,39 +19,28 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\command\ConsoleCommandSender;
 use pocketmine\event\TranslationContainer;
 use pocketmine\utils\TextFormat;
 
-class HelpCommand extends VanillaCommand {
+class HelpCommand extends VanillaCommand{
 
-	/**
-	 * HelpCommand constructor.
-	 *
-	 * @param $name
-	 */
-	public function __construct($name){
+	public function __construct(string $name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.help.description",
-			"%pocketmine.command.help.usage",
+			"%commands.help.usage",
 			["?"]
 		);
 		$this->setPermission("pocketmine.command.help");
 	}
 
-	/**
-	 * @param CommandSender $sender
-	 * @param string $currentAlias
-	 * @param array $args
-	 *
-	 * @return bool
-	 */
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
@@ -60,7 +49,7 @@ class HelpCommand extends VanillaCommand {
 			$command = "";
 			$pageNumber = 1;
 		}elseif(is_numeric($args[count($args) - 1])){
-			$pageNumber = (int)array_pop($args);
+			$pageNumber = (int) array_pop($args);
 			if($pageNumber <= 0){
 				$pageNumber = 1;
 			}
@@ -70,11 +59,7 @@ class HelpCommand extends VanillaCommand {
 			$pageNumber = 1;
 		}
 
-		if($sender instanceof ConsoleCommandSender){
-			$pageHeight = PHP_INT_MAX;
-		}else{
-			$pageHeight = 7;
-		}
+		$pageHeight = $sender->getScreenLineHeight();
 
 		if($command === ""){
 			/** @var Command[][] $commands */
@@ -86,7 +71,7 @@ class HelpCommand extends VanillaCommand {
 			}
 			ksort($commands, SORT_NATURAL | SORT_FLAG_CASE);
 			$commands = array_chunk($commands, $pageHeight);
-			$pageNumber = (int)min(count($commands), $pageNumber);
+			$pageNumber = (int) min(count($commands), $pageNumber);
 			if($pageNumber < 1){
 				$pageNumber = 1;
 			}

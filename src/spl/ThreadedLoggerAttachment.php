@@ -15,13 +15,13 @@
  * GNU General Public License for more details.
 */
 
-abstract class ThreadedLoggerAttachment extends \Threaded implements \LoggerAttachment {
+abstract class ThreadedLoggerAttachment extends \Threaded implements \LoggerAttachment{
 
 	/** @var \ThreadedLoggerAttachment */
 	protected $attachment = null;
 
 	/**
-	 * @param mixed $level
+	 * @param mixed  $level
 	 * @param string $message
 	 */
 	public final function call($level, $message){

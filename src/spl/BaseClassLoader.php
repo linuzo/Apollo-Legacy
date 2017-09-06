@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
 */
 
-class BaseClassLoader extends \Threaded implements ClassLoader {
+class BaseClassLoader extends \Threaded implements ClassLoader{
 
 	/** @var \ClassLoader */
 	private $parent;
@@ -38,7 +38,7 @@ class BaseClassLoader extends \Threaded implements ClassLoader {
 	 * Adds a path to the lookup list
 	 *
 	 * @param string $path
-	 * @param bool $prepend
+	 * @param bool   $prepend
 	 */
 	public function addPath($path, $prepend = false){
 
@@ -60,13 +60,12 @@ class BaseClassLoader extends \Threaded implements ClassLoader {
 			$this->lookup[] = $path;
 		}
 	}
-
+	
 	protected function getAndRemoveLookupEntries(){
 		$entries = [];
 		while($this->count() > 0){
 			$entries[] = $this->shift();
 		}
-
 		return $entries;
 	}
 
@@ -93,7 +92,6 @@ class BaseClassLoader extends \Threaded implements ClassLoader {
 		foreach($this->classes as $class){
 			$classes[] = $class;
 		}
-
 		return $classes;
 	}
 
@@ -129,22 +127,16 @@ class BaseClassLoader extends \Threaded implements ClassLoader {
 		if($path !== null){
 			include($path);
 			if(!class_exists($name, false) and !interface_exists($name, false) and !trait_exists($name, false)){
-				if($this->getParent() === null){
-					throw new ClassNotFoundException("Class $name not found");
-				}
-
 				return false;
 			}
 
 			if(method_exists($name, "onClassLoaded") and (new ReflectionClass($name))->getMethod("onClassLoaded")->isStatic()){
 				$name::onClassLoaded();
 			}
-
+			
 			$this->classes[] = $name;
 
 			return true;
-		}elseif($this->getParent() === null){
-			throw new ClassNotFoundException("Class $name not found");
 		}
 
 		return false;

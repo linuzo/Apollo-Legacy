@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +15,18 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\utils;
 
 /**
  * Class used to handle Minecraft chat format, and convert it to other formats like ANSI or HTML
  */
-abstract class TextFormat {
+abstract class TextFormat{
 	const ESCAPE = "\xc2\xa7"; //§
 
 	const BLACK = TextFormat::ESCAPE . "0";
@@ -58,7 +60,7 @@ abstract class TextFormat {
 	 *
 	 * @return array
 	 */
-	public static function tokenize($string){
+	public static function tokenize(string $string) : array{
 		return preg_split("/(" . TextFormat::ESCAPE . "[0123456789abcdefklmnor])/", $string, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 	}
 
@@ -66,15 +68,14 @@ abstract class TextFormat {
 	 * Cleans the string from Minecraft codes and ANSI Escape Codes
 	 *
 	 * @param string $string
-	 * @param bool $removeFormat
+	 * @param bool   $removeFormat
 	 *
-	 * @return mixed
+	 * @return string
 	 */
-	public static function clean($string, $removeFormat = true){
+	public static function clean(string $string, bool $removeFormat = true) : string{
 		if($removeFormat){
 			return str_replace(TextFormat::ESCAPE, "", preg_replace(["/" . TextFormat::ESCAPE . "[0123456789abcdefklmnor]/", "/\x1b[\\(\\][[0-9;\\[\\(]+[Bm]/"], "", $string));
 		}
-
 		return str_replace("\x1b", "", preg_replace("/\x1b[\\(\\][[0-9;\\[\\(]+[Bm]/", "", $string));
 	}
 
@@ -85,7 +86,7 @@ abstract class TextFormat {
 	 *
 	 * @return string
 	 */
-	public static function toJSON($string){
+	public static function toJSON($string) : string{
 		if(!is_array($string)){
 			$string = self::tokenize($string);
 		}
@@ -273,7 +274,7 @@ abstract class TextFormat {
 	 *
 	 * @return string
 	 */
-	public static function toHTML($string){
+	public static function toHTML($string) : string{
 		if(!is_array($string)){
 			$string = self::tokenize($string);
 		}
@@ -385,11 +386,11 @@ abstract class TextFormat {
 	/**
 	 * Returns a string with colorized ANSI Escape codes
 	 *
-	 * @param $string
+	 * @param string|array $string
 	 *
 	 * @return string
 	 */
-	public static function toANSI($string){
+	public static function toANSI($string) : string{
 		if(!is_array($string)){
 			$string = self::tokenize($string);
 		}

@@ -19,6 +19,8 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\scheduler;
 
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
@@ -27,7 +29,7 @@ use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
 
-class SendUsageTask extends AsyncTask {
+class SendUsageTask extends AsyncTask{
 
 	const TYPE_OPEN = 1;
 	const TYPE_STATUS = 2;
@@ -37,19 +39,17 @@ class SendUsageTask extends AsyncTask {
 	public $data;
 
 	/**
-	 * SendUsageTask constructor.
-	 *
 	 * @param Server $server
-	 * @param        $type
-	 * @param array $playerList
+	 * @param int    $type
+	 * @param array  $playerList
 	 */
-	public function __construct(Server $server, $type, $playerList = []){
+	public function __construct(Server $server, int $type, array $playerList = []){
 		$endpoint = "http://" . $server->getProperty("anonymous-statistics.host", "stats.pocketmine.net") . "/";
 
 		$data = [];
-		$data["uniqueServerId"] = $server->getServerUniqueId();
-		$data["uniqueMachineId"] = Utils::getMachineUniqueId();
-		$data["uniqueRequestId"] = UUID::fromData($server->getServerUniqueId(), microtime(true));
+		$data["uniqueServerId"] = $server->getServerUniqueId()->toString();
+		$data["uniqueMachineId"] = Utils::getMachineUniqueId()->toString();
+		$data["uniqueRequestId"] = UUID::fromData($server->getServerUniqueId()->toString(), microtime(false))->toString();
 
 		switch($type){
 			case self::TYPE_OPEN:
@@ -58,28 +58,28 @@ class SendUsageTask extends AsyncTask {
 				$version = new VersionString();
 
 				$data["server"] = [
-					"port"             => $server->getPort(),
-					"software"         => $server->getName(),
-					"fullVersion"      => $version->get(true),
-					"version"          => $version->get(),
-					"build"            => $version->getBuild(),
-					"api"              => $server->getApiVersion(),
+					"port" => $server->getPort(),
+					"software" => $server->getName(),
+					"fullVersion" => $version->get(true),
+					"version" => $version->get(),
+					"build" => $version->getBuild(),
+					"api" => $server->getApiVersion(),
 					"minecraftVersion" => $server->getVersion(),
-					"protocol"         => ProtocolInfo::CURRENT_PROTOCOL,
+					"protocol" => ProtocolInfo::CURRENT_PROTOCOL
 				];
 
 				$data["system"] = [
 					"operatingSystem" => Utils::getOS(),
-					"cores"           => Utils::getCoreCount(),
-					"phpVersion"      => PHP_VERSION,
-					"machine"         => php_uname("a"),
-					"release"         => php_uname("r"),
-					"platform"        => php_uname("i"),
+					"cores" => Utils::getCoreCount(),
+					"phpVersion" => PHP_VERSION,
+					"machine" => php_uname("a"),
+					"release" => php_uname("r"),
+					"platform" => php_uname("i")
 				];
 
 				$data["players"] = [
 					"count" => 0,
-					"limit" => $server->getMaxPlayers(),
+					"limit" => $server->getMaxPlayers()
 				];
 
 				$plugins = [];
@@ -88,9 +88,9 @@ class SendUsageTask extends AsyncTask {
 					$d = $p->getDescription();
 
 					$plugins[$d->getName()] = [
-						"name"    => $d->getName(),
+						"name" => $d->getName(),
 						"version" => $d->getVersion(),
-						"enabled" => $p->isEnabled(),
+						"enabled" => $p->isEnabled()
 					];
 				}
 
@@ -102,8 +102,8 @@ class SendUsageTask extends AsyncTask {
 
 				$data["server"] = [
 					"ticksPerSecond" => $server->getTicksPerSecondAverage(),
-					"tickUsage"      => $server->getTickUsageAverage(),
-					"ticks"          => $server->getTick(),
+					"tickUsage" => $server->getTickUsageAverage(),
+					"ticks" => $server->getTick()
 				];
 
 
@@ -120,18 +120,18 @@ class SendUsageTask extends AsyncTask {
 				}
 
 				$data["players"] = [
-					"count"       => count($players),
-					"limit"       => $server->getMaxPlayers(),
+					"count" => count($players),
+					"limit" => $server->getMaxPlayers(),
 					"currentList" => $players,
-					"historyList" => array_values($playerList),
+					"historyList" => array_values($playerList)
 				];
 
 				$info = Utils::getMemoryUsage(true);
 				$data["system"] = [
-					"mainMemory"      => $info[0],
-					"totalMemory"     => $info[1],
+					"mainMemory" => $info[0],
+					"totalMemory" => $info[1],
 					"availableMemory" => $info[2],
-					"threadCount"     => Utils::getThreadCount(),
+					"threadCount" => Utils::getThreadCount()
 				];
 
 				break;
@@ -149,7 +149,7 @@ class SendUsageTask extends AsyncTask {
 		try{
 			Utils::postURL($this->endpoint, $this->data, 5, [
 				"Content-Type: application/json",
-				"Content-Length: " . strlen($this->data),
+				"Content-Length: " . strlen($this->data)
 			]);
 		}catch(\Throwable $e){
 

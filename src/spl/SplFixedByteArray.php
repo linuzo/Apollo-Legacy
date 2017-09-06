@@ -15,13 +15,13 @@
  * GNU General Public License for more details.
 */
 
-class SplFixedByteArray extends SplFixedArray {
+class SplFixedByteArray extends SplFixedArray{
 
 	private $convert;
 
 	public function __construct($size, $convert = false){
 		parent::__construct($size);
-		$this->convert = (bool)$convert;
+		$this->convert = (bool) $convert;
 	}
 
 	public function chunk($start, $size, $normalize = true){
@@ -37,13 +37,12 @@ class SplFixedByteArray extends SplFixedArray {
 				$d[] = $this[$i];
 			}
 		}
-
 		return $d;
 	}
 
 	/**
 	 * @param string $str
-	 * @param bool $convert
+	 * @param bool   $convert
 	 *
 	 * @return SplFixedByteArray
 	 */
@@ -66,9 +65,9 @@ class SplFixedByteArray extends SplFixedArray {
 
 	/**
 	 * @param string $str
-	 * @param int $size
-	 * @param int $start
-	 * @param bool $convert
+	 * @param int    $size
+	 * @param int    $start
+	 * @param bool   $convert
 	 *
 	 * @return SplFixedByteArray
 	 */
@@ -99,7 +98,6 @@ class SplFixedByteArray extends SplFixedArray {
 				$result .= $this[$i];
 			}
 		}
-
 		return $result;
 	}
 

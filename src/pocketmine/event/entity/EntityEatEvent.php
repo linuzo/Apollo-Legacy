@@ -19,6 +19,8 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\event\entity;
 
 use pocketmine\entity\Effect;
@@ -26,7 +28,7 @@ use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
 use pocketmine\item\FoodSource;
 
-class EntityEatEvent extends EntityEvent implements Cancellable {
+class EntityEatEvent extends EntityEvent implements Cancellable{
 	public static $handlerList = null;
 
 	/** @var FoodSource */
@@ -35,16 +37,11 @@ class EntityEatEvent extends EntityEvent implements Cancellable {
 	private $foodRestore;
 	/** @var float */
 	private $saturationRestore;
+	/** @var mixed */
 	private $residue;
 	/** @var Effect[] */
 	private $additionalEffects;
 
-	/**
-	 * EntityEatEvent constructor.
-	 *
-	 * @param Entity $entity
-	 * @param FoodSource $foodSource
-	 */
 	public function __construct(Entity $entity, FoodSource $foodSource){
 		$this->entity = $entity;
 		$this->foodSource = $foodSource;
@@ -54,42 +51,28 @@ class EntityEatEvent extends EntityEvent implements Cancellable {
 		$this->additionalEffects = $foodSource->getAdditionalEffects();
 	}
 
-	/**
-	 * @return FoodSource
-	 */
-	public function getFoodSource(){
+	public function getFoodSource() : FoodSource{
 		return $this->foodSource;
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getFoodRestore(): int{
+	public function getFoodRestore() : int{
 		return $this->foodRestore;
 	}
 
-	/**
-	 * @param int $foodRestore
-	 */
 	public function setFoodRestore(int $foodRestore){
 		$this->foodRestore = $foodRestore;
 	}
 
-	/**
-	 * @return float
-	 */
-	public function getSaturationRestore(): float{
+	public function getSaturationRestore() : float{
 		return $this->saturationRestore;
 	}
 
-	/**
-	 * @param float $saturationRestore
-	 */
 	public function setSaturationRestore(float $saturationRestore){
 		$this->saturationRestore = $saturationRestore;
 	}
 
 	/**
+	 * Returns the result of eating the food source.
 	 * @return mixed
 	 */
 	public function getResidue(){
@@ -97,7 +80,7 @@ class EntityEatEvent extends EntityEvent implements Cancellable {
 	}
 
 	/**
-	 * @param $residue
+	 * @param mixed $residue
 	 */
 	public function setResidue($residue){
 		$this->residue = $residue;
@@ -106,7 +89,7 @@ class EntityEatEvent extends EntityEvent implements Cancellable {
 	/**
 	 * @return Effect[]
 	 */
-	public function getAdditionalEffects(){
+	public function getAdditionalEffects() : array{
 		return $this->additionalEffects;
 	}
 

@@ -14,10 +14,12 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\player;
 
@@ -28,7 +30,7 @@ use pocketmine\Player;
 /**
  * Called when a player eats something
  */
-class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
+class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable{
 	public static $handlerList = null;
 
 	/** @var Item */
@@ -36,7 +38,7 @@ class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
 
 	/**
 	 * @param Player $player
-	 * @param Item $item
+	 * @param Item   $item
 	 */
 	public function __construct(Player $player, Item $item){
 		$this->player = $player;
@@ -46,7 +48,7 @@ class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
 	/**
 	 * @return Item
 	 */
-	public function getItem(){
+	public function getItem() : Item{
 		return clone $this->item;
 	}
 

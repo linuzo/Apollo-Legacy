@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
 */
 
-interface Logger {
+interface Logger{
 
 	/**
 	 * System is unusable
@@ -80,7 +80,7 @@ interface Logger {
 	/**
 	 * Logs with an arbitrary level.
 	 *
-	 * @param mixed $level
+	 * @param mixed  $level
 	 * @param string $message
 	 */
 	public function log($level, $message);

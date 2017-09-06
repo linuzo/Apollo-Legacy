@@ -19,6 +19,8 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine;
 
 use pocketmine\event\TranslationContainer;
@@ -27,7 +29,7 @@ use pocketmine\utils\TextFormat;
 /**
  * Handles the achievement list and a bit more
  */
-abstract class Achievement {
+abstract class Achievement{
 	/**
 	 * @var array[]
 	 */
@@ -36,85 +38,85 @@ abstract class Achievement {
 			"name" => "Taking Inventory",
 			"requires" => [],
 		),*/
-		"mineWood"           => [
-			"name"     => "Getting Wood",
+		"mineWood" => [
+			"name" => "Getting Wood",
 			"requires" => [ //"openInventory",
-			],
+			]
 		],
-		"buildWorkBench"     => [
-			"name"     => "Benchmarking",
+		"buildWorkBench" => [
+			"name" => "Benchmarking",
 			"requires" => [
-				"mineWood",
-			],
+				"mineWood"
+			]
 		],
-		"buildPickaxe"       => [
-			"name"     => "Time to Mine!",
+		"buildPickaxe" => [
+			"name" => "Time to Mine!",
 			"requires" => [
-				"buildWorkBench",
-			],
+				"buildWorkBench"
+			]
 		],
-		"buildFurnace"       => [
-			"name"     => "Hot Topic",
+		"buildFurnace" => [
+			"name" => "Hot Topic",
 			"requires" => [
-				"buildPickaxe",
-			],
+				"buildPickaxe"
+			]
 		],
-		"acquireIron"        => [
-			"name"     => "Acquire hardware",
+		"acquireIron" => [
+			"name" => "Acquire hardware",
 			"requires" => [
-				"buildFurnace",
-			],
+				"buildFurnace"
+			]
 		],
-		"buildHoe"           => [
-			"name"     => "Time to Farm!",
+		"buildHoe" => [
+			"name" => "Time to Farm!",
 			"requires" => [
-				"buildWorkBench",
-			],
+				"buildWorkBench"
+			]
 		],
-		"makeBread"          => [
-			"name"     => "Bake Bread",
+		"makeBread" => [
+			"name" => "Bake Bread",
 			"requires" => [
-				"buildHoe",
-			],
+				"buildHoe"
+			]
 		],
-		"bakeCake"           => [
-			"name"     => "The Lie",
+		"bakeCake" => [
+			"name" => "The Lie",
 			"requires" => [
-				"buildHoe",
-			],
+				"buildHoe"
+			]
 		],
 		"buildBetterPickaxe" => [
-			"name"     => "Getting an Upgrade",
+			"name" => "Getting an Upgrade",
 			"requires" => [
-				"buildPickaxe",
-			],
+				"buildPickaxe"
+			]
 		],
-		"buildSword"         => [
-			"name"     => "Time to Strike!",
+		"buildSword" => [
+			"name" => "Time to Strike!",
 			"requires" => [
-				"buildWorkBench",
-			],
+				"buildWorkBench"
+			]
 		],
-		"diamonds"           => [
-			"name"     => "DIAMONDS!",
+		"diamonds" => [
+			"name" => "DIAMONDS!",
 			"requires" => [
-				"acquireIron",
-			],
-		],
+				"acquireIron"
+			]
+		]
 
 	];
 
 
 	/**
 	 * @param Player $player
-	 * @param        $achievementId
+	 * @param string $achievementId
 	 *
 	 * @return bool
 	 */
-	public static function broadcast(Player $player, $achievementId){
+	public static function broadcast(Player $player, string $achievementId) : bool{
 		if(isset(Achievement::$list[$achievementId])){
-			$translation = new TranslationContainer("chat.type.achievement", [$player->getDisplayName(), TextFormat::GREEN . Achievement::$list[$achievementId]["name"]]);
-			if(Server::getInstance()->getConfigString("announce-player-achievements", true) === true){
+			$translation = new TranslationContainer("chat.type.achievement", [$player->getDisplayName(), TextFormat::GREEN . Achievement::$list[$achievementId]["name"] . TextFormat::RESET]);
+			if(Server::getInstance()->getConfigBoolean("announce-player-achievements", true) === true){
 				Server::getInstance()->broadcastMessage($translation);
 			}else{
 				$player->sendMessage($translation);
@@ -127,17 +129,17 @@ abstract class Achievement {
 	}
 
 	/**
-	 * @param       $achievementId
-	 * @param       $achievementName
-	 * @param array $requires
+	 * @param string $achievementId
+	 * @param string $achievementName
+	 * @param array  $requires
 	 *
 	 * @return bool
 	 */
-	public static function add($achievementId, $achievementName, array $requires = []){
+	public static function add(string $achievementId, string $achievementName, array $requires = []) : bool{
 		if(!isset(Achievement::$list[$achievementId])){
 			Achievement::$list[$achievementId] = [
-				"name"     => $achievementName,
-				"requires" => $requires,
+				"name" => $achievementName,
+				"requires" => $requires
 			];
 
 			return true;

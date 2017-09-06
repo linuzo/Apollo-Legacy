@@ -19,37 +19,27 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 
-abstract class VanillaCommand extends Command {
+abstract class VanillaCommand extends Command{
 	const MAX_COORD = 30000000;
 	const MIN_COORD = -30000000;
 
 	/**
-	 * VanillaCommand constructor.
-	 *
-	 * @param string $name
-	 * @param string $description
-	 * @param null $usageMessage
-	 * @param array $aliases
-	 */
-	public function __construct($name, $description = "", $usageMessage = null, array $aliases = []){
-		parent::__construct($name, $description, $usageMessage, $aliases);
-	}
-
-	/**
 	 * @param CommandSender $sender
-	 * @param               $value
-	 * @param int $min
-	 * @param int $max
+	 * @param mixed         $value
+	 * @param int           $min
+	 * @param int           $max
 	 *
 	 * @return int
 	 */
-	protected function getInteger(CommandSender $sender, $value, $min = self::MIN_COORD, $max = self::MAX_COORD){
-		$i = (int)$value;
+	protected function getInteger(CommandSender $sender, $value, int $min = self::MIN_COORD, int $max = self::MAX_COORD) : int{
+		$i = (int) $value;
 
 		if($i < $min){
 			$i = $min;
@@ -61,15 +51,15 @@ abstract class VanillaCommand extends Command {
 	}
 
 	/**
-	 * @param               $original
+	 * @param float         $original
 	 * @param CommandSender $sender
-	 * @param               $input
-	 * @param int $min
-	 * @param int $max
+	 * @param string        $input
+	 * @param float         $min
+	 * @param float         $max
 	 *
-	 * @return float|int
+	 * @return float
 	 */
-	protected function getRelativeDouble($original, CommandSender $sender, $input, $min = self::MIN_COORD, $max = self::MAX_COORD){
+	protected function getRelativeDouble(float $original, CommandSender $sender, string $input, float $min = self::MIN_COORD, float $max = self::MAX_COORD) : float{
 		if($input{0} === "~"){
 			$value = $this->getDouble($sender, substr($input, 1));
 
@@ -81,14 +71,14 @@ abstract class VanillaCommand extends Command {
 
 	/**
 	 * @param CommandSender $sender
-	 * @param               $value
-	 * @param int $min
-	 * @param int $max
+	 * @param mixed         $value
+	 * @param float         $min
+	 * @param float         $max
 	 *
-	 * @return float|int
+	 * @return float
 	 */
-	protected function getDouble(CommandSender $sender, $value, $min = self::MIN_COORD, $max = self::MAX_COORD){
-		$i = (double)$value;
+	protected function getDouble(CommandSender $sender, $value, float $min = self::MIN_COORD, float $max = self::MAX_COORD) : float{
+		$i = (double) $value;
 
 		if($i < $min){
 			$i = $min;
