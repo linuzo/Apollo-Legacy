@@ -15,15 +15,14 @@ Actual result: What actually happened?
 2. ...
 
 ### OS and versions
-<!--- use the 'version' command in PocketMine-MP
+<!--- use the 'version' command SpigotPE
 
-NOTE: LATEST is not a valid version. PocketMine version should include Jenkins build number and/or git commit hash.
+NOTE: LATEST is not a valid version. SpigotPE version should include Jenkins build number and/or git commit hash.
 
-NO support whatsoever will be provided for forks or spoons of PocketMine. Issues relating to non-official distributions will be closed as spam. Please send such issues to whoever is responsible for the fork or spoon you are using.
+NO support whatsoever will be provided for forks or spoons of SpigotPE. Issues relating to non-official distributions will be closed as spam. Please send such issues to whoever is responsible for the fork or spoon you are using.
 
-Note that 32-bit platforms are no longer supported by PocketMine-MP and issues concerning 32-bit platforms will be closed.
 -->
-* PocketMine-MP:
+* SpigotPE:
 * PHP:
 * Server OS:
 * Game version: PE/Win10 (delete as appropriate)
@@ -34,7 +33,7 @@ Note that 32-bit platforms are no longer supported by PocketMine-MP and issues c
 If the issue is **not** reproducible without plugins:
 - Have you asked for help on our forums before creating an issue?
 - Can you provide sample, *minimal* reproducing code for the issue? If so, paste it in the bottom section
-- Paste your list of plugins here (use the 'plugins' command in PocketMine-MP)
+- Paste your list of plugins here (use the 'plugins' command in SpigotPE)
 
 ### Crashdump, backtrace or other files
 <!--- please use gist or anything else and add links here -->
