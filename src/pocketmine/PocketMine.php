@@ -91,13 +91,13 @@ namespace pocketmine {
 
 	if(version_compare("7.2", PHP_VERSION) > 0){
 		echo "[CRITICAL] You must use PHP >= 7.2" . PHP_EOL;
-		echo "[CRITICAL] Please use the installer provided on the homepage." . PHP_EOL;
+		echo "[CRITICAL] Please use the installer provided on our github binary project." . PHP_EOL;
 		exit(1);
 	}
 
 	if(!extension_loaded("pthreads")){
 		echo "[CRITICAL] Unable to find the pthreads extension." . PHP_EOL;
-		echo "[CRITICAL] Please use the installer provided on the homepage." . PHP_EOL;
+		echo "[CRITICAL] lease use the installer provided on our github binary project." . PHP_EOL;
 		exit(1);
 	}
 
@@ -113,7 +113,7 @@ namespace pocketmine {
 
 	if(!extension_loaded("phar")){
 		echo "[CRITICAL] Unable to find the Phar extension." . PHP_EOL;
-		echo "[CRITICAL] Please use the installer provided on the homepage." . PHP_EOL;
+		echo "[CRITICAL] Pllease try using our phar we posted on our github or try using our auto updater." . PHP_EOL;
 		exit(1);
 	}
 
@@ -125,7 +125,7 @@ namespace pocketmine {
 
 	if(!class_exists("ClassLoader", false)){
 		if(!is_file(\pocketmine\PATH . "src/spl/ClassLoader.php")){
-			echo "[CRITICAL] Unable to find the PocketMine-SPL library." . PHP_EOL;
+			echo "[CRITICAL] Unable to find the  SpigotPE-SPL library." . PHP_EOL;
 			echo "[CRITICAL] Please use provided builds or clone the repository recursively." . PHP_EOL;
 			exit(1);
 		}
@@ -477,7 +477,7 @@ namespace pocketmine {
 		}
 
 		if($errors > 0){
-			$logger->critical("Please use the installer provided on the homepage, or recompile PHP again.");
+			$logger->critical("Please use the installer provided on our github, or recompile PHP again.");
 			$exitCode = 1;
 			break;
 		}
