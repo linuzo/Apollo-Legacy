@@ -11,6 +11,10 @@ _All other branches are in testing and may be unstable. Do not use builds from o
 # Where can I get the Latest spigotpe phar?
 You can download the latest phar from our [download center](https://circleci.com/gh/SpigotPE-Team) :smile:
 
+# or other softwares wip
+### if you wanth to sue the old php 7.0 then go to  [Rocky](https://github.com/SpigotPE-Team/Rocky) :smile:
+### more info at the project
+
 # ToDo:
 - [ ] **Fully Support UserNames with spaces**
 - [ ] **XBox Live Authentication**
