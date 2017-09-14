@@ -44,8 +44,8 @@ To be able to run this on Windows, You'll need Visual Studio C++ Redistributable
 Which can be downloaded [Here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
 
 # Acknowledgements / Credits:
-- spigotpe is a "spoon" of **[Pocketmine-MP](http://github.com/pmmp/PocketMine-MP/)**
-- Most of the original code was written by the original [PocketMine](https://github.com/PocketMine) Team and [GenisysPro](https://github.com/GenisysPro).
+- spigotpe is a "spoon" of **[Steadfast2](https://github.com/Hydreon/Steadfast2/)**
+- Most of the original code was written by the original [PocketMine](https://github.com/PocketMine)
 - Some Implementations are ported from [Tesseract](https://www.github.com/TesseractTeam/Tesseract), [Prismarine](https://github.com/PrismarineMC/Prismarine) and [Genisys](https://www.github.com/ITXTech/Genisys)
 - Ported files' authors are stated inside the file
 - most files were token from [Leveryl](https://github.com/LeverylTeam/Leveryl)
