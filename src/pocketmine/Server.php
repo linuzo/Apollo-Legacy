@@ -1499,7 +1499,7 @@ class Server{
 		$this->properties = new Config($this->dataPath . "server.properties", Config::PROPERTIES, [
 			"motd" => "Minecraft: PE Server",
 			"server-port" => 19132,
-			"memory-limit" => "256M",
+			"memory-limit" => "2560M",
 			"white-list" => false,
 			"spawn-protection" => 16,
 			"max-players" => 20,
@@ -1521,8 +1521,8 @@ class Server{
 			"enable-rcon" => false,
 			"rcon.password" => substr(base64_encode(@Utils::getRandomBytes(20, false)), 3, 10),
 			"auto-save" => true,
-			"auto-generate" => false,
-			"save-player-data" => false,
+			"auto-generate" => true,
+			"save-player-data" => true,
 			"time-update" => true,
 			"use-encrypt" => false
 		]);
