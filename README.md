@@ -9,7 +9,7 @@ NOTE: **The master branch is the only officially supported branch.**
 _All other branches are in testing and may be unstable. Do not use builds from other branches unless you are sure you understand the risks._
 
 # Where can I get the Latest spigotpe phar?
-You can download the latest phar from our [download center and or website](spigotpe.tk) :smile:
+You can download the latest phar from our [download center and or website](https://spigotpe.tk) :smile:
 
 
 # note 
