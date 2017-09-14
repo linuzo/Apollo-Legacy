@@ -12,8 +12,8 @@ _All other branches are in testing and may be unstable. Do not use builds from o
 You can download the latest phar from our [download center](https://circleci.com/gh/SpigotPE-Team) :smile:
 
 
-# more softwares made by us #WIP
-if you wanth to sue the old php 7.0 then go to  [Rocky](https://github.com/SpigotPE-Team/Rocky) :smile:
+# note 
+we dont support the 3.0.0 api,s so you can ask use to convurt some plugin
 
 more info at the project
 
@@ -23,11 +23,12 @@ more info at the project
 - [ ] **Integrated DevTools**
 - [ ] **Advanced Player Functions**
 - [ ] **GeniAPI v2.0**
-- [ ]  **LoginPacket variables are accessible Via plugins**
+- [ ] **LoginPacket variables are accessible Via plugins**
 - [ ] **CustomEnchants**
-- [X] **Plugin Compatibility for PMMP Plugins**
-- [ ] **Plugin Compatibility for Tesseract & Genisys Plugins**
+- [X] **Plugin Compatibility for PMMP Plugins (not fully)**
+- [X] **Plugin Compatibility for Tesseract & Genisys Plugins (not fully)**
 - [ ] **More Advanced & Open MainLogger**
+- [X] **redstone partly working (not tested)**
 
 ***Other List Entries are on "spigotpe.yml"....***
 
