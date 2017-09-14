@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\math;
 
 class Vector3{
@@ -94,11 +92,10 @@ class Vector3{
 	 * @return Vector3
 	 */
 	public function add($x, $y = 0, $z = 0){
-		if($x instanceof Vector3){
+		if ($x instanceof Vector3) {
 			return new Vector3($this->x + $x->x, $this->y + $x->y, $this->z + $x->z);
-		}else{
-			return new Vector3($this->x + $x, $this->y + $y, $this->z + $z);
 		}
+		return new Vector3($this->x + $x, $this->y + $y, $this->z + $z);
 	}
 
 	/**
@@ -109,11 +106,10 @@ class Vector3{
 	 * @return Vector3
 	 */
 	public function subtract($x = 0, $y = 0, $z = 0){
-		if($x instanceof Vector3){
+		if ($x instanceof Vector3) {
 			return $this->add(-$x->x, -$x->y, -$x->z);
-		}else{
-			return $this->add(-$x, -$y, -$z);
 		}
+		return $this->add(-$x, -$y, -$z);
 	}
 
 	public function multiply($number){
@@ -125,17 +121,18 @@ class Vector3{
 	}
 
 	public function ceil(){
-		return new Vector3((int) ceil($this->x), (int) ceil($this->y), (int) ceil($this->z));
+		return new Vector3((int) ($this->x + 1), (int) ($this->y + 1), (int) ($this->z + 1));
 	}
 
 	public function floor(){
-		return new Vector3((int) floor($this->x), (int) floor($this->y), (int) floor($this->z));
+		$x = (int) $this->x;
+		$y = (int) $this->y;
+		$z = (int) $this->z;
+		return new Vector3($this->x >= $x ? $x : $x - 1, $this->y >= $y ? $y : $y - 1, $this->z >= $z ? $z : $z - 1);
 	}
 
-	public function round(int $precision = 0, int $mode = PHP_ROUND_HALF_UP){
-		return $precision > 0 ?
-			new Vector3(round($this->x, $precision, $mode), round($this->y, $precision, $mode), round($this->z, $precision, $mode)) :
-			new Vector3((int) round($this->x, $precision, $mode), (int) round($this->y, $precision, $mode), (int) round($this->z, $precision, $mode));
+	public function round(){
+		return new Vector3(round($this->x), round($this->y), round($this->z));
 	}
 
 	public function abs(){
@@ -161,29 +158,23 @@ class Vector3{
 		}
 	}
 
-	/**
-	 * Return a Vector3 instance
-	 *
-	 * @return Vector3
-	 */
-	public function asVector3() : Vector3{
-		return new Vector3($this->x, $this->y, $this->z);
-	}
-
-	/**
-	 * Returns the Vector3 side number opposite the specified one
-	 *
-	 * @param int $side 0-5 one of the Vector3::SIDE_* constants
-	 * @return int
-	 *
-	 * @throws \InvalidArgumentException if an invalid side is supplied
-	 */
-	public static function getOppositeSide(int $side) : int{
-		if($side >= 0 and $side <= 5){
-			return $side ^ 0x01;
+	public static function getOppositeSide($side){
+		switch((int) $side){
+			case Vector3::SIDE_DOWN:
+				return Vector3::SIDE_UP;
+			case Vector3::SIDE_UP:
+				return Vector3::SIDE_DOWN;
+			case Vector3::SIDE_NORTH:
+				return Vector3::SIDE_SOUTH;
+			case Vector3::SIDE_SOUTH:
+				return Vector3::SIDE_NORTH;
+			case Vector3::SIDE_WEST:
+				return Vector3::SIDE_EAST;
+			case Vector3::SIDE_EAST:
+				return Vector3::SIDE_WEST;
+			default:
+				return -1;
 		}
-
-		throw new \InvalidArgumentException("Invalid side $side given to getOppositeSide");
 	}
 
 	public function distance(Vector3 $pos){
@@ -191,15 +182,15 @@ class Vector3{
 	}
 
 	public function distanceSquared(Vector3 $pos){
-		return (($this->x - $pos->x) ** 2) + (($this->y - $pos->y) ** 2) + (($this->z - $pos->z) ** 2);
+		return ($this->x - $pos->x) ** 2 + ($this->y - $pos->y) ** 2 + ($this->z - $pos->z) ** 2;
 	}
 
 	public function maxPlainDistance($x = 0, $z = 0){
-		if($x instanceof Vector3){
-			return $this->maxPlainDistance($x->x, $x->z);
-		}elseif($x instanceof Vector2){
-			return $this->maxPlainDistance($x->x, $x->y);
-		}else{
+		if ($x instanceof Vector3) {
+			return max(abs($this->x - $x->x), abs($this->z - $z->z));
+		} else if ($x instanceof Vector2) {
+			return max(abs($this->x - $x->x), abs($this->z - $x->y));
+		} else {
 			return max(abs($this->x - $x), abs($this->z - $z));
 		}
 	}
@@ -209,19 +200,20 @@ class Vector3{
 	}
 
 	public function lengthSquared(){
-		return $this->x * $this->x + $this->y * $this->y + $this->z * $this->z;
+		return $this->x ** 2 + $this->y ** 2 + $this->z ** 2;
 	}
 
 	/**
 	 * @return Vector3
 	 */
 	public function normalize(){
-		$len = $this->lengthSquared();
-		if($len > 0){
-			return $this->divide(sqrt($len));
+		$len = $this->x ** 2 + $this->y ** 2 + $this->z ** 2;
+		if ($len == 0) {
+			return new Vector3(0, 0, 0);
+		} else if ($len == 1) {
+			return new Vector3($this->x, $this->y, $this->z);
 		}
-
-		return new Vector3(0, 0, 0);
+		return $this->divide(sqrt($len));
 	}
 
 	public function dot(Vector3 $v){
@@ -236,7 +228,7 @@ class Vector3{
 		);
 	}
 
-	public function equals(Vector3 $v) : bool{
+	public function equals(Vector3 $v){
 		return $this->x == $v->x and $this->y == $v->y and $this->z == $v->z;
 	}
 
@@ -247,24 +239,17 @@ class Vector3{
 	 * @param Vector3 $v
 	 * @param float   $x
 	 *
-	 * @return Vector3|null
+	 * @return Vector3
 	 */
 	public function getIntermediateWithXValue(Vector3 $v, $x){
 		$xDiff = $v->x - $this->x;
+		if (($xDiff < 1 && $xDiff > -1) || $x > $v->x || ($this->x > $x && $xDiff > 0)) {
+			return null;
+		}
+		$f = ($x - $this->x) / $xDiff;
 		$yDiff = $v->y - $this->y;
 		$zDiff = $v->z - $this->z;
-
-		if(($xDiff * $xDiff) < 0.0000001){
-			return null;
-		}
-
-		$f = ($x - $this->x) / $xDiff;
-
-		if($f < 0 or $f > 1){
-			return null;
-		}else{
-			return new Vector3($x, $this->y + $yDiff * $f, $this->z + $zDiff * $f);
-		}
+		return new Vector3($x, $this->y + $yDiff * $f, $this->z + $zDiff * $f);
 	}
 
 	/**
@@ -274,24 +259,17 @@ class Vector3{
 	 * @param Vector3 $v
 	 * @param float   $y
 	 *
-	 * @return Vector3|null
+	 * @return Vector3
 	 */
 	public function getIntermediateWithYValue(Vector3 $v, $y){
-		$xDiff = $v->x - $this->x;
 		$yDiff = $v->y - $this->y;
-		$zDiff = $v->z - $this->z;
-
-		if(($yDiff * $yDiff) < 0.0000001){
+		if (($yDiff < 1 && $yDiff > -1) || $y > $v->y || ($this->y > $y && $yDiff > 0)) {
 			return null;
 		}
-
 		$f = ($y - $this->y) / $yDiff;
-
-		if($f < 0 or $f > 1){
-			return null;
-		}else{
-			return new Vector3($this->x + $xDiff * $f, $y, $this->z + $zDiff * $f);
-		}
+		$xDiff = $v->x - $this->x;
+		$zDiff = $v->z - $this->z;
+		return new Vector3($this->x + $xDiff * $f, $y, $this->z + $zDiff * $f);
 	}
 
 	/**
@@ -301,24 +279,17 @@ class Vector3{
 	 * @param Vector3 $v
 	 * @param float   $z
 	 *
-	 * @return Vector3|null
+	 * @return Vector3
 	 */
 	public function getIntermediateWithZValue(Vector3 $v, $z){
+		$zDiff = $v->z - $this->z;
+		if (($zDiff < 1 && $zDiff > -1) || $z > $v->z || ($this->z > $z && $zDiff > 0)) {
+			return null;
+		}
+		$f = ($z - $this->z) / $zDiff;
 		$xDiff = $v->x - $this->x;
 		$yDiff = $v->y - $this->y;
-		$zDiff = $v->z - $this->z;
-
-		if(($zDiff * $zDiff) < 0.0000001){
-			return null;
-		}
-
-		$f = ($z - $this->z) / $zDiff;
-
-		if($f < 0 or $f > 1){
-			return null;
-		}else{
-			return new Vector3($this->x + $xDiff * $f, $this->y + $yDiff * $f, $z);
-		}
+		return new Vector3($this->x + $xDiff * $f, $this->y + $yDiff * $f, $z);
 	}
 
 	/**

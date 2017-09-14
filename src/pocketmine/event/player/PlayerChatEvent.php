@@ -14,12 +14,10 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 namespace pocketmine\event\player;
 
@@ -44,18 +42,10 @@ class PlayerChatEvent extends PlayerEvent implements Cancellable{
 	 */
 	protected $recipients = [];
 
-	/**
-	 * @param Player   $player
-	 * @param string   $message
-	 * @param string   $format
-	 * @param Player[] $recipients
-	 */
-	public function __construct(Player $player, string $message, string $format = "chat.type.text", array $recipients = null){
+	public function __construct(Player $player, $message, $format = "<%s> %s", array $recipients = null){
 		$this->player = $player;
 		$this->message = $message;
-
 		$this->format = $format;
-
 		if($recipients === null){
 			$this->recipients = Server::getInstance()->getPluginManager()->getPermissionSubscriptions(Server::BROADCAST_CHANNEL_USERS);
 		}else{
@@ -63,17 +53,11 @@ class PlayerChatEvent extends PlayerEvent implements Cancellable{
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getMessage() : string{
+	public function getMessage(){
 		return $this->message;
 	}
 
-	/**
-	 * @param string $message
-	 */
-	public function setMessage(string $message){
+	public function setMessage($message){
 		$this->message = $message;
 	}
 
@@ -83,33 +67,23 @@ class PlayerChatEvent extends PlayerEvent implements Cancellable{
 	 * @param Player $player
 	 */
 	public function setPlayer(Player $player){
-		$this->player = $player;
+		if($player instanceof Player){
+			$this->player = $player;
+		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getFormat() : string{
+	public function getFormat(){
 		return $this->format;
 	}
 
-	/**
-	 * @param string $format
-	 */
-	public function setFormat(string $format){
+	public function setFormat($format){
 		$this->format = $format;
 	}
 
-	/**
-	 * @return Player[]
-	 */
-	public function getRecipients() : array{
+	public function getRecipients(){
 		return $this->recipients;
 	}
 
-	/**
-	 * @param Player[] $recipients
-	 */
 	public function setRecipients(array $recipients){
 		$this->recipients = $recipients;
 	}

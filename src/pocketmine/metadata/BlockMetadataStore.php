@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\metadata;
 
 use pocketmine\Block\Block;
@@ -35,7 +33,7 @@ class BlockMetadataStore extends MetadataStore{
 		$this->owningLevel = $owningLevel;
 	}
 
-	public function disambiguate(Metadatable $block, string $metadataKey) : string{
+	public function disambiguate(Metadatable $block, $metadataKey){
 		if(!($block instanceof Block)){
 			throw new \InvalidArgumentException("Argument must be a Block instance");
 		}
@@ -43,45 +41,45 @@ class BlockMetadataStore extends MetadataStore{
 		return $block->x . ":" . $block->y . ":" . $block->z . ":" . $metadataKey;
 	}
 
-	public function getMetadata(Metadatable $subject, string $metadataKey){
-		if(!($subject instanceof Block)){
+	public function getMetadata($block, $metadataKey){
+		if(!($block instanceof Block)){
 			throw new \InvalidArgumentException("Object must be a Block");
 		}
-		if($subject->getLevel() === $this->owningLevel){
-			return parent::getMetadata($subject, $metadataKey);
+		if($block->getLevel() === $this->owningLevel){
+			return parent::getMetadata($block, $metadataKey);
 		}else{
 			throw new \InvalidStateException("Block does not belong to world " . $this->owningLevel->getName());
 		}
 	}
 
-	public function hasMetadata(Metadatable $subject, string $metadataKey) : bool{
-		if(!($subject instanceof Block)){
+	public function hasMetadata($block, $metadataKey){
+		if(!($block instanceof Block)){
 			throw new \InvalidArgumentException("Object must be a Block");
 		}
-		if($subject->getLevel() === $this->owningLevel){
-			return parent::hasMetadata($subject, $metadataKey);
+		if($block->getLevel() === $this->owningLevel){
+			return parent::hasMetadata($block, $metadataKey);
 		}else{
 			throw new \InvalidStateException("Block does not belong to world " . $this->owningLevel->getName());
 		}
 	}
 
-	public function removeMetadata(Metadatable $subject, string $metadataKey, Plugin $owningPlugin){
-		if(!($subject instanceof Block)){
+	public function removeMetadata($block, $metadataKey, Plugin $owningPlugin){
+		if(!($block instanceof Block)){
 			throw new \InvalidArgumentException("Object must be a Block");
 		}
-		if($subject->getLevel() === $this->owningLevel){
-			parent::removeMetadata($subject, $metadataKey, $owningPlugin);
+		if($block->getLevel() === $this->owningLevel){
+			parent::hasMetadata($block, $metadataKey, $owningPlugin);
 		}else{
 			throw new \InvalidStateException("Block does not belong to world " . $this->owningLevel->getName());
 		}
 	}
 
-	public function setMetadata(Metadatable $subject, string $metadataKey, MetadataValue $newMetadataValue){
-		if(!($subject instanceof Block)){
+	public function setMetadata($block, $metadataKey, MetadataValue $newMetadatavalue){
+		if(!($block instanceof Block)){
 			throw new \InvalidArgumentException("Object must be a Block");
 		}
-		if($subject->getLevel() === $this->owningLevel){
-			parent::setMetadata($subject, $metadataKey, $newMetadataValue);
+		if($block->getLevel() === $this->owningLevel){
+			parent::setMetadata($block, $metadataKey, $newMetadatavalue);
 		}else{
 			throw new \InvalidStateException("Block does not belong to world " . $this->owningLevel->getName());
 		}

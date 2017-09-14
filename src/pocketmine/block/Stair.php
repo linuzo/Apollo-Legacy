@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,18 +15,14 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- *
+ * 
  *
 */
-
-declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Vector3;
 use pocketmine\Player;
 
 abstract class Stair extends Transparent{
@@ -130,31 +126,33 @@ abstract class Stair extends Transparent{
 		}
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
 		$faces = [
 			0 => 0,
 			1 => 2,
 			2 => 1,
-			3 => 3
+			3 => 3,
 		];
 		$this->meta = $faces[$player->getDirection()] & 0x03;
-		if(($facePos->y > 0.5 and $face !== Vector3::SIDE_UP) or $face === Vector3::SIDE_DOWN){
+		if(($fy > 0.5 and $face !== 1) or $face === 0){
 			$this->meta |= 0x04; //Upside-down stairs
 		}
-		$this->getLevel()->setBlock($blockReplace, $this, true, true);
+		$this->getLevel()->setBlock($block, $this, true, true);
 
 		return true;
 	}
 
-	public function getVariantBitmask() : int{
-		return 0;
-	}
-
-	public function getDrops(Item $item) : array{
-		if($item->isPickaxe() >= Tool::TIER_WOODEN){
-			return parent::getDrops($item);
+	public function getDrops(Item $item){
+		if($item->isPickaxe() >= 1){
+			return [
+				[$this->getId(), 0, 1],
+			];
+		}else{
+			return [];
 		}
-
-		return [];
+	}
+	
+	public function isUpsideDown() {
+		return $this->meta & 0x04;
 	}
 }

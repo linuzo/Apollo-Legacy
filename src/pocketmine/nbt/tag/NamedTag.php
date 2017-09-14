@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,35 +15,33 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- *
+ * 
  *
 */
-
-declare(strict_types=1);
 
 namespace pocketmine\nbt\tag;
 
 
 abstract class NamedTag extends Tag{
 
-	protected $__name;
+	protected $name;
 
 	/**
-	 * @param string $name
-	 * @param mixed  $value
+	 * @param string                                                      $name
+	 * @param bool|float|double|int|byte|short|array|Compound|Enum|string $value
 	 */
-	public function __construct(string $name = "", $value = null){
-		$this->__name = ($name === null or $name === false) ? "" : $name;
-		if($value !== null){
-			$this->setValue($value);
+	public function __construct($name = "", $value = null){
+		$this->name = $name;
+		if($value !== false){
+			$this->value = $value;
 		}
 	}
 
 	public function getName(){
-		return $this->__name;
+		return $this->name === false ? "" : $this->name;
 	}
 
 	public function setName($name){
-		$this->__name = $name;
+		$this->name = $name;
 	}
 }

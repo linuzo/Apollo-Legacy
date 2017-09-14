@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
@@ -31,7 +29,6 @@ class ShapelessRecipe implements Recipe{
 	/** @var Item */
 	private $output;
 
-	/** @var UUID|null */
 	private $id = null;
 
 	/** @var Item[] */
@@ -41,16 +38,10 @@ class ShapelessRecipe implements Recipe{
 		$this->output = clone $result;
 	}
 
-	/**
-	 * @return UUID|null
-	 */
 	public function getId(){
 		return $this->id;
 	}
 
-	/**
-	 * @param UUID $id
-	 */
 	public function setId(UUID $id){
 		if($this->id !== null){
 			throw new \InvalidStateException("Id is already set");
@@ -59,18 +50,18 @@ class ShapelessRecipe implements Recipe{
 		$this->id = $id;
 	}
 
-	public function getResult() : Item{
+	public function getResult(){
 		return clone $this->output;
 	}
 
 	/**
 	 * @param Item $item
 	 *
-	 * @return ShapelessRecipe
+	 * @returns ShapelessRecipe
 	 *
 	 * @throws \InvalidArgumentException
 	 */
-	public function addIngredient(Item $item) : ShapelessRecipe{
+	public function addIngredient(Item $item){
 		if(count($this->ingredients) >= 9){
 			throw new \InvalidArgumentException("Shapeless recipes cannot have more than 9 ingredients");
 		}
@@ -96,7 +87,7 @@ class ShapelessRecipe implements Recipe{
 			if($item->getCount() <= 0){
 				break;
 			}
-			if($ingredient->equals($item, !$item->hasAnyDamageValue(), $item->hasCompoundTag())){
+			if($ingredient->equals($item, $item->getDamage() === null ? false : true, $item->getCompound() === null ? false : true)){
 				unset($this->ingredients[$index]);
 				$item->setCount($item->getCount() - 1);
 			}
@@ -108,7 +99,7 @@ class ShapelessRecipe implements Recipe{
 	/**
 	 * @return Item[]
 	 */
-	public function getIngredientList() : array{
+	public function getIngredientList(){
 		$ingredients = [];
 		foreach($this->ingredients as $ingredient){
 			$ingredients[] = clone $ingredient;
@@ -120,7 +111,7 @@ class ShapelessRecipe implements Recipe{
 	/**
 	 * @return int
 	 */
-	public function getIngredientCount() : int{
+	public function getIngredientCount(){
 		$count = 0;
 		foreach($this->ingredients as $ingredient){
 			$count += $ingredient->getCount();

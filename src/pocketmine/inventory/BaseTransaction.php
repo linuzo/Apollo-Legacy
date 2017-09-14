@@ -17,23 +17,26 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
 
-class BaseTransaction implements Transaction{
+class BaseTransaction implements Transaction {
+
 	/** @var Inventory */
 	protected $inventory;
+
 	/** @var int */
 	protected $slot;
+
 	/** @var Item */
 	protected $sourceItem;
+
 	/** @var Item */
 	protected $targetItem;
+
 	/** @var float */
 	protected $creationTime;
 
@@ -43,31 +46,49 @@ class BaseTransaction implements Transaction{
 	 * @param Item      $sourceItem
 	 * @param Item      $targetItem
 	 */
-	public function __construct(Inventory $inventory, int $slot, Item $sourceItem, Item $targetItem){
+	public function __construct(Inventory $inventory, $slot, Item $sourceItem, Item $targetItem) {
 		$this->inventory = $inventory;
-		$this->slot = $slot;
+		$this->slot = (int) $slot;
 		$this->sourceItem = clone $sourceItem;
 		$this->targetItem = clone $targetItem;
 		$this->creationTime = microtime(true);
 	}
 
-	public function getCreationTime() : float{
+	public function getCreationTime() {
 		return $this->creationTime;
 	}
 
-	public function getInventory() : Inventory{
+	public function getInventory() {
 		return $this->inventory;
 	}
 
-	public function getSlot() : int{
+	public function getSlot() {
 		return $this->slot;
 	}
 
-	public function getSourceItem() : Item{
+	public function getSourceItem() {
 		return clone $this->sourceItem;
 	}
 
-	public function getTargetItem() : Item{
+	public function getTargetItem() {
 		return clone $this->targetItem;
 	}
+
+	/**
+	 * 
+	 * @param Player $target
+	 */
+	public function revert($target) {
+		$this->inventory->sendContents($target);
+	}
+	
+	public function clearCustomNames($target = 'both') {
+		if ($target === 'source' || $target === 'both') {
+			$this->sourceItem->clearCustomName();
+		}
+		if ($target === 'target' || $target === 'both') {
+			$this->targetItem->clearCustomName();
+		}
+	}
+
 }

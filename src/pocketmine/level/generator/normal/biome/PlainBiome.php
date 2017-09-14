@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\level\generator\normal\biome;
 
 use pocketmine\level\generator\populator\TallGrass;
@@ -35,13 +33,13 @@ class PlainBiome extends GrassyBiome{
 
 		$this->addPopulator($tallGrass);
 
-		$this->setElevation(63, 74);
+		$this->setElevation(63, 68);
 
 		$this->temperature = 0.8;
 		$this->rainfall = 0.4;
 	}
 
-	public function getName() : string{
+	public function getName(){
 		return "Plains";
 	}
 }

@@ -19,21 +19,19 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\permission;
 
 use pocketmine\event\Timings;
 use pocketmine\plugin\Plugin;
-use pocketmine\plugin\PluginException;
 use pocketmine\Server;
+use pocketmine\utils\PluginException;
 
 class PermissibleBase implements Permissible{
 	/** @var ServerOperator */
 	private $opable = null;
 
 	/** @var Permissible */
-	private $parent = null;
+	private $parent;
 
 	/**
 	 * @var PermissionAttachment[]
@@ -52,18 +50,15 @@ class PermissibleBase implements Permissible{
 		$this->opable = $opable;
 		if($opable instanceof Permissible){
 			$this->parent = $opable;
+		}else{
+			$this->parent = $this;
 		}
-	}
-
-	public function __destruct(){
-		$this->parent = null;
-		$this->opable = null;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isOp() : bool{
+	public function isOp(){
 		if($this->opable === null){
 			return false;
 		}else{
@@ -76,7 +71,7 @@ class PermissibleBase implements Permissible{
 	 *
 	 * @throws \Exception
 	 */
-	public function setOp(bool $value){
+	public function setOp($value){
 		if($this->opable === null){
 			throw new \LogicException("Cannot change op value as no ServerOperator is set");
 		}else{
@@ -89,7 +84,7 @@ class PermissibleBase implements Permissible{
 	 *
 	 * @return bool
 	 */
-	public function isPermissionSet($name) : bool{
+	public function isPermissionSet($name){
 		return isset($this->permissions[$name instanceof Permission ? $name->getName() : $name]);
 	}
 
@@ -98,7 +93,7 @@ class PermissibleBase implements Permissible{
 	 *
 	 * @return bool
 	 */
-	public function hasPermission($name) : bool{
+	public function hasPermission($name){
 		if($name instanceof Permission){
 			$name = $name->getName();
 		}
@@ -122,16 +117,20 @@ class PermissibleBase implements Permissible{
 	 *
 	 * @param Plugin $plugin
 	 * @param string $name
-	 * @param bool $value
+	 * @param bool   $value
 	 *
 	 * @return PermissionAttachment
+	 *
+	 * @throws PluginException
 	 */
-	public function addAttachment(Plugin $plugin, string $name = null, bool $value = null) : PermissionAttachment{
-		if(!$plugin->isEnabled()){
+	public function addAttachment(Plugin $plugin, $name = null, $value = null){
+		if($plugin === null){
+			throw new PluginException("Plugin cannot be null");
+		}elseif(!$plugin->isEnabled()){
 			throw new PluginException("Plugin " . $plugin->getDescription()->getName() . " is disabled");
 		}
 
-		$result = new PermissionAttachment($plugin, $this->parent ?? $this);
+		$result = new PermissionAttachment($plugin, $this->parent);
 		$this->attachments[spl_object_hash($result)] = $result;
 		if($name !== null and $value !== null){
 			$result->setPermission($name, $value);
@@ -144,8 +143,14 @@ class PermissibleBase implements Permissible{
 
 	/**
 	 * @param PermissionAttachment $attachment
+	 *
+	 * @throws \Exception
 	 */
 	public function removeAttachment(PermissionAttachment $attachment){
+		if($attachment === null){
+			throw new \InvalidStateException("Attachment cannot be null");
+		}
+
 		if(isset($this->attachments[spl_object_hash($attachment)])){
 			unset($this->attachments[spl_object_hash($attachment)]);
 			if(($ex = $attachment->getRemovalCallback()) !== null){
@@ -159,16 +164,16 @@ class PermissibleBase implements Permissible{
 	}
 
 	public function recalculatePermissions(){
-		Timings::$permissibleCalculationTimer->startTiming();
+		//Timings::$permissibleCalculationTimer->startTiming();
 
 		$this->clearPermissions();
 		$defaults = Server::getInstance()->getPluginManager()->getDefaultPermissions($this->isOp());
-		Server::getInstance()->getPluginManager()->subscribeToDefaultPerms($this->isOp(), $this->parent ?? $this);
+		Server::getInstance()->getPluginManager()->subscribeToDefaultPerms($this->isOp(), $this->parent);
 
 		foreach($defaults as $perm){
 			$name = $perm->getName();
-			$this->permissions[$name] = new PermissionAttachmentInfo($this->parent ?? $this, $name, null, true);
-			Server::getInstance()->getPluginManager()->subscribeToPermission($name, $this->parent ?? $this);
+			$this->permissions[$name] = new PermissionAttachmentInfo($this->parent, $name, null, true);
+			Server::getInstance()->getPluginManager()->subscribeToPermission($name, $this->parent);
 			$this->calculateChildPermissions($perm->getChildren(), false, null);
 		}
 
@@ -176,17 +181,16 @@ class PermissibleBase implements Permissible{
 			$this->calculateChildPermissions($attachment->getPermissions(), false, $attachment);
 		}
 
-		Timings::$permissibleCalculationTimer->stopTiming();
+		//Timings::$permissibleCalculationTimer->stopTiming();
 	}
 
 	public function clearPermissions(){
-		$pluginManager = Server::getInstance()->getPluginManager();
 		foreach(array_keys($this->permissions) as $name){
-			$pluginManager->unsubscribeFromPermission($name, $this->parent ?? $this);
+			Server::getInstance()->getPluginManager()->unsubscribeFromPermission($name, $this->parent);
 		}
 
-		$pluginManager->unsubscribeFromDefaultPerms(false, $this->parent ?? $this);
-		$pluginManager->unsubscribeFromDefaultPerms(true, $this->parent ?? $this);
+		Server::getInstance()->getPluginManager()->unsubscribeFromDefaultPerms(false, $this->parent);
+		Server::getInstance()->getPluginManager()->unsubscribeFromDefaultPerms(true, $this->parent);
 
 		$this->permissions = [];
 	}
@@ -200,8 +204,8 @@ class PermissibleBase implements Permissible{
 		foreach($children as $name => $v){
 			$perm = Server::getInstance()->getPluginManager()->getPermission($name);
 			$value = ($v xor $invert);
-			$this->permissions[$name] = new PermissionAttachmentInfo($this->parent ?? $this, $name, $attachment, $value);
-			Server::getInstance()->getPluginManager()->subscribeToPermission($name, $this->parent ?? $this);
+			$this->permissions[$name] = new PermissionAttachmentInfo($this->parent, $name, $attachment, $value);
+			Server::getInstance()->getPluginManager()->subscribeToPermission($name, $this->parent);
 
 			if($perm instanceof Permission){
 				$this->calculateChildPermissions($perm->getChildren(), !$value, $attachment);
@@ -212,7 +216,7 @@ class PermissibleBase implements Permissible{
 	/**
 	 * @return PermissionAttachmentInfo[]
 	 */
-	public function getEffectivePermissions() : array{
+	public function getEffectivePermissions(){
 		return $this->permissions;
 	}
 }

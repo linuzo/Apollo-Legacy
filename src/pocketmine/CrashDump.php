@@ -19,14 +19,11 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine;
 
-use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\protocol\Info;
 use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginLoadOrder;
-use pocketmine\plugin\PluginManager;
 use pocketmine\utils\Utils;
 use pocketmine\utils\VersionString;
 use raklib\RakLib;
@@ -38,18 +35,17 @@ class CrashDump{
 	private $fp;
 	private $time;
 	private $data = [];
-	/** @var string */
-	private $encodedData = "";
-	/** @var string */
+	private $encodedData = null;
 	private $path;
 
 	public function __construct(Server $server){
 		$this->time = time();
 		$this->server = $server;
-		if(!is_dir($this->server->getDataPath() . "crashdumps")){
-			mkdir($this->server->getDataPath() . "crashdumps");
-		}
-		$this->path = $this->server->getDataPath() . "crashdumps/" . date("D_M_j-H.i.s-T_Y", $this->time) . ".log";
+
+		if(!is_dir($this->server->getDataPath() . "logs"))
+			mkdir($this->server->getDataPath() . "logs");
+
+		$this->path = $this->server->getDataPath() . "logs/" . date("D_M_j-H.i.s-T_Y", $this->time) . ".log";
 		$this->fp = @fopen($this->path, "wb");
 		if(!is_resource($this->fp)){
 			throw new \RuntimeException("Could not create Crash Dump");
@@ -66,7 +62,7 @@ class CrashDump{
 		$this->encodeData();
 	}
 
-	public function getPath() : string{
+	public function getPath(){
 		return $this->path;
 	}
 
@@ -74,7 +70,7 @@ class CrashDump{
 		return $this->encodedData;
 	}
 
-	public function getData() : array{
+	public function getData(){
 		return $this->data;
 	}
 
@@ -91,7 +87,7 @@ class CrashDump{
 	}
 
 	private function pluginsData(){
-		if($this->server->getPluginManager() instanceof PluginManager){
+		if(class_exists("pocketmine\\plugin\\PluginManager", false)){
 			$this->addLine();
 			$this->addLine("Loaded plugins:");
 			$this->data["plugins"] = [];
@@ -148,7 +144,7 @@ class CrashDump{
 			$error = $lastExceptionError;
 		}else{
 			$error = (array) error_get_last();
-			$error["trace"] = getTrace(4); //Skipping CrashDump->baseCrash, CrashDump->construct, Server->crashDump
+			$error["trace"] = @getTrace(3);
 			$errorConversion = [
 				E_ERROR => "E_ERROR",
 				E_WARNING => "E_WARNING",
@@ -164,11 +160,11 @@ class CrashDump{
 				E_STRICT => "E_STRICT",
 				E_RECOVERABLE_ERROR => "E_RECOVERABLE_ERROR",
 				E_DEPRECATED => "E_DEPRECATED",
-				E_USER_DEPRECATED => "E_USER_DEPRECATED"
+				E_USER_DEPRECATED => "E_USER_DEPRECATED",
 			];
 			$error["fullFile"] = $error["file"];
 			$error["file"] = cleanPath($error["file"]);
-			$error["type"] = $errorConversion[$error["type"]] ?? $error["type"];
+			$error["type"] = isset($errorConversion[$error["type"]]) ? $errorConversion[$error["type"]] : $error["type"];
 			if(($pos = strpos($error["message"], "\n")) !== false){
 				$error["message"] = substr($error["message"], 0, $pos);
 			}
@@ -229,10 +225,9 @@ class CrashDump{
 	private function generalData(){
 		$version = new VersionString();
 		$this->data["general"] = [];
-		$this->data["general"]["name"] = $this->server->getName();
 		$this->data["general"]["version"] = $version->get(false);
 		$this->data["general"]["build"] = $version->getBuild();
-		$this->data["general"]["protocol"] = ProtocolInfo::CURRENT_PROTOCOL;
+		$this->data["general"]["protocol"] = Info::CURRENT_PROTOCOL;
 		$this->data["general"]["api"] = \pocketmine\API_VERSION;
 		$this->data["general"]["git"] = \pocketmine\GIT_COMMIT;
 		$this->data["general"]["raklib"] = RakLib::VERSION;
@@ -241,7 +236,7 @@ class CrashDump{
 		$this->data["general"]["zend"] = zend_version();
 		$this->data["general"]["php_os"] = PHP_OS;
 		$this->data["general"]["os"] = Utils::getOS();
-		$this->addLine($this->server->getName() . " version: " . $version->get(false) . " #" . $version->getBuild() . " [Protocol " . ProtocolInfo::CURRENT_PROTOCOL . "; API " . API_VERSION . "]");
+		$this->addLine("PocketMine-MP version: " . $version->get(false) . " #" . $version->getBuild() . " [Protocol " . Info::CURRENT_PROTOCOL . "; API " . API_VERSION . "]");
 		$this->addLine("Git commit: " . GIT_COMMIT);
 		$this->addLine("uname -a: " . php_uname("a"));
 		$this->addLine("PHP Version: " . phpversion());

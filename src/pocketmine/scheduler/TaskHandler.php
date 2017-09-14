@@ -19,13 +19,9 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\scheduler;
 
 use pocketmine\event\Timings;
-use pocketmine\event\TimingsHandler;
-use pocketmine\utils\MainLogger;
 
 class TaskHandler{
 
@@ -47,7 +43,7 @@ class TaskHandler{
 	/** @var bool */
 	protected $cancelled = false;
 
-	/** @var TimingsHandler */
+	/** @var \pocketmine\event\TimingsHandler */
 	public $timings;
 
 	public $timingName = null;
@@ -59,76 +55,75 @@ class TaskHandler{
 	 * @param int    $delay
 	 * @param int    $period
 	 */
-	public function __construct(string $timingName, Task $task, int $taskId, int $delay = -1, int $period = -1){
+	public function __construct($timingName, Task $task, $taskId, $delay = -1, $period = -1){
 		$this->task = $task;
 		$this->taskId = $taskId;
 		$this->delay = $delay;
 		$this->period = $period;
-		$this->timingName = $timingName ?? "Unknown";
+		$this->timingName = $timingName === null ? "Unknown" : $timingName;
 		$this->timings = Timings::getPluginTaskTimings($this, $period);
-		$this->task->setHandler($this);
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isCancelled() : bool{
+	public function isCancelled(){
 		return $this->cancelled === true;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getNextRun() : int{
+	public function getNextRun(){
 		return $this->nextRun;
 	}
 
 	/**
 	 * @param int $ticks
 	 */
-	public function setNextRun(int $ticks){
+	public function setNextRun($ticks){
 		$this->nextRun = $ticks;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getTaskId() : int{
+	public function getTaskId(){
 		return $this->taskId;
 	}
 
 	/**
 	 * @return Task
 	 */
-	public function getTask() : Task{
+	public function getTask(){
 		return $this->task;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getDelay() : int{
+	public function getDelay(){
 		return $this->delay;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isDelayed() : bool{
+	public function isDelayed(){
 		return $this->delay > 0;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isRepeating() : bool{
+	public function isRepeating(){
 		return $this->period > 0;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getPeriod() : int{
+	public function getPeriod(){
 		return $this->period;
 	}
 
@@ -137,15 +132,10 @@ class TaskHandler{
 	 * Changes to this function won't be recorded on the version.
 	 */
 	public function cancel(){
-		try{
-			if(!$this->isCancelled()){
-				$this->task->onCancel();
-			}
-		}catch(\Throwable $e){
-			MainLogger::getLogger()->logException($e);
-		}finally{
-			$this->remove();
+		if(!$this->isCancelled()){
+			$this->task->onCancel();
 		}
+		$this->remove();
 	}
 
 	public function remove(){
@@ -156,14 +146,14 @@ class TaskHandler{
 	/**
 	 * @param int $currentTick
 	 */
-	public function run(int $currentTick){
+	public function run($currentTick){
 		$this->task->onRun($currentTick);
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getTaskName() : string{
+	public function getTaskName(){
 		if($this->timingName !== null){
 			return $this->timingName;
 		}

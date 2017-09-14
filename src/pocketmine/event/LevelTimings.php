@@ -19,20 +19,11 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\event;
 
 use pocketmine\level\Level;
 
 class LevelTimings{
-
-	/** @var TimingsHandler */
-	public $setBlock;
-	/** @var TimingsHandler */
-	public $doBlockLightUpdates;
-	/** @var TimingsHandler */
-	public $doBlockSkyLightUpdates;
 
 	/** @var TimingsHandler */
 	public $mobSpawn;
@@ -87,10 +78,6 @@ class LevelTimings{
 
 	public function __construct(Level $level){
 		$name = $level->getFolderName() . " - ";
-
-		$this->setBlock = new TimingsHandler("** " . $name . "setBlock");
-		$this->doBlockLightUpdates = new TimingsHandler("** " . $name . "doBlockLightUpdates");
-		$this->doBlockSkyLightUpdates = new TimingsHandler("** " . $name . "doBlockSkyLightUpdates");
 
 		$this->mobSpawn = new TimingsHandler("** " . $name . "mobSpawn");
 		$this->doChunkUnload = new TimingsHandler("** " . $name . "doChunkUnload");
