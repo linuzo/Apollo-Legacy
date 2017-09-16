@@ -74,7 +74,7 @@ namespace pocketmine {
 
 	const VERSION = '1.0';
 	const API_VERSION = "1.12.0";
-	const CODENAME = ""; // idk what i shult name it
+	const CODENAME = "Parry Wanna Cracker?";
 	const MINECRAFT_VERSION = "v1.x";
 	const MINECRAFT_VERSION_NETWORK = "1.2";
 
