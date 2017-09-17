@@ -1,4 +1,4 @@
-# Main configuration file for PocketMine-Soft
+# Main configuration file for SpigotPE-Soft
 # These settings are the ones that cannot be included in server.properties
 # Some of these settings are safe, others can break your server if modified incorrectly
 
