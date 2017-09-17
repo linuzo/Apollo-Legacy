@@ -12,7 +12,7 @@ if exist bin\php\php.exe (
 if exist src\pocketmine\updater\Updater.php (
 	set UPDATER=src\pocketmine\updater\Updater.php
 ) else (
-	echo "Couldn't find a valid SpigotPE Updater"
+	echo "sorry but we couldn't find the SpigotPE Updater file"
 	pause
 	exit 1
 )
