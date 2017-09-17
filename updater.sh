@@ -25,7 +25,7 @@ if [ "$PHP_BINARY" == "" ]; then
 	elif type php 2>/dev/null; then
 		PHP_BINARY=$(type -p php)
 	else
-		echo "Couldn't find PHP7 binary"
+		echo "Couldn't find the PHP7 binary"
 		exit 1
 	fi
 fi
@@ -34,7 +34,7 @@ if [ "$UPDATER" == "" ]; then
 	if [ -f ./src/pocketmine/updater/Updater.php ]; then
 		UPDATER="./src/pocketmine/updater/Updater.php"
 	else
-		echo "Couldn't find a valid SpigotPE Updater"
+		echo "sorry we couldn't find the SpigotPE Updater file"
 		exit 1
 	fi
 fi
