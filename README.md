@@ -33,7 +33,7 @@ more info at the project
 ***Other List Entries are on "spigotpe.yml"....***
 
 # Builds, Gitter Chat & Discord Server:
-#### Discord Server (Talk to a Human For Support): [Join Server](https://discord.gg/GYCnkM2)
+#### Discord Server (Talk to a Human For Support): [![Discord](https://img.shields.io/badge/chat-on%20discord-brightgreen.svg)](https://discord.gg/GYCnkM2) 
 [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
 
 # Windows & Linux Installation:
