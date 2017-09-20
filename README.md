@@ -35,6 +35,12 @@ more info at the project
 # Builds, Gitter Chat & Discord Server:
 #### Discord Server (Talk to a Human For Support): [![Discord](https://img.shields.io/badge/chat-on%20discord-brightgreen.svg)](https://discord.gg/GYCnkM2) 
 [![CircleCI](https://circleci.com/gh/SpigotPE-Team/SpigotPE.svg?style=svg)](https://circleci.com/gh/SpigotPE-Team/SpigotPE)
+## Follow us on twitter! 
+[![Twitter](https://img.shields.io/twitter/url/https/mobile.twitter.com/Spigot_PE.svg?style=social)](https://twitter.com/Spigot_PE)
+
+## Share us on twitter!
+[![Twitter](https://img.shields.io/twitter/url/https/mobile.twitter.com/Spigot_PE.svg?style=social)](https://twitter.com/intent/tweet?text=Hey%20everyone%20try%20the%20amazing%20SpigotPE!%20https://github.com/SpigotPE-Team/SpigotPE:&url=%5Bobject%20Object%5D)
+
 
 # Windows & Linux Installation:
 (coming soon)
