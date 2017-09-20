@@ -9,7 +9,7 @@ NOTE: **The master branch is the only officially supported branch.**
 _All other branches are in testing and may be unstable. Do not use builds from other branches unless you are sure you understand the risks._
 
 # Where can I get the Latest spigotpe phar?
-You can download the latest phar from our [download center and or website](https://spigotpe.tk) :smile:
+You can download the latest phar from our download center and or website [![Website](https://img.shields.io/website-up-down-green-red/http/genisys.pro.svg?label=website)](https://spigotpe.tk) [![Download](https://img.shields.io/website-up-down-green-red/http/genisys.pro.svg?label=website)](https://genisys.pro) :smile:
 
 
 # note 
@@ -42,13 +42,6 @@ more info at the project
 # Resources:
 To be able to run this on Windows, You'll need Visual Studio C++ Redistributable 2015,
 Which can be downloaded [Here](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
-
-# Acknowledgements / Credits:
-- spigotpe is a "spoon" of **[Steadfast2](https://github.com/Hydreon/Steadfast2/)**
-- Most of the original code was written by the original [PocketMine](https://github.com/PocketMine)
-- Some Implementations are ported from [Tesseract](https://www.github.com/TesseractTeam/Tesseract), [Prismarine](https://github.com/PrismarineMC/Prismarine) and [Genisys](https://www.github.com/ITXTech/Genisys)
-- Ported files' authors are stated inside the file
-- most files were token from [Leveryl](https://github.com/LeverylTeam/Leveryl)
 
 # License:
 ```
