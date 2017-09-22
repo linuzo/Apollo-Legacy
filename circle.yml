@@ -1,7 +1,8 @@
 #Circle-CI
 
 machine:
-  pre:
+test:
+  post:
     - rm -rf plugins
     - rm -rf bin
     - rm -rf artifacts
