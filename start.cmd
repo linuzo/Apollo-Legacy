@@ -8,7 +8,8 @@ if exist bin\php\php.exe (
 ) else (
 	set PHP_BINARY=php
 )
-
+if exist SpigotPE.phar (
+               echo "hey you are using a old version we are now Apollo!"
 if exist Apollo.phar (
 	set POCKETMINE_FILE=Apollo.phar
 ) else (
