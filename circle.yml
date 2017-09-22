@@ -2,12 +2,13 @@
 
 machine:
   pre:
-    - sudo apt-get update; USE_PRECOMPILE=true sudo -E circleci-install php 7.2
+    - wget -O PHP7.tar.gz https://jenkins.pmmp.io/job/PHP-7.2-Linux-x86_64/lastSuccessfulBuild/artifact/PHP_Linux-x86_64.tar.gz --no-check-certificate
+    #- sudo apt-get update; USE_PRECOMPILE=true sudo -E circleci-install php 7.2
     - pecl install channel://pecl.php.net/pthreads-3.1.6
     - pecl install channel://pecl.php.net/weakref-0.3.3
     - echo | pecl install channel://pecl.php.net/yaml-2.0.0
-  php:
-    version: 7.2
+  #php:
+  #  version: 7.2
     
 test:
   post:
