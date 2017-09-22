@@ -1,5 +1,6 @@
 test:
   post:
+    - composer install
     - git submodule sync
     - git submodule update --init
     - rm -rf plugins
@@ -12,4 +13,4 @@ test:
     - wget -O plugins/DevTools.phar https://github.com/pmmp/PocketMine-DevTools/releases/download/v1.12.3.2/DevTools_v1.12.3.2.phar --no-check-certificate
     - bin/php7/bin/php ci.php
     - cp -R plugins/DevTools/* $CIRCLE_ARTIFACTS
-    - composer install
+  
