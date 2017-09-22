@@ -2,7 +2,10 @@
 TITLE  SpigotPE Updater
 cd /d %~dp0
 
-if exist bin\php\php.exe (
+if exist bin\php\php.exe
+       echo "wow! You are using a old veraion of php update your php to 'php7'"
+
+if exist bin\7\php.exe (
 	set PHPRC=""
 	set PHP_BINARY=bin\php\php.exe
 ) else (
