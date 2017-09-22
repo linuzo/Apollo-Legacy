@@ -2,28 +2,20 @@
 
 machine:
   pre:
-    - wget -O PHP7.tar.gz https://jenkins.pmmp.io/job/PHP-7.2-Linux-x86_64/lastSuccessfulBuild/artifact/PHP_Linux-x86_64.tar.gz --no-check-certificate
-    #- sudo apt-get update; USE_PRECOMPILE=true sudo -E circleci-install php 7.2
-    - pecl install channel://pecl.php.net/pthreads-3.1.6
-    - pecl install channel://pecl.php.net/weakref-0.3.3
-    - echo | pecl install channel://pecl.php.net/yaml-2.0.0
-  #php:
-  #  version: 7.2
-    
-test:
-  post:
-    #- wget -O PHP7.tar.gz https://jenkins.pmmp.io/job/PHP-7.2-Linux-x86_64/lastSuccessfulBuild/artifact/PHP_Linux-x86_64.tar.gz --no-check-certificate
-   # - composer install
-    - git submodule sync
     - git submodule update --init
     - rm -rf plugins
     - rm -rf bin
     - rm -rf artifacts
     - mkdir plugins
     - mkdir artifacts
-    #- wget -O PHP7.tar.gz https://jenkins.pmmp.io/job/PHP-7.2-Linux-x86_64/lastSuccessfulBuild/artifact/PHP_Linux-x86_64.tar.gz --no-check-certificate
+    - wget -O PHP7.tar.gz https://jenkins.pmmp.io/job/PHP-7.2-Linux-x86_64/lastSuccessfulBuild/artifact/PHP_Linux-x86_64.tar.gz --no-check-certificate
     - tar -xf PHP7.tar.gz
     - wget -O plugins/DevTools.phar https://github.com/pmmp/PocketMine-DevTools/releases/download/v1.12.3.2/DevTools_v1.12.3.2.phar --no-check-certificate
+  #php:
+  #  version: 7.2
+    
+test:
+  post:
     - bin/php7/bin/php ci.php
     - cp -R plugins/DevTools/* $CIRCLE_ARTIFACTS
   
