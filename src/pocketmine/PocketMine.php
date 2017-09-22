@@ -79,7 +79,7 @@ namespace pocketmine {
 	use pocketmine\wizard\SetupWizard;
 	use raklib\RakLib;
 
-	const VERSION = "Cookie";
+	const VERSION = "1.0";
 	const API_VERSION = "3.0.0-ALPHA8";
 	const CODENAME = "Parry wanna cracker?";
 
@@ -92,13 +92,13 @@ namespace pocketmine {
 
 	if(version_compare("7.0", PHP_VERSION) > 0){
 		echo "[CRITICAL] You must use PHP >= 7.0" . PHP_EOL;
-		echo "[CRITICAL] Please use the installer provided on the homepage." . PHP_EOL;
+		echo "[CRITICAL] Please use the installer provided on our github." . PHP_EOL;
 		exit(1);
 	}
 
 	if(!extension_loaded("pthreads")){
 		echo "[CRITICAL] Unable to find the pthreads extension." . PHP_EOL;
-		echo "[CRITICAL] Please use the installer provided on the homepage." . PHP_EOL;
+		echo "[CRITICAL] Please use the installer provided on our github." . PHP_EOL;
 		exit(1);
 	}
 
@@ -114,7 +114,7 @@ namespace pocketmine {
 
 	if(!extension_loaded("phar")){
 		echo "[CRITICAL] Unable to find the Phar extension." . PHP_EOL;
-		echo "[CRITICAL] Please use the installer provided on the homepage." . PHP_EOL;
+		echo "[CRITICAL] Please use the installer provided on our github." . PHP_EOL;
 		exit(1);
 	}
 
