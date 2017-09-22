@@ -7,13 +7,11 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 Apollo is more abandonate,but have epic generator in creations :)
 Thanks all and more special: @caspervanneck @salmonger @aericio
 
-**TravisCI Build Status: Master Branch** [![TravisCI](https://travis-ci.org/NycuRO/Apollo.svg?branch=master)](https://travis-ci.org/NycuRO/Apollo "TravisCI Build Status")
-
-**CircleCI Build Status** [![CircleCI](https://circleci.com/gh/nycuro/apollo.svg?style=svg)](https://circleci.com/gh/nycuro/apollo)
+**CircleCI Build Status** [![CircleCI](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy.svg?style=svg)](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
 
 ## Information
 
-- Need to communicate with us? Join our [Telegram](https://telegram.me/joinchat/Ca8L9T9P01PtR1bOEwtxuw) group!
+- Need to communicate with us? Join our [discord](https://discord.gg/xBN3WR6) group!
 - We are a edited version of Genisys. We have edited their generators to our version and have improved the performance
 - You can download .phar from Circle CI. Tab to latest build,tap to artifacts selection,tap to DevTools and download Apollo1.0dev.phar
 
