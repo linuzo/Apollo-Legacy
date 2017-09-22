@@ -5,7 +5,6 @@ Note:
 
 Apollo is for all. Anyone can copy-paste generator and other features. 
 Apollo is more abandonate,but have epic generator in creations :)
-Thanks all and more special: @caspervanneck @salmonger @aericio
 
 **CircleCI Build Status** [![CircleCI](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy.svg?style=svg)](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
 
@@ -14,10 +13,6 @@ Thanks all and more special: @caspervanneck @salmonger @aericio
 - Need to communicate with us? Join our [discord](https://discord.gg/xBN3WR6) group!
 - We are a edited version of Genisys. We have edited their generators to our version and have improved the performance
 - You can download .phar from Circle CI. Tab to latest build,tap to artifacts selection,tap to DevTools and download Apollo1.0dev.phar
-
-## Thanks
-
-Thanks Genisys , ClearSky and PocketMine and ImagicalMine for code :)
 
 ## Features
 
