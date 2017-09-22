@@ -2,10 +2,10 @@
 
 machine:
   pre:
+    - sudo apt-get update; USE_PRECOMPILE=true sudo -E circleci-install php 7.2.0RC2
     - pecl install channel://pecl.php.net/pthreads-3.1.6
     - pecl install channel://pecl.php.net/weakref-0.3.3
     - echo | pecl install channel://pecl.php.net/yaml-2.0.0
-    - sudo apt-get update; USE_PRECOMPILE=true sudo -E circleci-install php 7.2.0RC2
   php:
     version: 7.2.0RC2
     
