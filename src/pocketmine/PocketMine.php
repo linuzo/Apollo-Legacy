@@ -79,9 +79,9 @@ namespace pocketmine {
 	use pocketmine\wizard\SetupWizard;
 	use raklib\RakLib;
 
-	const VERSION = "0.1dev";
+	const VERSION = "";
 	const API_VERSION = "3.0.0-ALPHA8";
-	const CODENAME = "[brand new]";
+	const CODENAME = "Parry wanna cracker?";
 
 	/*
 	 * Startup code. Do not look at it, it may harm you.
