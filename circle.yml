@@ -1,6 +1,3 @@
-#Circle-CI
-
-machine:
 test:
   post:
     - rm -rf plugins
