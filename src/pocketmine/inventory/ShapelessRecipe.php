@@ -19,16 +19,18 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
-use pocketmine\Server;
 use pocketmine\utils\UUID;
 
-class ShapelessRecipe implements Recipe{
+class ShapelessRecipe implements CraftingRecipe{
 	/** @var Item */
 	private $output;
 
+	/** @var UUID|null */
 	private $id = null;
 
 	/** @var Item[] */
@@ -38,10 +40,16 @@ class ShapelessRecipe implements Recipe{
 		$this->output = clone $result;
 	}
 
-	public function getId(){
+	/**
+	 * @return UUID|null
+	 */
+	public function getId() : ?UUID{
 		return $this->id;
 	}
 
+	/**
+	 * @param UUID $id
+	 */
 	public function setId(UUID $id){
 		if($this->id !== null){
 			throw new \InvalidStateException("Id is already set");
@@ -50,18 +58,26 @@ class ShapelessRecipe implements Recipe{
 		$this->id = $id;
 	}
 
-	public function getResult(){
+	public function getResult() : Item{
 		return clone $this->output;
+	}
+
+	public function getExtraResults() : array{
+		return []; //TODO
+	}
+
+	public function getAllResults() : array{
+		return [$this->getResult()]; //TODO
 	}
 
 	/**
 	 * @param Item $item
 	 *
-	 * @returns ShapelessRecipe
+	 * @return ShapelessRecipe
 	 *
 	 * @throws \InvalidArgumentException
 	 */
-	public function addIngredient(Item $item){
+	public function addIngredient(Item $item) : ShapelessRecipe{
 		if(count($this->ingredients) >= 9){
 			throw new \InvalidArgumentException("Shapeless recipes cannot have more than 9 ingredients");
 		}
@@ -87,7 +103,7 @@ class ShapelessRecipe implements Recipe{
 			if($item->getCount() <= 0){
 				break;
 			}
-			if($ingredient->equals($item, $item->getDamage() === null ? false : true, $item->getCompound() === null ? false : true)){
+			if($ingredient->equals($item, !$item->hasAnyDamageValue(), $item->hasCompoundTag())){
 				unset($this->ingredients[$index]);
 				$item->setCount($item->getCount() - 1);
 			}
@@ -99,7 +115,7 @@ class ShapelessRecipe implements Recipe{
 	/**
 	 * @return Item[]
 	 */
-	public function getIngredientList(){
+	public function getIngredientList() : array{
 		$ingredients = [];
 		foreach($this->ingredients as $ingredient){
 			$ingredients[] = clone $ingredient;
@@ -111,7 +127,7 @@ class ShapelessRecipe implements Recipe{
 	/**
 	 * @return int
 	 */
-	public function getIngredientCount(){
+	public function getIngredientCount() : int{
 		$count = 0;
 		foreach($this->ingredients as $ingredient){
 			$count += $ingredient->getCount();
@@ -120,7 +136,11 @@ class ShapelessRecipe implements Recipe{
 		return $count;
 	}
 
-	public function registerToCraftingManager(){
-		Server::getInstance()->getCraftingManager()->registerShapelessRecipe($this);
+	public function registerToCraftingManager(CraftingManager $manager) : void{
+		$manager->registerShapelessRecipe($this);
+	}
+
+	public function requiresCraftingTable() : bool{
+		return count($this->ingredients) > 4;
 	}
 }

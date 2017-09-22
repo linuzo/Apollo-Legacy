@@ -34,12 +34,12 @@ if [ "$PHP_BINARY" == "" ]; then
 fi
 
 if [ "$POCKETMINE_FILE" == "" ]; then
-	if [ -f ./SpigotPE.phar ]; then
-		POCKETMINE_FILE="./SpigotPE.phar"
+	if [ -f ./Apollo.phar ]; then
+		POCKETMINE_FILE="./Apollo.phar"
 	elif [ -f ./src/pocketmine/PocketMine.php ]; then
 		POCKETMINE_FILE="./src/pocketmine/PocketMine.php"
 	else
-		echo "Couldn't find a valid SpigotPE installation"
+		echo "Couldn't find a valid Apollo installation"
 		exit 1
 	fi
 fi

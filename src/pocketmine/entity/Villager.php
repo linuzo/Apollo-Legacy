@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +15,16 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\entity;
 
-
 use pocketmine\nbt\tag\IntTag;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\AddEntityPacket;
+use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\Player;
 
 class Villager extends Creature implements NPC, Ageable{
@@ -38,10 +38,9 @@ class Villager extends Creature implements NPC, Ageable{
 	const NETWORK_ID = 15;
 
 	public $width = 0.6;
-	public $length = 0.6;
 	public $height = 1.8;
 
-	public function getName(){
+	public function getName() : string{
 		return "Villager";
 	}
 
@@ -54,14 +53,10 @@ class Villager extends Creature implements NPC, Ageable{
 
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();
-		$pk->eid = $this->getId();
+		$pk->entityRuntimeId = $this->getId();
 		$pk->type = Villager::NETWORK_ID;
-		$pk->x = $this->x;
-		$pk->y = $this->y;
-		$pk->z = $this->z;
-		$pk->speedX = $this->motionX;
-		$pk->speedY = $this->motionY;
-		$pk->speedZ = $this->motionZ;
+		$pk->position = $this->asVector3();
+		$pk->motion = $this->getMotion();
 		$pk->yaw = $this->yaw;
 		$pk->pitch = $this->pitch;
 		$pk->metadata = $this->dataProperties;
@@ -73,17 +68,17 @@ class Villager extends Creature implements NPC, Ageable{
 	/**
 	 * Sets the villager profession
 	 *
-	 * @param $profession
+	 * @param int $profession
 	 */
-	public function setProfession($profession){
+	public function setProfession(int $profession){
 		$this->namedtag->Profession = new IntTag("Profession", $profession);
 	}
 
-	public function getProfession(){
-		return $this->namedtag["Profession"];
+	public function getProfession() : int{
+		return (int) $this->namedtag["Profession"];
 	}
 
-	public function isBaby(){
-		return $this->getDataFlag(self::DATA_AGEABLE_FLAGS, self::DATA_FLAG_BABY);
+	public function isBaby() : bool{
+		return $this->getGenericFlag(self::DATA_FLAG_BABY);
 	}
 }

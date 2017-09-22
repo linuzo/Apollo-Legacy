@@ -14,13 +14,16 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\player;
 
+use pocketmine\event\TranslationContainer;
 use pocketmine\Player;
 
 /**
@@ -29,33 +32,40 @@ use pocketmine\Player;
 class PlayerQuitEvent extends PlayerEvent{
 	public static $handlerList = null;
 
-	/** @var string */
+	/** @var TranslationContainer|string */
 	protected $quitMessage;
+	/** @var string */
 	protected $quitReason;
-	protected $quitLog;
 
-	public function __construct(Player $player, $quitMessage, $quitReason, $quitLog = ""){
+	/**
+	 * @param Player                      $player
+	 * @param TranslationContainer|string $quitMessage
+	 * @param string                      $quitReason
+	 */
+	public function __construct(Player $player, $quitMessage, string $quitReason){
 		$this->player = $player;
 		$this->quitMessage = $quitMessage;
 		$this->quitReason = $quitReason;
-		$this->quitLog = $quitLog;
 	}
 
+	/**
+	 * @param TranslationContainer|string $quitMessage
+	 */
 	public function setQuitMessage($quitMessage){
 		$this->quitMessage = $quitMessage;
 	}
 
+	/**
+	 * @return TranslationContainer|string
+	 */
 	public function getQuitMessage(){
 		return $this->quitMessage;
 	}
-	
-	public function getQuitReason(){
+
+	/**
+	 * @return string
+	 */
+	public function getQuitReason() : string{
 		return $this->quitReason;
 	}
-	
-	public function getQuitLog(){
-		return $this->quitLog;
-	}
-	
-
 }

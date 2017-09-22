@@ -19,46 +19,38 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
+use pocketmine\command\utils\InvalidCommandSyntaxException;
+use pocketmine\event\TranslationContainer;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
 class SayCommand extends VanillaCommand{
 
-	public function __construct($name){
+	public function __construct(string $name){
 		parent::__construct(
 			$name,
-			"Broadcasts the given message as the sender",
-			"/say <message...>"
+			"%pocketmine.command.say.description",
+			"%commands.say.usage"
 		);
 		$this->setPermission("pocketmine.command.say");
 	}
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) === 0){
-			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
-
-			return false;
+			throw new InvalidCommandSyntaxException();
 		}
 
-		$message = TextFormat::LIGHT_PURPLE . "[";
-		if($sender instanceof ConsoleCommandSender){
-			$message .= "Server";
-		}elseif($sender instanceof Player){
-			$message .= $sender->getDisplayName();
-		}else{
-			$message .= $sender->getName();
-		}
-		$message .= TextFormat::LIGHT_PURPLE . "] " . implode(" ", $args);
-		$sender->getServer()->broadcastMessage($message);
-
+		$sender->getServer()->broadcastMessage(new TranslationContainer(TextFormat::LIGHT_PURPLE . "%chat.type.announcement", [$sender instanceof Player ? $sender->getDisplayName() : ($sender instanceof ConsoleCommandSender ? "Server" : $sender->getName()), TextFormat::LIGHT_PURPLE . implode(" ", $args)]));
 		return true;
 	}
 }

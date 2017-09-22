@@ -19,6 +19,7 @@
  *
 */
 
+declare(strict_types=1);
 
 namespace pocketmine\item;
 
@@ -31,7 +32,7 @@ abstract class Tool extends Item{
 	const TIER_STONE = 3;
 	const TIER_IRON = 4;
 	const TIER_DIAMOND = 5;
-	
+
 	const TYPE_NONE = 0;
 	const TYPE_SWORD = 1;
 	const TYPE_SHOVEL = 2;
@@ -39,11 +40,7 @@ abstract class Tool extends Item{
 	const TYPE_AXE = 4;
 	const TYPE_SHEARS = 5;
 
-	public function __construct($id, $meta = 0, $count = 1, $name = "Unknown"){
-		parent::__construct($id, $meta, $count, $name);
-	}
-
-	public function getMaxStackSize(){
+	public function getMaxStackSize() : int{
 		return 1;
 	}
 
@@ -55,7 +52,23 @@ abstract class Tool extends Item{
 	 * @return bool
 	 */
 	public function useOn($object){
-		if($this->isHoe()){
+		if($this->isUnbreakable()){
+			return true;
+		}
+
+		if($object instanceof Block){
+			if(
+				$object->getToolType() === Tool::TYPE_PICKAXE and $this->isPickaxe() or
+				$object->getToolType() === Tool::TYPE_SHOVEL and $this->isShovel() or
+				$object->getToolType() === Tool::TYPE_AXE and $this->isAxe() or
+				$object->getToolType() === Tool::TYPE_SWORD and $this->isSword() or
+				$object->getToolType() === Tool::TYPE_SHEARS and $this->isShears()
+			){
+				$this->meta++;
+			}elseif(!$this->isShears() and $object->getBreakTime($this) > 0){
+				$this->meta += 2;
+			}
+		}elseif($this->isHoe()){
 			if(($object instanceof Block) and ($object->getId() === self::GRASS or $object->getId() === self::DIRT)){
 				$this->meta++;
 			}
@@ -76,14 +89,11 @@ abstract class Tool extends Item{
 	public function getMaxDurability(){
 
 		$levels = [
-			2 => 33,
-			1 => 60,
-			3 => 132,
-			4 => 251,
-			5 => 1562,
-			self::FLINT_STEEL => 65,
-			self::SHEARS => 239,
-			self::BOW => 385,
+			Tool::TIER_GOLD => 33,
+			Tool::TIER_WOODEN => 60,
+			Tool::TIER_STONE => 132,
+			Tool::TIER_IRON => 251,
+			Tool::TIER_DIAMOND => 1562
 		];
 
 		if(($type = $this->isPickaxe()) === false){
@@ -91,7 +101,7 @@ abstract class Tool extends Item{
 				if(($type = $this->isSword()) === false){
 					if(($type = $this->isShovel()) === false){
 						if(($type = $this->isHoe()) === false){
-							$type = $this->id;
+							return false;
 						}
 					}
 				}
@@ -101,31 +111,12 @@ abstract class Tool extends Item{
 		return $levels[$type];
 	}
 
-	public function isPickaxe(){
-		return false;
-	}
-
-	public function isAxe(){
-		return false;
-	}
-
-	public function isSword(){
-		return false;
-	}
-
-	public function isShovel(){
-		return false;
-	}
-
-	public function isHoe(){
-		return false;
-	}
-
-	public function isShears(){
-		return ($this->id === self::SHEARS);
+	public function isUnbreakable(){
+		$tag = $this->getNamedTagEntry("Unbreakable");
+		return $tag !== null and $tag->getValue() > 0;
 	}
 
 	public function isTool(){
-		return ($this->id === self::FLINT_STEEL or $this->id === self::SHEARS or $this->id === self::BOW or $this->isPickaxe() !== false or $this->isAxe() !== false or $this->isShovel() !== false or $this->isSword() !== false);
+		return true;
 	}
 }

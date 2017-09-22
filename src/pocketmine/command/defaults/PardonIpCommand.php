@@ -19,39 +19,41 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\utils\TextFormat;
+use pocketmine\command\utils\InvalidCommandSyntaxException;
+use pocketmine\event\TranslationContainer;
 
 class PardonIpCommand extends VanillaCommand{
 
-	public function __construct($name){
+	public function __construct(string $name){
 		parent::__construct(
 			$name,
-			"Allows the specified IP address to use this server",
-			"/pardon-ip <address>"
+			"%pocketmine.command.unban.ip.description",
+			"%commands.unbanip.usage"
 		);
 		$this->setPermission("pocketmine.command.unban.ip");
 	}
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) !== 1){
-			$sender->sendMessage(TextFormat::RED . "Usage: " . $this->usageMessage);
-
-			return false;
+			throw new InvalidCommandSyntaxException();
 		}
 
 		if(preg_match("/^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$/", $args[0])){
 			$sender->getServer()->getIPBans()->remove($args[0]);
-			Command::broadcastCommandMessage($sender, "Pardoned IP " . $args[0]);
+			$sender->getServer()->getNetwork()->unblockAddress($args[0]);
+			Command::broadcastCommandMessage($sender, new TranslationContainer("commands.unbanip.success", [$args[0]]));
 		}else{
-			$sender->sendMessage("Invalid IP");
+			$sender->sendMessage(new TranslationContainer("commands.unbanip.invalid"));
 		}
 
 		return true;

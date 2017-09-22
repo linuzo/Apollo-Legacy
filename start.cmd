@@ -9,13 +9,13 @@ if exist bin\php\php.exe (
 	set PHP_BINARY=php
 )
 
-if exist SpigotPE.phar (
-	set POCKETMINE_FILE=SpigotPE.phar
+if exist Apollo.phar (
+	set POCKETMINE_FILE=Apollo.phar
 ) else (
 	if exist src\pocketmine\PocketMine.php (
 		set POCKETMINE_FILE=src\pocketmine\PocketMine.php
 	) else (
-		echo "Couldn't find a valid SpigotPE installation"
+		echo "Couldn't find a valid Apollo installation"
 		pause
 		exit 1
 	)

@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,14 +15,16 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\level;
 
 use pocketmine\math\Vector3;
-use pocketmine\utils\LevelException;
+use pocketmine\utils\MainLogger;
 
 class Position extends Vector3{
 
@@ -47,48 +49,54 @@ class Position extends Vector3{
 	}
 
 	/**
-	 * @return Level
+	 * Return a Position instance
+	 *
+	 * @return Position
+	 */
+	public function asPosition() : Position{
+		return new Position($this->x, $this->y, $this->z, $this->level);
+	}
+
+	/**
+	 * Returns the target Level, or null if the target is not valid.
+	 * If a reference exists to a Level which is closed, the reference will be destroyed and null will be returned.
+	 *
+	 * @return Level|null
 	 */
 	public function getLevel(){
+		if($this->level !== null and $this->level->isClosed()){
+			MainLogger::getLogger()->debug("Position was holding a reference to an unloaded Level");
+			$this->level = null;
+		}
+
 		return $this->level;
 	}
 
-	public function setLevel(Level $level){
+	/**
+	 * Sets the target Level of the position.
+	 *
+	 * @param Level|null $level
+	 *
+	 * @return $this
+	 *
+	 * @throws \InvalidArgumentException if the specified Level has been closed
+	 */
+	public function setLevel(Level $level = null){
+		if($level !== null and $level->isClosed()){
+			throw new \InvalidArgumentException("Specified level has been unloaded and cannot be used");
+		}
+
 		$this->level = $level;
 		return $this;
 	}
 
 	/**
-	 * Checks if this object has a valid reference to a Level
+	 * Checks if this object has a valid reference to a loaded Level
 	 *
 	 * @return bool
 	 */
-	public function isValid(){
-		return $this->level !== null;
-	}
-
-	/**
-	 * Marks the level reference as strong so it won't be collected
-	 * by the garbage collector.
-	 *
-	 * @deprecated
-	 *
-	 * @return bool
-	 */
-	public function setStrong(){
-		return false;
-	}
-
-	/**
-	 * Marks the level reference as weak so it won't have effect against
-	 * the garbage collector decision.
-	 *
-	 * @deprecated
-	 *
-	 * @return bool
-	 */
-	public function setWeak(){
-		return false;
+	public function isValid() : bool{
+		return $this->getLevel() instanceof Level;
 	}
 
 	/**
@@ -102,9 +110,7 @@ class Position extends Vector3{
 	 * @throws LevelException
 	 */
 	public function getSide($side, $step = 1){
-		if(!$this->isValid()){
-			throw new LevelException("Undefined Level reference");
-		}
+		assert($this->isValid());
 
 		return Position::fromObject(parent::getSide($side, $step), $this->level);
 	}
@@ -127,4 +133,10 @@ class Position extends Vector3{
 		return $this;
 	}
 
+	public function equals(Vector3 $v) : bool{
+		if($v instanceof Position){
+			return parent::equals($v) and $v->getLevel() === $this->getLevel();
+		}
+		return parent::equals($v);
+	}
 }

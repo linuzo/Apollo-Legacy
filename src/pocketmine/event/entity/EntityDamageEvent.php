@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -14,19 +14,21 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\entity;
 
-use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
-use pocketmine\Player;
-use pocketmine\item\enchantment\Enchantment;
 
+/**
+ * Called when an entity takes damage.
+ */
 class EntityDamageEvent extends EntityEvent implements Cancellable{
 	public static $handlerList = null;
 
@@ -35,19 +37,9 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 	const MODIFIER_STRENGTH = 2;
 	const MODIFIER_WEAKNESS = 3;
 	const MODIFIER_RESISTANCE = 4;
-	// attack effect modifiers
-	const MODIFIER_EFFECT_SHARPNESS = 5;
-	const MODIFIER_EFFECT_SMITE = 6;
-	const MODIFIER_EFFECT_ARTHROPODOS = 7;
-	const MODIFIER_EFFECT_KNOCKBACK = 8;
-	// defence effect modifiers
-	const MODIFIER_EFFECT_PROTECTION = 9;
-	const MODIFIER_EFFECT_FIRE_PROTECTION = 10;
-	const MODIFIER_EFFECT_BLAST_PROTECTION = 11;
-	const MODIFIER_EFFECT_PROJECTILE_PROTECTION = 12;
-	const MODIFIER_EFFECT_FALL_PROTECTION = 13;
+	const MODIFIER_ABSORPTION = 5;
 
-	
+	const CAUSE_CONTACT = 0;
 	const CAUSE_ENTITY_ATTACK = 1;
 	const CAUSE_PROJECTILE = 2;
 	const CAUSE_SUFFOCATION = 3;
@@ -62,23 +54,22 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 	const CAUSE_SUICIDE = 12;
 	const CAUSE_MAGIC = 13;
 	const CAUSE_CUSTOM = 14;
-	const CAUSE_CONTACT = 15;
+	const CAUSE_STARVATION = 15;
 
-
+	/** @var int */
 	private $cause;
-	/** @var array */
+	/** @var float[] */
 	private $modifiers;
+	/** @var float[] */
 	private $originals;
 
 
 	/**
-	 * @param Entity    $entity
-	 * @param int       $cause
-	 * @param int|int[] $damage
-	 *
-	 * @throws \Exception
+	 * @param Entity        $entity
+	 * @param int           $cause
+	 * @param float|float[] $damage
 	 */
-	public function __construct(Entity $entity, $cause, $damage){
+	public function __construct(Entity $entity, int $cause, $damage){
 		$this->entity = $entity;
 		$this->cause = $cause;
 		if(is_array($damage)){
@@ -94,93 +85,38 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 		if(!isset($this->modifiers[self::MODIFIER_BASE])){
 			throw new \InvalidArgumentException("BASE Damage modifier missing");
 		}
-
-		if($entity->hasEffect(Effect::DAMAGE_RESISTANCE)){
-			$this->setDamage(-($this->getDamage(self::MODIFIER_BASE) * 0.20 * ($entity->getEffect(Effect::DAMAGE_RESISTANCE)->getAmplifier() + 1)), self::MODIFIER_RESISTANCE);
-		}
-		
-		if ($entity instanceof Player && $cause !== self::CAUSE_VOID) {
-			$enchantments = $entity->getProtectionEnchantments();
-			if (!is_null($enchantments[Enchantment::TYPE_ARMOR_PROTECTION])) {
-				$enchantment = $enchantments[Enchantment::TYPE_ARMOR_PROTECTION];
-				$this->setDamage(-1 * $enchantment->getLevel(), self::MODIFIER_EFFECT_PROTECTION);
-			}
-			
-			$enchantment = null;
-			$multiplier = 2;
-			$modifierId = 0;
-			switch($cause) {
-				case self::CAUSE_FIRE:
-				case self::CAUSE_FIRE_TICK:
-				case self::CAUSE_LAVA:
-					$enchantment = $enchantments[Enchantment::TYPE_ARMOR_FIRE_PROTECTION];
-					$multiplier = 2;
-					$modifierId = self::MODIFIER_EFFECT_FIRE_PROTECTION;
-					break;
-				case self::CAUSE_FALL:
-					$enchantment = $enchantments[Enchantment::TYPE_ARMOR_FALL_PROTECTION];
-					$multiplier = 3;
-					$modifierId = self::MODIFIER_EFFECT_FALL_PROTECTION;
-					break;
-				case self::CAUSE_ENTITY_EXPLOSION:
-				case self::CAUSE_BLOCK_EXPLOSION:
-					$enchantment = $enchantments[Enchantment::TYPE_ARMOR_EXPLOSION_PROTECTION];
-					$multiplier = 2;
-					$modifierId = self::MODIFIER_EFFECT_BLAST_PROTECTION;
-					break;
-				case self::CAUSE_PROJECTILE:
-					$enchantment = $enchantments[Enchantment::TYPE_ARMOR_PROJECTILE_PROTECTION];
-					$multiplier = 2;
-					$modifierId = self::MODIFIER_EFFECT_PROJECTILE_PROTECTION;
-					break;
-			}
-			
-			if (!is_null($enchantment)) {
-				$this->setDamage(-1 * $enchantment->getLevel() * $multiplier, $modifierId);
-			}
-		}
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getCause(){
+	public function getCause() : int{
 		return $this->cause;
 	}
 
 	/**
 	 * @param int $type
 	 *
-	 * @return int
+	 * @return float
 	 */
-	public function getOriginalDamage($type = self::MODIFIER_BASE){
-		if(isset($this->originals[$type])){
-			return $this->originals[$type];
-		}
-
-		return 0;
+	public function getOriginalDamage(int $type = self::MODIFIER_BASE) : float{
+		return $this->originals[$type] ?? 0.0;
 	}
 
 	/**
 	 * @param int $type
 	 *
-	 * @return int
+	 * @return float
 	 */
-	public function getDamage($type = self::MODIFIER_BASE){
-		if(isset($this->modifiers[$type])){
-			return $this->modifiers[$type];
-		}
-
-		return 0;
+	public function getDamage(int $type = self::MODIFIER_BASE) : float{
+		return $this->modifiers[$type] ?? 0.0;
 	}
 
 	/**
 	 * @param float $damage
 	 * @param int   $type
-	 *
-	 * @throws \UnexpectedValueException
 	 */
-	public function setDamage($damage, $type = self::MODIFIER_BASE){
+	public function setDamage(float $damage, int $type = self::MODIFIER_BASE){
 		$this->modifiers[$type] = $damage;
 	}
 
@@ -189,20 +125,15 @@ class EntityDamageEvent extends EntityEvent implements Cancellable{
 	 *
 	 * @return bool
 	 */
-	public function isApplicable($type){
+	public function isApplicable(int $type) : bool{
 		return isset($this->modifiers[$type]);
 	}
 
 	/**
-	 * @return int
+	 * @return float
 	 */
-	public function getFinalDamage(){
-		$damage = 0;
-		foreach($this->modifiers as $type => $d){
-			$damage += $d;
-		}
-
-		return max($damage, 0);
+	public function getFinalDamage() : float{
+		return array_sum($this->modifiers);
 	}
 
 }

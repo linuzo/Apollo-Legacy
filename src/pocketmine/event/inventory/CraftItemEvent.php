@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -14,10 +14,12 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\inventory;
 
@@ -31,42 +33,44 @@ class CraftItemEvent extends Event implements Cancellable{
 	public static $handlerList = null;
 
 	/** @var Item[] */
-	private $input = [];
+	private $input;
 	/** @var Recipe */
 	private $recipe;
-		/** @var Player */
-		private $player;
+	/** @var Player */
+	private $player;
+
+
 	/**
+	 * @param Player $player
 	 * @param Item[] $input
 	 * @param Recipe $recipe
 	 */
-	public function __construct(array $input, Recipe $recipe, Player $player){
+	public function __construct(Player $player, array $input, Recipe $recipe){
+		$this->player = $player;
 		$this->input = $input;
 		$this->recipe = $recipe;
-				$this->player = $player;
 	}
 
 	/**
 	 * @return Item[]
 	 */
-	public function getInput(){
-		$items = [];
-		foreach($items as $i => $item){
-			$items[$i] = clone $item;
-		}
-
-		return $items;
-	}
-		
-		public function getPlayer(){
-		return $this->player;
+	public function getInput() : array{
+		return array_map(function(Item $item) : Item{
+			return clone $item;
+		}, $this->input);
 	}
 
 	/**
 	 * @return Recipe
 	 */
-	public function getRecipe(){
+	public function getRecipe() : Recipe{
 		return $this->recipe;
 	}
 
+	/**
+	 * @return Player
+	 */
+	public function getPlayer() : Player{
+		return $this->player;
+	}
 }
