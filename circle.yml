@@ -2,7 +2,7 @@
 
 machine:
   pre:
-    - git submodule update --init
+ #   - git submodule update --init
     - rm -rf plugins
     - rm -rf bin
     - rm -rf artifacts
