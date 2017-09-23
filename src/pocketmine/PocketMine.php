@@ -135,14 +135,6 @@ namespace pocketmine {
 		exit(1);
 	}
 
-	if(is_file(\pocketmine\PATH . "vendor/autoload.php")){
-		require_once(\pocketmine\PATH . "vendor/autoload.php");
-	}else{
-		echo "[CRITICAL] Composer autoloader not found" . PHP_EOL;
-		echo "[CRITICAL] Please initialize composer dependencies before running." . PHP_EOL;
-		exit(1);
-	}
-
 	if(!class_exists("ClassLoader", false)){
 		require_once(\pocketmine\PATH . "src/spl/ClassLoader.php");
 		require_once(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
@@ -154,7 +146,7 @@ namespace pocketmine {
 	$autoloader = new \BaseClassLoader();
 	$autoloader->addPath(\pocketmine\PATH . "src");
 	$autoloader->addPath(\pocketmine\PATH . "src" . DIRECTORY_SEPARATOR . "spl");
-	$autoloader->register(false);
+	$autoloader->register(true);
 
 	if(!class_exists(RakLib::class)){
 		echo "[CRITICAL] Unable to find the RakLib library." . PHP_EOL;
@@ -318,7 +310,7 @@ namespace pocketmine {
 				return false;
 			default:
 				return false;
-		}
+		} //register
 	}
 
 	/**
