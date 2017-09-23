@@ -26,7 +26,7 @@ namespace pocketmine\inventory;
 use pocketmine\event\Timings;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\network\mcpe\protocol\CraftingDataPacket;
+use pocketmine\network\mcpe\protocol\CraftingDataPacket; // ?
 use pocketmine\Server;
 use pocketmine\utils\Config;
 use pocketmine\utils\MainLogger;
@@ -174,7 +174,7 @@ class CraftingManager{
 	 *
 	 * @return FurnaceRecipe|null
 	 */
-	public function matchFurnaceRecipe(Item $input) : ?FurnaceRecipe{
+	public function matchFurnaceRecipe(Item $input) : FurnaceRecipe{
 		return $this->furnaceRecipes[$input->getId() . ":" . $input->getDamage()] ?? $this->furnaceRecipes[$input->getId() . ":?"] ?? null;
 	}
 
