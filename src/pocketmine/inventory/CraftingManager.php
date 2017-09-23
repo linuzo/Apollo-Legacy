@@ -150,7 +150,7 @@ class CraftingManager{
 	 * @param UUID $id
 	 * @return CraftingRecipe|null
 	 */
-	public function getRecipe(UUID $id) : ?CraftingRecipe{
+	public function getRecipe(UUID $id) : CraftingRecipe{
 		$index = $id->toBinary();
 		return $this->recipes[$index] ?? null;
 	}
