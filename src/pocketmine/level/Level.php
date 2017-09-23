@@ -122,7 +122,7 @@ class Level implements ChunkManager, Metadatable
 
     private static $levelIdCounter = 1;
     private static $chunkLoaderCounter = 1;
-    public static $COMPRESSION_LEVEL = 8;
+    public static $COMPRESSION_LEVEL = 8;//setMetadata
 
     const Y_MASK = 0xFF;
     const Y_MAX = 0x100; //256
@@ -3113,7 +3113,7 @@ class Level implements ChunkManager, Metadatable
         return $batch;
     }
 
-    public function setMetadata($metadataKey, MetadataValue $metadataValue) {
+    public function setMetadata(string $metadataKey, MetadataValue $metadataValue) {
         $this->server->getLevelMetadata()->setMetadata($this, $metadataKey, $metadataValue);
     }
 
