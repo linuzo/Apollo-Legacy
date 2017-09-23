@@ -19,13 +19,12 @@
  *
 */
 
-namespace pocketmine\level\sound;
+/**
+ * All the different object classes used in populators
+ */
+namespace pocketmine\level\generator\object;
 
-use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\protocol\LevelEventPacket;
 
-class GhastSound extends GenericSound{
-	public function __construct(Vector3 $pos, $pitch = 0){
-		parent::__construct($pos, LevelEventPacket::EVENT_SOUND_GHAST, $pitch);
-	}
+abstract class Object{
+
 }

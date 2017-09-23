@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\level;
 
 use pocketmine\math\Vector3;
@@ -46,15 +44,6 @@ class Position extends Vector3{
 
 	public static function fromObject(Vector3 $pos, Level $level = null){
 		return new Position($pos->x, $pos->y, $pos->z, $level);
-	}
-
-	/**
-	 * Return a Position instance
-	 *
-	 * @return Position
-	 */
-	public function asPosition() : Position{
-		return new Position($this->x, $this->y, $this->z, $this->level);
 	}
 
 	/**
@@ -95,7 +84,7 @@ class Position extends Vector3{
 	 *
 	 * @return bool
 	 */
-	public function isValid() : bool{
+	public function isValid(){
 		return $this->getLevel() instanceof Level;
 	}
 
@@ -133,10 +122,4 @@ class Position extends Vector3{
 		return $this;
 	}
 
-	public function equals(Vector3 $v) : bool{
-		if($v instanceof Position){
-			return parent::equals($v) and $v->getLevel() === $this->getLevel();
-		}
-		return parent::equals($v);
-	}
 }

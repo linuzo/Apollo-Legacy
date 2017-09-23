@@ -19,7 +19,7 @@
  *
 */
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace pocketmine\level\format\io\region;
 
@@ -37,7 +37,7 @@ use pocketmine\nbt\tag\{
 use pocketmine\Player;
 use pocketmine\utils\MainLogger;
 
-class McRegion extends BaseLevelProvider {
+class McRegion extends BaseLevelProvider{
 
 	const REGION_FILE_EXTENSION = "mcr";
 
@@ -126,7 +126,7 @@ class McRegion extends BaseLevelProvider {
 	public function nbtDeserialize(string $data){
 		$nbt = new NBT(NBT::BIG_ENDIAN);
 		try{
-			$nbt->readCompressed($data, ZLIB_ENCODING_DEFLATE);
+			$nbt->readCompressed($data);
 
 			$chunk = $nbt->getData();
 
@@ -206,36 +206,30 @@ class McRegion extends BaseLevelProvider {
 		}
 	}
 
-	/**
-	 * @return string
-	 */
 	public static function getProviderName() : string{
 		return "mcregion";
 	}
 
 	/**
+	 * Returns the storage version as per Minecraft PC world formats.
 	 * @return int
 	 */
+	public static function getPcWorldFormatVersion() : int{
+		return 19132; //mcregion
+	}
+
 	public function getWorldHeight() : int{
 		//TODO: add world height options
 		return 128;
 	}
 
-	/**
-	 * @param string $path
-	 *
-	 * @return bool
-	 */
 	public static function isValid(string $path) : bool{
 		$isValid = (file_exists($path . "/level.dat") and is_dir($path . "/region/"));
 
 		if($isValid){
-			$files = glob($path . "/region/*.mc*");
-			if(empty($files)){ //possible glob() issue on some systems
-				$files = array_filter(scandir($path . "/region/"), function($file){
-					return substr($file, strrpos($file, ".") + 1, 2) === "mc"; //region file
-				});
-			}
+			$files = array_filter(scandir($path . "/region/"), function($file){
+				return substr($file, strrpos($file, ".") + 1, 2) === "mc"; //region file
+			});
 
 			foreach($files as $f){
 				if(substr($f, strrpos($f, ".") + 1) !== static::REGION_FILE_EXTENSION){
@@ -248,13 +242,6 @@ class McRegion extends BaseLevelProvider {
 		return $isValid;
 	}
 
-	/**
-	 * @param string     $path
-	 * @param string     $name
-	 * @param int|string $seed
-	 * @param string     $generator
-	 * @param array      $options
-	 */
 	public static function generate(string $path, string $name, $seed, string $generator, array $options = []){
 		if(!file_exists($path)){
 			mkdir($path, 0777, true);
@@ -269,10 +256,10 @@ class McRegion extends BaseLevelProvider {
 			"initialized" => new ByteTag("initialized", 1),
 			"GameType" => new IntTag("GameType", 0),
 			"generatorVersion" => new IntTag("generatorVersion", 1), //2 in MCPE
-			"SpawnX" => new IntTag("SpawnX", 128),
+			"SpawnX" => new IntTag("SpawnX", 256),
 			"SpawnY" => new IntTag("SpawnY", 70),
-			"SpawnZ" => new IntTag("SpawnZ", 128),
-			"version" => new IntTag("version", 19133),
+			"SpawnZ" => new IntTag("SpawnZ", 256),
+			"version" => new IntTag("version", static::getPcWorldFormatVersion()),
 			"DayTime" => new IntTag("DayTime", 0),
 			"LastPlayed" => new LongTag("LastPlayed", microtime(true) * 1000),
 			"RandomSeed" => new LongTag("RandomSeed", $seed),
@@ -291,27 +278,14 @@ class McRegion extends BaseLevelProvider {
 		file_put_contents($path . "level.dat", $buffer);
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getGenerator() : string{
 		return (string) $this->levelData["generatorName"];
 	}
 
-	/**
-	 * @return array
-	 */
 	public function getGeneratorOptions() : array{
 		return ["preset" => $this->levelData["generatorOptions"]];
 	}
 
-	/**
-	 * @param int  $chunkX
-	 * @param int  $chunkZ
-	 * @param bool $create
-	 *
-	 * @return null|Chunk
-	 */
 	public function getChunk(int $chunkX, int $chunkZ, bool $create = false){
 		$index = Level::chunkHash($chunkX, $chunkZ);
 		if(isset($this->chunks[$index])){
@@ -323,11 +297,6 @@ class McRegion extends BaseLevelProvider {
 		}
 	}
 
-	/**
-	 * @param int   $chunkX
-	 * @param int   $chunkZ
-	 * @param Chunk $chunk
-	 */
 	public function setChunk(int $chunkX, int $chunkZ, Chunk $chunk){
 		self::getRegionIndex($chunkX, $chunkZ, $regionX, $regionZ);
 		$this->loadRegion($regionX, $regionZ);
@@ -343,12 +312,6 @@ class McRegion extends BaseLevelProvider {
 		$this->chunks[$index] = $chunk;
 	}
 
-	/**
-	 * @param int $chunkX
-	 * @param int $chunkZ
-	 *
-	 * @return bool
-	 */
 	public function saveChunk(int $chunkX, int $chunkZ) : bool{
 		if($this->isChunkLoaded($chunkX, $chunkZ)){
 			$chunk = $this->getChunk($chunkX, $chunkZ);
@@ -369,13 +332,6 @@ class McRegion extends BaseLevelProvider {
 		}
 	}
 
-	/**
-	 * @param int  $chunkX
-	 * @param int  $chunkZ
-	 * @param bool $create
-	 *
-	 * @return bool
-	 */
 	public function loadChunk(int $chunkX, int $chunkZ, bool $create = false) : bool{
 		$index = Level::chunkHash($chunkX, $chunkZ);
 		if(isset($this->chunks[$index])){
@@ -401,13 +357,6 @@ class McRegion extends BaseLevelProvider {
 		}
 	}
 
-	/**
-	 * @param int  $chunkX
-	 * @param int  $chunkZ
-	 * @param bool $safe
-	 *
-	 * @return bool
-	 */
 	public function unloadChunk(int $chunkX, int $chunkZ, bool $safe = true) : bool{
 		$chunk = $this->chunks[$index = Level::chunkHash($chunkX, $chunkZ)] ?? null;
 		if($chunk instanceof Chunk and $chunk->unload($safe)){
@@ -425,22 +374,10 @@ class McRegion extends BaseLevelProvider {
 		$this->chunks = [];
 	}
 
-	/**
-	 * @param int $chunkX
-	 * @param int $chunkZ
-	 *
-	 * @return bool
-	 */
 	public function isChunkLoaded(int $chunkX, int $chunkZ) : bool{
 		return isset($this->chunks[Level::chunkHash($chunkX, $chunkZ)]);
 	}
 
-	/**
-	 * @param int $chunkX
-	 * @param int $chunkZ
-	 *
-	 * @return bool
-	 */
 	public function isChunkGenerated(int $chunkX, int $chunkZ) : bool{
 		if(($region = $this->getRegion($chunkX >> 5, $chunkZ >> 5)) !== null){
 			return $region->chunkExists($chunkX - $region->getX() * 32, $chunkZ - $region->getZ() * 32) and $this->getChunk($chunkX - $region->getX() * 32, $chunkZ - $region->getZ() * 32, true)->isGenerated();
@@ -449,12 +386,6 @@ class McRegion extends BaseLevelProvider {
 		return false;
 	}
 
-	/**
-	 * @param int $chunkX
-	 * @param int $chunkZ
-	 *
-	 * @return bool
-	 */
 	public function isChunkPopulated(int $chunkX, int $chunkZ) : bool{
 		$chunk = $this->getChunk($chunkX, $chunkZ);
 		if($chunk !== null){
@@ -464,9 +395,6 @@ class McRegion extends BaseLevelProvider {
 		}
 	}
 
-	/**
-	 * @return array
-	 */
 	public function getLoadedChunks() : array{
 		return $this->chunks;
 	}
@@ -519,6 +447,22 @@ class McRegion extends BaseLevelProvider {
 	protected function loadRegion(int $x, int $z){
 		if(!isset($this->regions[$index = Level::chunkHash($x, $z)])){
 			$this->regions[$index] = new RegionLoader($this, $x, $z, static::REGION_FILE_EXTENSION);
+			try{
+				$this->regions[$index]->open();
+			}catch(CorruptedRegionException $e){
+				$logger = $this->level->getServer()->getLogger();
+				$logger->error("Corrupted region file detected: " . $e->getMessage());
+
+				$this->regions[$index]->close(false); //Do not write anything to the file
+
+				$path = $this->regions[$index]->getFilePath();
+				$backupPath = $path . ".bak." . time();
+				rename($path, $backupPath);
+				$logger->error("Corrupted region file has been backed up to " . $backupPath);
+
+				$this->regions[$index] = new RegionLoader($this, $x, $z, static::REGION_FILE_EXTENSION);
+				$this->regions[$index]->open(); //this will create a new empty region to replace the corrupted one
+			}
 		}
 	}
 

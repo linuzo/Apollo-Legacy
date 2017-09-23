@@ -19,15 +19,16 @@
  *
 */
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace pocketmine\level\format\io;
 
 use pocketmine\level\format\Chunk;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
+use pocketmine\scheduler\AsyncTask;
 
-interface LevelProvider {
+interface LevelProvider{
 
 	/**
 	 * @param Level  $level
@@ -166,9 +167,9 @@ interface LevelProvider {
 	 * @param int $x
 	 * @param int $z
 	 *
-	 * @return \pocketmine\scheduler\AsyncTask|null
+	 * @return AsyncTask
 	 */
-	public function requestChunkTask(int $x, int $z);
+	public function requestChunkTask(int $x, int $z) : AsyncTask;
 
 	/**
 	 * @return string
@@ -186,7 +187,7 @@ interface LevelProvider {
 	public function setTime($value);
 
 	/**
-	 * @return int
+	 * @return int|string int, or the string numeric representation of a long in 32-bit systems
 	 */
 	public function getSeed();
 
