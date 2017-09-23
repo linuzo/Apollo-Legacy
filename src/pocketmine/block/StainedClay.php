@@ -57,14 +57,14 @@ class StainedClay extends Solid {
 	/**
 	 * @return float
 	 */
-	public function getHardness(){
+	public function getHardness() : float {
 		return 1.25;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getToolType(){
+	public function getToolType() : int {
 		return Tool::TYPE_PICKAXE;
 	}
 
