@@ -2721,9 +2721,9 @@ class Level implements ChunkManager, Metadatable{
 	 *
 	 * @return int
 	 */
-	public function getSeed() : int{
-		return $this->provider->getSeed();
-	}
+	//public function getSeed() : int{
+	//	return $this->provider->getSeed();
+	///}
 
 	/**
 	 * Sets the seed for the level
@@ -2840,7 +2840,7 @@ class Level implements ChunkManager, Metadatable{
 
 				//If the chunk can't be unloaded, it stays on the queue
 				if($this->unloadChunk($X, $Z, true)){
-					unset($this->unloadQueue[$index]);
+					unset($this->unloadQueue[$index]);//getSeed
 					--$maxUnload;
 				}
 			}
