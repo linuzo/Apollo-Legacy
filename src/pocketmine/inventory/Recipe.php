@@ -32,5 +32,5 @@ interface Recipe{
 	 */
 	public function getResult() : Item;
 
-	public function registerToCraftingManager(CraftingManager $manager) : void;
+	public function registerToCraftingManager(CraftingManager $manager);
 }
