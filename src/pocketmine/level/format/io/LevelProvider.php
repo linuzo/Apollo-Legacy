@@ -19,7 +19,7 @@
  *
 */
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace pocketmine\level\format\io;
 
@@ -68,13 +68,13 @@ interface LevelProvider{
 	/**
 	 * Generate the needed files in the path given
 	 *
-	 * @param string  $path
-	 * @param string  $name
-	 * @param int     $seed
-	 * @param string  $generator
-	 * @param array[] $options
+	 * @param string     $path
+	 * @param string     $name
+	 * @param int|string $seed
+	 * @param string     $generator
+	 * @param array[]    $options
 	 */
-	public static function generate(string $path, string $name, int $seed, string $generator, array $options = []);
+	public static function generate(string $path, string $name, $seed, string $generator, array $options = []);
 
 	/**
 	 * Returns the generator name
@@ -174,27 +174,27 @@ interface LevelProvider{
 	/**
 	 * @return string
 	 */
-	public function getName() : string;
+	public function getName();
 
 	/**
-	 * @return int
+	 * @return int|string int, or the string numeric representation of a long in 32-bit systems
 	 */
-	public function getTime() : int;
+	public function getTime();
 
 	/**
-	 * @param int
+	 * @param int|string $value int, or the string numeric representation of a long in 32-bit systems
 	 */
-	public function setTime(int $value);
+	public function setTime($value);
 
 	/**
-	 * @return int
+	 * @return int|string int, or the string numeric representation of a long in 32-bit systems
 	 */
-	public function getSeed() : int;
+	public function getSeed();
 
 	/**
-	 * @param int
+	 * @param int|string $value int, or the string numeric representation of a long in 32-bit systems
 	 */
-	public function setSeed(int $value);
+	public function setSeed($value);
 
 	/**
 	 * @return Vector3
@@ -216,7 +216,7 @@ interface LevelProvider{
 	/**
 	 * @return Level
 	 */
-	public function getLevel() : Level;
+	public function getLevel();
 
 	public function close();
 
