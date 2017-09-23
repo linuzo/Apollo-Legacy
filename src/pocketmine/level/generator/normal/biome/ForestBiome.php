@@ -19,22 +19,25 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\level\generator\normal\biome;
 
 use pocketmine\block\Sapling;
 use pocketmine\level\generator\populator\TallGrass;
 use pocketmine\level\generator\populator\Tree;
 
-class ForestBiome extends GrassyBiome{
+class ForestBiome extends GrassyBiome {
 
 	const TYPE_NORMAL = 0;
 	const TYPE_BIRCH = 1;
 
 	public $type;
 
-	public function __construct(int $type = self::TYPE_NORMAL){
+	/**
+	 * ForestBiome constructor.
+	 *
+	 * @param int $type
+	 */
+	public function __construct($type = self::TYPE_NORMAL){
 		parent::__construct();
 
 		$this->type = $type;
@@ -59,6 +62,9 @@ class ForestBiome extends GrassyBiome{
 		}
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getName() : string{
 		return $this->type === self::TYPE_BIRCH ? "Birch Forest" : "Forest";
 	}

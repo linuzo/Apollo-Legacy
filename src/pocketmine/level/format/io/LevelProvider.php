@@ -26,9 +26,8 @@ namespace pocketmine\level\format\io;
 use pocketmine\level\format\Chunk;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
-use pocketmine\scheduler\AsyncTask;
 
-interface LevelProvider{
+interface LevelProvider {
 
 	/**
 	 * @param Level  $level
@@ -68,13 +67,13 @@ interface LevelProvider{
 	/**
 	 * Generate the needed files in the path given
 	 *
-	 * @param string  $path
-	 * @param string  $name
-	 * @param int     $seed
-	 * @param string  $generator
-	 * @param array[] $options
+	 * @param string     $path
+	 * @param string     $name
+	 * @param int|string $seed
+	 * @param string     $generator
+	 * @param array[]    $options
 	 */
-	public static function generate(string $path, string $name, int $seed, string $generator, array $options = []);
+	public static function generate(string $path, string $name, $seed, string $generator, array $options = []);
 
 	/**
 	 * Returns the generator name
@@ -167,34 +166,34 @@ interface LevelProvider{
 	 * @param int $x
 	 * @param int $z
 	 *
-	 * @return AsyncTask
+	 * @return \pocketmine\scheduler\AsyncTask|null
 	 */
-	public function requestChunkTask(int $x, int $z) : AsyncTask;
+	public function requestChunkTask(int $x, int $z);
 
 	/**
 	 * @return string
 	 */
-	public function getName() : string;
+	public function getName();
+
+	/**
+	 * @return int|string int, or the string numeric representation of a long in 32-bit systems
+	 */
+	public function getTime();
+
+	/**
+	 * @param int|string $value int, or the string numeric representation of a long in 32-bit systems
+	 */
+	public function setTime($value);
 
 	/**
 	 * @return int
 	 */
-	public function getTime() : int;
+	public function getSeed();
 
 	/**
-	 * @param int
+	 * @param int|string $value int, or the string numeric representation of a long in 32-bit systems
 	 */
-	public function setTime(int $value);
-
-	/**
-	 * @return int
-	 */
-	public function getSeed() : int;
-
-	/**
-	 * @param int
-	 */
-	public function setSeed(int $value);
+	public function setSeed($value);
 
 	/**
 	 * @return Vector3
@@ -216,7 +215,7 @@ interface LevelProvider{
 	/**
 	 * @return Level
 	 */
-	public function getLevel() : Level;
+	public function getLevel();
 
 	public function close();
 
