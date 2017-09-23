@@ -18,8 +18,8 @@ class UpdateServerCommand extends VanillaCommand{
 		$this->setPermission('pocketmine.command.updateserver');
 	}
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
-		$apollocfg = yaml_parse_file('apollo.yml');
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
+		//$apollocfg = yaml_parse_file('apollo.yml');
 		$branch = $apollocfg['updater']['branch'];
 		$raw = json_decode(Utils::getURL('https://circleci.com/api/v1/project/Apollo-SoftwareTeam/Apollo-Legacy/tree/'.$branch.'?circle-token:token&limit=1&offset=1&filter=successfull'), true);
 		$buildinfo = $raw[0];
@@ -29,7 +29,7 @@ class UpdateServerCommand extends VanillaCommand{
 		    foreach(glob("Apollo*.phar") as $file){
 			    unlink($file);
 		    }
-			$rawartifactdata = json_decode(Utils::getURL('https://circleci.com/api/v1/project/NycuRO/Apollo/'.$buildinfo['build_num'].'/artifacts?circle-token=:token&branch=:branch&filter=:filter', true));
+			$rawartifactdata = json_decode(Utils::getURL('https://circleci.com/api/v1/project/Apollo-SoftwareTeam/Apollo-Legacy/'.$buildinfo['build_num'].'/artifacts?circle-token=:token&branch=:branch&filter=:filter', true));
 			$artifactdata = get_object_vars($rawartifactdata[0]);
 			if($rawartifactdata == 'NULL'){
 				$sender->sendMessage(new TranslationContainer(TF::RED."%pocketmine.command.updateserver.invalidbranch"));

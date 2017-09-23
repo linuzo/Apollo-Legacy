@@ -454,8 +454,8 @@ namespace pocketmine {
 		if(substr_count($pthreads_version, ".") < 2){
 			$pthreads_version = "0.$pthreads_version";
 		}
-		if(version_compare($pthreads_version, "3.1.7-dev") < 0){
-			$logger->critical("pthreads >= 3.1.7-dev is required, while you have $pthreads_version.");
+		if(version_compare($pthreads_version, "3.1.5") < 0){
+			$logger->critical("pthreads >= 3.1.5 is required, while you have $pthreads_version.");
 			++$errors;
 		}
 
@@ -503,7 +503,13 @@ namespace pocketmine {
 			$logger->critical("Please use the installer provided on the homepage, or recompile PHP again.");
 			$exitCode = 1;
 			break;
-		}
+
+	}
+		
+	if(PHP_INT_SIZE < 8){
+		$logger->warning("Running PocketMine-MP with 32-bit systems/PHP is deprecated and bugy. Support for 32-bit may be dropped in the future.");
+	}
+				
 
 		$gitHash = str_repeat("00", 20);
 
