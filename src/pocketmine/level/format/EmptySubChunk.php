@@ -19,13 +19,17 @@
  *
 */
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace pocketmine\level\format;
 
-class EmptySubChunk implements SubChunkInterface{
+class EmptySubChunk extends SubChunk{
 
-	public function isEmpty(bool $checkLight = true) : bool{
+	public function __construct(){
+
+	}
+
+	public function isEmpty() : bool{
 		return true;
 	}
 
@@ -69,10 +73,6 @@ class EmptySubChunk implements SubChunkInterface{
 		return false;
 	}
 
-	public function getHighestBlockAt(int $x, int $z) : int{
-		return -1;
-	}
-
 	public function getBlockIdColumn(int $x, int $z) : string{
 		return "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
 	}
@@ -85,7 +85,7 @@ class EmptySubChunk implements SubChunkInterface{
 		return "\x00\x00\x00\x00\x00\x00\x00\x00";
 	}
 
-	public function getBlockSkyLightColumn(int $x, int $z) : string{
+	public function getSkyLightColumn(int $x, int $z) : string{
 		return "\xff\xff\xff\xff\xff\xff\xff\xff";
 	}
 
@@ -101,20 +101,12 @@ class EmptySubChunk implements SubChunkInterface{
 		return str_repeat("\x00", 2048);
 	}
 
-	public function setBlockLightArray(string $data){
-
-	}
-
-	public function getBlockSkyLightArray() : string{
+	public function getSkyLightArray() : string{
 		return str_repeat("\xff", 2048);
 	}
 
-	public function setBlockSkyLightArray(string $data){
-
-	}
-
 	public function networkSerialize() : string{
-		return "\x00" . str_repeat("\x00", 6144);
+		return "\x00" . str_repeat("\x00", 10240);
 	}
 
 	public function fastSerialize() : string{
