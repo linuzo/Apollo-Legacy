@@ -92,7 +92,7 @@ class CraftingManager{
 	/**
 	 * Rebuilds the cached CraftingDataPacket.
 	 */
-	public function buildCraftingDataCache() : void{
+	public function buildCraftingDataCache(){
 		Timings::$craftingDataCacheRebuildTimer->startTiming();
 		$pk = new CraftingDataPacket();
 		$pk->cleanRecipes = true;
@@ -181,8 +181,8 @@ class CraftingManager{
 	/**
 	 * @param ShapedRecipe $recipe
 	 */
-	public function registerShapedRecipe(ShapedRecipe $recipe) : void{
-		$result = $recipe->getResult();
+	public function registerShapedRecipe(ShapedRecipe $recipe){
+		$result = $recipe->getResult(); //void
 
 		/** @var Item[][] $ingredients */
 		$ingredients = $recipe->getIngredientMap();
@@ -205,7 +205,7 @@ class CraftingManager{
 	/**
 	 * @param ShapelessRecipe $recipe
 	 */
-	public function registerShapelessRecipe(ShapelessRecipe $recipe) : void{
+	public function registerShapelessRecipe(ShapelessRecipe $recipe){
 		$result = $recipe->getResult();
 		$hash = "";
 		$ingredients = $recipe->getIngredientList();
@@ -220,7 +220,7 @@ class CraftingManager{
 	/**
 	 * @param FurnaceRecipe $recipe
 	 */
-	public function registerFurnaceRecipe(FurnaceRecipe $recipe) : void{
+	public function registerFurnaceRecipe(FurnaceRecipe $recipe){
 		$input = $recipe->getInput();
 		$this->furnaceRecipes[$input->getId() . ":" . ($input->hasAnyDamageValue() ? "?" : $input->getDamage())] = $recipe;
 		$this->craftingDataCache = null;
@@ -287,7 +287,7 @@ class CraftingManager{
 	/**
 	 * @param Recipe $recipe
 	 */
-	public function registerRecipe(Recipe $recipe) : void{
+	public function registerRecipe(Recipe $recipe){
 		if($recipe instanceof CraftingRecipe){
 			$result = $recipe->getResult();
 			$recipe->setId($uuid = UUID::fromData((string) ++self::$RECIPE_COUNT, (string) $result->getId(), (string) $result->getDamage(), (string) $result->getCount(), $result->getCompoundTag()));
