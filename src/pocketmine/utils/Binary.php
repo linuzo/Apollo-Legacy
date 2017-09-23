@@ -161,13 +161,14 @@ class Binary{
 	/**
 	 * Reads a 16-bit unsigned little-endian number
 	 *
-	 * @param string $str
+	 * @param      $str
 	 *
 	 * @return int
 	 */
-	public static function readLShort(string $str) : int{
-		self::checkLength($str, 0);
-		return unpack("v", $str)[0];
+	public static function readLShort($str){
+		self::checkLength($str, 2);
+
+		return unpack("v", $str)[1];
 	}
 
 	/**
