@@ -3114,7 +3114,7 @@ class Level implements ChunkManager, Metadatable
     }
 
     public function setMetadata(string $metadataKey, MetadataValue $metadataValue) {
-        $this->server->getLevelMetadata()->setMetadata($this, $metadataKey, $metadataValue);
+        $this->server->getLevelMetadata()->setMetadata($this, string $metadataKey, $metadataValue);
     }
 
     public function getMetadata($metadataKey) {
