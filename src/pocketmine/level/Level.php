@@ -3113,21 +3113,21 @@ class Level implements ChunkManager, Metadatable
         return $batch;
     }
 
-    public function setMetadata(string $metadataKey, MetadataValue $metadataValue) {
-        $this->server->getLevelMetadata()->setMetadata($this, $metadataKey, $metadataValue);
-    }
-
-    public function getMetadata(string $metadataKey) {
-        return $this->server->getLevelMetadata()->getMetadata($this, $metadataKey);
-    }
-
-    public function hasMetadata(string $metadataKey) {
-        return $this->server->getLevelMetadata()->hasMetadata($this, $metadataKey);
-    }
-
-    public function removeMetadata(string $metadataKey, Plugin $plugin) {
-        $this->server->getLevelMetadata()->removeMetadata($this, $metadataKey, $plugin);
-    }
+	public function setMetadata(string $metadataKey, MetadataValue $newMetadataValue){
+		$this->server->getLevelMetadata()->setMetadata($this, $metadataKey, $newMetadataValue);
+	}
+	
+	public function getMetadata(string $metadataKey){
+		return $this->server->getLevelMetadata()->getMetadata($this, $metadataKey);
+	}
+	
+	public function hasMetadata(string $metadataKey) : bool{
+		return $this->server->getLevelMetadata()->hasMetadata($this, $metadataKey);
+	}
+	
+	public function removeMetadata(string $metadataKey, Plugin $owningPlugin){
+		$this->server->getLevelMetadata()->removeMetadata($this, $metadataKey, $owningPlugin);
+	}
 
     public function addEntityMotion(int $chunkX, int $chunkZ, int $entityId, float $x, float $y, float $z) {
         if (!isset($this->motionToSend[$index = Level::chunkHash($chunkX, $chunkZ)])) {
