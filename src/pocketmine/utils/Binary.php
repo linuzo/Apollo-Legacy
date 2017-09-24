@@ -165,7 +165,7 @@ class Binary{
 	 *
 	 * @return int
 	 */
-	public static function readLShort(string $str) : int{
+	public static function readLShort($str) : int{
 		self::checkLength($str, 2);
 		return unpack("v", $str)[1];
 	}
