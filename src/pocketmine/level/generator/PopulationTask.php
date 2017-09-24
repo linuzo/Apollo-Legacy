@@ -120,12 +120,22 @@ class PopulationTask extends AsyncTask{
 		foreach($chunks as $i => $c){
 			if($c !== null){
 				$c = $chunks[$i] = $manager->getChunk($c->getX(), $c->getZ());
+<<<<<<< HEAD
 				if(!$c->hasChanged()){
 					$chunks[$i] = null;
 				}
 			}else{
 				//This way non-changed chunks are not set
 				$chunks[$i] = null;
+=======
+                  			//if(!$c->hasChanged()){
+					//$chunks[$i] = null;
+			//	}
+			//}else{
+				//This way non-changed chunks are not set
+			//	$chunks[$i] = null;
+			}
+>>>>>>> 664a8ce3a8c6e4456389909b704b2f7bc51ef6d2
 		}
 	
 	}
