@@ -463,7 +463,7 @@ class BinaryStream extends \stdClass {
 	 * @param $y
 	 * @param $z
 	 */
-	public function putVector3f($x, $y, $z){
+	public function putVector3f(float $x, float $y, float $z){
 		$this->putLFloat($x);
 		$this->putLFloat($y);
 		$this->putLFloat($z);
