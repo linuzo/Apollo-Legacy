@@ -106,7 +106,7 @@ abstract class BaseInventory implements Inventory{
 	 * @param Item[] $items
 	 * @param bool   $send
 	 */
-	public function setContents(array $items, bool $send = true) : void{
+	public function setContents(array $items, bool $send = true){
 		if(count($items) > $this->getSize()){
 			$items = array_slice($items, 0, $this->getSize(), true);
 		}
@@ -118,7 +118,7 @@ abstract class BaseInventory implements Inventory{
 				}
 			}else{
 				if(!$this->setItem($i, $items[$i], false)){
-					$this->clear($i, false);
+					$this->clear($i, false); ///void
 				}
 			}
 		}
@@ -128,7 +128,7 @@ abstract class BaseInventory implements Inventory{
 		}
 	}
 
-	protected function doSetItemEvents(int $index, Item $newItem) : ?Item{
+	protected function doSetItemEvents(int $index, Item $newItem) : Item{
 		return $newItem;
 	}
 
@@ -180,7 +180,7 @@ abstract class BaseInventory implements Inventory{
 		return $slots;
 	}
 
-	public function remove(Item $item) : void{
+	public function remove(Item $item){
 		$checkDamage = !$item->hasAnyDamageValue();
 		$checkTags = $item->hasCompoundTag();
 
@@ -334,7 +334,7 @@ abstract class BaseInventory implements Inventory{
 		return $this->setItem($index, ItemFactory::get(Item::AIR, 0, 0), $send);
 	}
 
-	public function clearAll() : void{
+	public function clearAll(){
 		for($i = 0, $size = $this->getSize(); $i < $size; ++$i){
 			$this->clear($i, false);
 		}
@@ -353,7 +353,7 @@ abstract class BaseInventory implements Inventory{
 		return $this->holder;
 	}
 
-	public function setMaxStackSize(int $size) : void{
+	public function setMaxStackSize(int $size){
 		$this->maxStackSize = $size;
 	}
 
@@ -367,19 +367,19 @@ abstract class BaseInventory implements Inventory{
 		return true;
 	}
 
-	public function close(Player $who) : void{
+	public function close(Player $who){
 		$this->onClose($who);
 	}
 
-	public function onOpen(Player $who) : void{
+	public function onOpen(Player $who){
 		$this->viewers[spl_object_hash($who)] = $who;
 	}
 
-	public function onClose(Player $who) : void{
+	public function onClose(Player $who){
 		unset($this->viewers[spl_object_hash($who)]);
 	}
 
-	public function onSlotChange(int $index, Item $before, bool $send) : void{
+	public function onSlotChange(int $index, Item $before, bool $send){
 		if($send){
 			$this->sendSlot($index, $this->getViewers());
 		}
@@ -389,7 +389,7 @@ abstract class BaseInventory implements Inventory{
 	/**
 	 * @param Player|Player[] $target
 	 */
-	public function sendContents($target) : void{
+	public function sendContents($target){
 		if($target instanceof Player){
 			$target = [$target];
 		}
@@ -415,9 +415,9 @@ abstract class BaseInventory implements Inventory{
 	 * @param int             $index
 	 * @param Player|Player[] $target
 	 */
-	public function sendSlot(int $index, $target) : void{
+	public function sendSlot(int $index, $target){
 		if($target instanceof Player){
-			$target = [$target];
+			$target = [$target]; //void
 		}
 
 		$pk = new InventorySlotPacket();

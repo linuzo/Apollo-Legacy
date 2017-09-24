@@ -45,7 +45,7 @@ interface Inventory{
 	/**
 	 * @param int $size
 	 */
-	public function setMaxStackSize(int $size) : void;
+	public function setMaxStackSize(int $size);
 
 	/**
 	 * @return string

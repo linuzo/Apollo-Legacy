@@ -42,7 +42,7 @@ class PlayerInventory extends EntityInventory{
 	protected $holder;
 
 	/** @var int */
-	protected $itemInHandIndex = 0;
+	protected $itemInHandIndex = 0;//?
 
 	/**
 	 * @param Human $player
@@ -267,7 +267,7 @@ class PlayerInventory extends EntityInventory{
 		return $this->setItem($this->getSize() + 3, $boots);
 	}
 
-	protected function doSetItemEvents(int $index, Item $newItem) : ?Item{
+	protected function doSetItemEvents(int $index, Item $newItem) : Item{
 		if($index >= $this->getSize()){
 			Server::getInstance()->getPluginManager()->callEvent($ev = new EntityArmorChangeEvent($this->getHolder(), $this->getItem($index), $newItem, $index));
 			if($ev->isCancelled()){

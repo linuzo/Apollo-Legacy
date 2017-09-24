@@ -54,7 +54,7 @@ class BinaryStream extends \stdClass {
 	 */
 	public function setBuffer($buffer = null, $offset = 0){
 		$this->buffer = $buffer;
-		$this->offset = (int) $offset;
+		$this->offset = (int) $offset;//get
 	}
 
 	/**
@@ -89,6 +89,13 @@ class BinaryStream extends \stdClass {
 		}
 
 		return $len === 1 ? $this->buffer{$this->offset++} : substr($this->buffer, ($this->offset += $len) - $len, $len);
+	}
+	
+	
+	public function getRemaining() : string{
+		$str = substr($this->buffer, $this->offset);
+		$this->offset = strlen($this->buffer);
+		return $str;
 	}
 
 	/**
