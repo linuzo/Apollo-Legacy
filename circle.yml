@@ -1,5 +1,13 @@
 #Circle-CI
 
+<<<<<<< refs/remotes/origin/32-bit
+=======
+machine:
+  pre:
+    - wget -O PHP7.tar.gz https://bintray.com/pocketmine/PocketMine/download_file?file_path=PHP_7.0.3_x86_Linux.tar.gz --no-check-certificate
+    - tar -xf PHP7.tar.gz
+
+>>>>>>> Revert
 test:
   post:
     - git submodule sync
