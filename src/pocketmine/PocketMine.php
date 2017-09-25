@@ -79,7 +79,7 @@ namespace pocketmine {
 	use pocketmine\wizard\SetupWizard;
 	use raklib\RakLib;
 
-	const VERSION = "1.0";
+	const VERSION = "1.0dev";
 	const API_VERSION = "3.0.0-ALPHA8";
 	const CODENAME = "Parry wanna cracker?";
 
