@@ -1292,6 +1292,14 @@ class Server{
 	public function getIPBans(){
 		return $this->banByIP;
 	}
+	
+	/**
+	 * @internal
+	 * @param Level $level
+	 */
+	public function removeLevel(Level $level) : void{
+		unset($this->levels[$level->getId()]);
+	}
 
 	/**
 	 * @param string $name
