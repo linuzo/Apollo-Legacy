@@ -21,47 +21,39 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\block;
+namespace pocketmine\event\player;
 
+use pocketmine\block\Block;
+use pocketmine\event\Cancellable;
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
 use pocketmine\Player;
 
-class Dirt extends Solid{
+/**
+ * Called when a player middle-clicks on a block to get an item in creative mode.
+ */
+class PlayerBlockPickEvent extends PlayerEvent implements Cancellable{
+	public static $handlerList = null;
 
-	protected $id = self::DIRT;
+	/** @var Block */
+	private $blockClicked;
+	/** @var Item */
+	private $resultItem;
 
-	public function __construct(int $meta = 0){
-		$this->meta = $meta;
+	public function __construct(Player $player, Block $blockClicked, Item $resultItem){
+		$this->player = $player;
+		$this->blockClicked = $blockClicked;
+		$this->resultItem = $resultItem;
 	}
 
-	public function getHardness() : float{
-		return 0.5;
+	public function getBlock() : Block{
+		return $this->blockClicked;
 	}
 
-	public function getToolType() : int{
-		return Tool::TYPE_SHOVEL;
+	public function getResultItem() : Item{
+		return $this->resultItem;
 	}
 
-	public function getName() : string{
-		if($this->meta === 1){
-			return "Coarse Dirt";
-		}
-		return "Dirt";
-	}
-
-	public function onActivate(Item $item, Player $player = null) : bool{
-		if($item->isHoe()){
-			$item->useOn($this);
-			if($this->meta === 1){
-				$this->getLevel()->setBlock($this, BlockFactory::get(Block::DIRT), true);
-			}else{
-				$this->getLevel()->setBlock($this, BlockFactory::get(Block::FARMLAND), true);
-			}
-
-			return true;
-		}
-
-		return false;
+	public function setResultItem(Item $item) : void{
+		$this->resultItem = clone $item;
 	}
 }
