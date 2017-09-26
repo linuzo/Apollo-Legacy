@@ -61,8 +61,8 @@ Apollo is a perfect software for your server
  - [ ] **Splash Potions**
  - [ ] **Nether [ more more changes and performance ], Ender**
  - [ ] **MobAI**
- - [X] **Plugin Compatibility for PMMP Plugins**
- - [X] **Plugin Compatibility for Tesseract & Genisys Plugins**
+ - [ ] **Plugin Compatibility for PMMP Plugins**
+ - [ ] **Plugin Compatibility for Tesseract & Genisys Plugins**
 
 
 ## Upcoming Update
