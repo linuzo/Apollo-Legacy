@@ -24,20 +24,20 @@ Apollo is a perfect software for your server
 
 ## todo
  - [ ] **New better and epic world with epic chunks loaded**
- - Bugs fixed
- - Hoppers
- - More TNT performance ( support 500 TNT without lag with official configurations : apollo.yml, pocketmine.yml )
- - Redstone performance, all epic mecanism redstone work
- - New biomes and better mobs
- - Boats
- - Different door color
- - Enchantment table work epic fine
- - Enchanted items
- - Potions
- - Anvil and Brewing
- - Weather
- - Experience
- - More commands :
+ - [ ] **Bugs fixed**
+ - [ ] **Hoppers**
+ - [ ] **More TNT performance ( support 500 TNT without lag with official configurations : apollo.yml, pocketmine.yml )**
+ - [ ] **Redstone performance, all epic mecanism redstone work**
+ - [ ] **New biomes and better mobs**
+ - [ ] **Boats**
+ - [ ] **Different door color**
+ - [ ] **Enchantment table work epic fine**
+ - [ ] **Enchanted items**
+ - [ ] **Potions**
+ - [ ] **Anvil and Brewing**
+ - [ ] **Weather**
+ - [ ] **Experience**
+ - [ ] **More commands :
  *deviceban
  *biome
  *extractphar
@@ -51,14 +51,18 @@ Apollo is a perfect software for your server
  *setblock
  *summon
  *weather
- *xp
- - Monster Spawner
- - Item Frame
- - Multiple types of Boat, Villager and Rabbit
- - Dispenser and Dropper
- - Colorful Sheep
- - Splash Potions 
- - Nether [ more more changes and performance ]
+ *xp**
+ - [ ] **Monster Spawner**
+ - [X] **Item Frame**
+ - [ ] **Multiple types of Boat, Villager and Rabbit**
+ - [ ] **Dispenser and Dropper**
+ - [ ] **Pistons**
+ - [ ] **Colorful Sheep**
+ - [ ] **Splash Potions**
+ - [ ] **Nether [ more more changes and performance ], Ender**
+ - [ ] **MobAI**
+ - [X] **Plugin Compatibility for PMMP Plugins**
+ - [X] **Plugin Compatibility for Tesseract & Genisys Plugins**
 
 
 ## Upcoming Update
