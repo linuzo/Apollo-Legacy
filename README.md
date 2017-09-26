@@ -23,7 +23,7 @@ Apollo is a perfect software for your server
 
 
 ## todo
- - New better and epic world with epic chunks loaded
+ - [ ] **New better and epic world with epic chunks loaded**
  - Bugs fixed
  - Hoppers
  - More TNT performance ( support 500 TNT without lag with official configurations : apollo.yml, pocketmine.yml )
