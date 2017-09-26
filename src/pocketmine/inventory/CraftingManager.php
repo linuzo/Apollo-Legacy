@@ -182,20 +182,8 @@ class CraftingManager{
 	/**
 	 * @return ShapedRecipe[][]
 	 */
-<<<<<<< HEAD
 	public function matchFurnaceRecipe(Item $input) : FurnaceRecipe{
 		return $this->furnaceRecipes[$input->getId() . ":" . $input->getDamage()] ?? $this->furnaceRecipes[$input->getId() . ":?"] ?? null;
-=======
-	public function getShapedRecipes() : array{
-		return $this->shapedRecipes;
-	}
-
-	/**
-	 * @return FurnaceRecipe[]
-	 */
-	public function getFurnaceRecipes() : array{
-		return $this->furnaceRecipes;
->>>>>>> master
 	}
 
 	/**
@@ -208,7 +196,6 @@ class CraftingManager{
 	/**
 	 * @param ShapedRecipe $recipe
 	 */
-<<<<<<< HEAD
 	public function registerShapedRecipe(ShapedRecipe $recipe){
 		$result = $recipe->getResult(); //void
 
@@ -227,23 +214,15 @@ class CraftingManager{
 		}
 
 		$this->recipeLookup[$result->getId() . ":" . $result->getDamage()][$hash] = $recipe;
-=======
-	public function registerShapedRecipe(ShapedRecipe $recipe) : void{
-		$this->shapedRecipes[json_encode($recipe->getResult())][json_encode($recipe->getIngredientMap())] = $recipe;
->>>>>>> master
 		$this->craftingDataCache = null;
 	}
 
 	/**
 	 * @param ShapelessRecipe $recipe
 	 */
-<<<<<<< HEAD
 	public function registerShapelessRecipe(ShapelessRecipe $recipe){
 		$result = $recipe->getResult();
 		$hash = "";
-=======
-	public function registerShapelessRecipe(ShapelessRecipe $recipe) : void{
->>>>>>> master
 		$ingredients = $recipe->getIngredientList();
 		usort($ingredients, [$this, "sort"]);
 		$this->shapelessRecipes[json_encode($recipe->getResult())][json_encode($ingredients)] = $recipe;
