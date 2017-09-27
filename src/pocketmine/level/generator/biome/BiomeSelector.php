@@ -41,12 +41,12 @@ class BiomeSelector{
 
 	public function __construct(Random $random, Biome $fallback){
 		$this->fallback = $fallback;
-		$this->temperature = new Simplex($random, 2, 1 / 16, 1 / 512);
-		$this->rainfall = new Simplex($random, 2, 1 / 16, 1 / 512);
+		$this->temperature = new Simplex($random, 2.0, -0.5 , -0.5);
+		$this->rainfall = new Simplex($random, 2.0, -0.5, -0.5);
 	}
 	
 	public function lookup($temperature, $rainfall){
-                if($rainfall < 0.25){ //corect is 0.50,buggy for 0.50
+                if($rainfall < 0.25){ // Rewrite.
                         if($temperature < 0.60){
 				return Biome::BIRCH_FOREST;
                         }elseif($temperature < 0.70){
@@ -60,7 +60,7 @@ class BiomeSelector{
                         }else{
                         	return Biome::RIVER;
                         }
-                }elseif($rainfall < 0.80){
+                }elseif($rainfall <= 0.80){
 			if($temperature < 0.95){
 				return Biome::JUNGLE;
 			}elseif($temperature < 0.05){
@@ -68,25 +68,25 @@ class BiomeSelector{
                         }else{
                         	return Biome::ICE_PLAINS;
                         }
-                }elseif($rainfall < 0.40){
+                }elseif($rainfall <= 0.40){
                         if($temperature < 0.80){
 				return Biome::PLAINS;
                         }
-                }elseif($rainfall < 0.70){
+                }elseif($rainfall <= 0.70){
                         if($temperature < 0.50){
 				return Biome::RIVER;
                         }else{
                         	return Biome::TAIGA;
                         }
-                }elseif($rainfall < 0.90){
-                        if($temperature < 0.70){
+                }elseif($rainfall <= 0.90){
+                        if($temperature <= 0.70){
 				return Biome::ROOFED_FOREST;
                         }elseif($temperature < 0.80){
 				return Biome::SWAMP;
                         }else{
                         	return Biome::OCEAN;
                         }
-                }elseif($rainfall < 0.20){
+                }elseif($rainfall <= 0.20){
                         if($temperature < 1.20){
 				return Biome::SAVANNA;
                         }else{
@@ -130,8 +130,8 @@ class BiomeSelector{
 	 * @return Biome
 	 */
 	public function pickBiome($x, $z){
-		$temperature = (int) ($this->getTemperature($x, $z) * 63);
-		$rainfall = (int) ($this->getRainfall($x, $z) * 63);
+		$temperature = (int) ($this->getTemperature($x, $z));
+		$rainfall = (int) ($this->getRainfall($x, $z));
 
 		$biomeId = $this->map[$temperature + ($rainfall << 6)];
 		return isset($this->biomes[$biomeId]) ? $this->biomes[$biomeId] : $this->fallback;
