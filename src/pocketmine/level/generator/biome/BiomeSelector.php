@@ -41,59 +41,59 @@ class BiomeSelector{
 
 	public function __construct(Random $random, Biome $fallback){
 		$this->fallback = $fallback;
-		$this->temperature = new Simplex($random, 2, 1 / 16, 1 / 512);
-		$this->rainfall = new Simplex($random, 2, 1 / 16, 1 / 512);
+		$this->temperature = new Simplex($random, 2.0, -0.5 , -0.5);
+		$this->rainfall = new Simplex($random, 2.0, -0.5, -0.5);
 	}
 	
 	public function lookup($temperature, $rainfall){
-                if($rainfall < 0.25){ //corect is 0.50,buggy for 0.50
-                        if($temperature < 0.60){
+                if($rainfall < 0.25f){ // Rewrite.
+                        if($temperature < 0.60f){
 				return Biome::BIRCH_FOREST;
-                        }elseif($temperature < 0.70){
+                        }elseif($temperature < 0.70f){
 				return Biome::FOREST;
                         }else{
                         	return Biome::DESERT;
                         }
-                }elseif($rainfall <= 2.00){
-                        if($temperature == 0.00){
+                }elseif($rainfall <= 2.00f){
+                        if($temperature == 0.00f){
 				return Biome::FROZEN_RIVER;
                         }else{
                         	return Biome::RIVER;
                         }
-                }elseif($rainfall < 0.80){
-			if($temperature < 0.95){
+                }elseif($rainfall <= 0.80f){
+			if($temperature < 0.95f){
 				return Biome::JUNGLE;
 			}elseif($temperature < 0.05){
 				return Biome::TAIGA;
                         }else{
                         	return Biome::ICE_PLAINS;
                         }
-                }elseif($rainfall < 0.40){
-                        if($temperature < 0.80){
+                }elseif($rainfall <= 0.40f){
+                        if($temperature < 0.80f){
 				return Biome::PLAINS;
                         }
-                }elseif($rainfall < 0.70){
-                        if($temperature < 0.50){
+                }elseif($rainfall <= 0.70f){
+                        if($temperature < 0.50f){
 				return Biome::RIVER;
                         }else{
                         	return Biome::TAIGA;
                         }
-                }elseif($rainfall < 0.90){
-                        if($temperature < 0.70){
+                }elseif($rainfall <= 0.90f){
+                        if($temperature <= 0.70f){
 				return Biome::ROOFED_FOREST;
                         }elseif($temperature < 0.80){
 				return Biome::SWAMP;
                         }else{
                         	return Biome::OCEAN;
                         }
-                }elseif($rainfall < 0.20){
-                        if($temperature < 1.20){
+                }elseif($rainfall <= 0.20f){
+                        if($temperature < 1.20f){
 				return Biome::SAVANNA;
                         }else{
                         	return Biome::MESA;
                         }
                 }else{
-                        if($temperature <= 2.00){
+                        if($temperature <= 2.00f){
 				return Biome::MESA;
                         }else{
                         	return Biome::BIRCH_FOREST;
