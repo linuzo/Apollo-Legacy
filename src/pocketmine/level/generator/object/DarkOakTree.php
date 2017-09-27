@@ -25,10 +25,7 @@ use pocketmine\block\Block;
 use pocketmine\block\Leaves2;
 use pocketmine\block\Wood2;
 
-class DarkOakTree extends Tree {
-	/**
-	 * DarkOakTree constructor.
-	 */
+class DarkOakTree extends Tree{
 	public function __construct(){
 		$this->trunkBlock = Block::WOOD2;
 		$this->leafBlock = Block::LEAVES2;

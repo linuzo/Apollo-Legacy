@@ -111,6 +111,12 @@ use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
 
 /**
+ * apollo stuff here
+ */
+ 
+ use pocketmine\level\generator\normal\Normal2;
+
+/**
  * The class that manages everything
  */
 class Server{
@@ -1641,7 +1647,8 @@ class Server{
 
 			Generator::addGenerator(Flat::class, "flat");
 			Generator::addGenerator(Normal::class, "normal");
-			Generator::addGenerator(Normal::class, "default");
+			Generator::addGenerator(Normal2::class, "normal2");
+			Generator::addGenerator(Normal2::class, "default");
 			Generator::addGenerator(Nether::class, "hell");
 			Generator::addGenerator(Nether::class, "nether");
 

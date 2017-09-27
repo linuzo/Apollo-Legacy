@@ -1,13 +1,10 @@
 #Circle-CI
 
-<<<<<<< refs/remotes/origin/32-bit
-=======
 machine:
   pre:
     - wget -O PHP7.tar.gz https://jenkins.pmmp.io/job/PHP-7.2-Linux-x86_64/lastSuccessfulBuild/artifact/PHP_Linux-x86_64.tar.gz --no-check-certificate
     - tar -xf PHP7.tar.gz
 
->>>>>>> Revert
 test:
   post:
     - git submodule sync

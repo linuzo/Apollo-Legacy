@@ -38,13 +38,13 @@ class UpdateAttributesPacket extends DataPacket{
 	public $entries = [];
 
 	protected function decodePayload(){
-	//	$this->entityRuntimeId = $this->getEntityRuntimeId();
-		//$this->entries = $this->getAttributeList();
+		$this->entityRuntimeId = $this->getEntityRuntimeId();
+		$this->entries = $this->getAttributeList();
 	}
 
 	protected function encodePayload(){
-	//	$this->putEntityRuntimeId($this->entityRuntimeId);
-	//	$this->putAttributeList(...$this->entries);
+		$this->putEntityRuntimeId($this->entityRuntimeId);
+		$this->putAttributeList(...$this->entries);
 	}
 
 	public function handle(NetworkSession $session) : bool{

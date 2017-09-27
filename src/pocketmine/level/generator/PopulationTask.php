@@ -43,7 +43,7 @@ class PopulationTask extends AsyncTask{
 	public $chunk5;
 	public $chunk6;
 	public $chunk7;
-	public $chunk8;//hasChanged
+	public $chunk8;
 
 	public function __construct(Level $level, Chunk $chunk){
 		$this->state = true;
@@ -126,9 +126,9 @@ class PopulationTask extends AsyncTask{
 			}else{
 				//This way non-changed chunks are not set
 				$chunks[$i] = null;
+			}
 		}
-	
-	}
+
 		$manager->cleanChunks();
 
 		for($i = 0; $i < 9; ++$i){

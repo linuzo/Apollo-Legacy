@@ -179,22 +179,22 @@ interface LevelProvider{
 	/**
 	 * @return int
 	 */
-	public function getTime();
+	public function getTime() : int;
 
 	/**
 	 * @param int
 	 */
-	public function setTime($value);
+	public function setTime(int $value);
 
 	/**
 	 * @return int
 	 */
-	public function getSeed();
+	public function getSeed() : int;
 
 	/**
 	 * @param int
 	 */
-	public function setSeed($value);
+	public function setSeed(int $value);
 
 	/**
 	 * @return Vector3

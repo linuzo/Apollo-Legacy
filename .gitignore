@@ -28,4 +28,3 @@ Desktop.ini
 # Sphinx-doc
 /docs/build/
 !/docs/requirements.txt
-src/pocketmine/level/generator/PopulationTask.php

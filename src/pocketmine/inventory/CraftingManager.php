@@ -26,7 +26,7 @@ namespace pocketmine\inventory;
 use pocketmine\event\Timings;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\network\mcpe\protocol\CraftingDataPacket; // ?
+use pocketmine\network\mcpe\protocol\CraftingDataPacket;
 use pocketmine\Server;
 use pocketmine\utils\Config;
 use pocketmine\utils\MainLogger;
@@ -94,7 +94,7 @@ class CraftingManager{
 	/**
 	 * Rebuilds the cached CraftingDataPacket.
 	 */
-	public function buildCraftingDataCache(){
+	public function buildCraftingDataCache() : void{
 		Timings::$craftingDataCacheRebuildTimer->startTiming();
 		$pk = new CraftingDataPacket();
 		$pk->cleanRecipes = true;
@@ -182,8 +182,8 @@ class CraftingManager{
 	/**
 	 * @return ShapedRecipe[][]
 	 */
-	public function matchFurnaceRecipe(Item $input) : FurnaceRecipe{
-		return $this->furnaceRecipes[$input->getId() . ":" . $input->getDamage()] ?? $this->furnaceRecipes[$input->getId() . ":?"] ?? null;
+	public function getShapedRecipes() : array{
+		return $this->shapedRecipes;
 	}
 
 	/**
@@ -196,33 +196,15 @@ class CraftingManager{
 	/**
 	 * @param ShapedRecipe $recipe
 	 */
-	public function registerShapedRecipe(ShapedRecipe $recipe){
-		$result = $recipe->getResult(); //void
-
-		/** @var Item[][] $ingredients */
-		$ingredients = $recipe->getIngredientMap();
-		$hash = "";
-		foreach($ingredients as $v){
-			foreach($v as $item){
-				if($item !== null){
-					/** @var Item $item */
-					$hash .= $item->getId() . ":" . ($item->hasAnyDamageValue() ? "?" : $item->getDamage()) . "x" . $item->getCount() . ",";
-				}
-			}
-
-			$hash .= ";";
-		}
-
-		$this->recipeLookup[$result->getId() . ":" . $result->getDamage()][$hash] = $recipe;
+	public function registerShapedRecipe(ShapedRecipe $recipe) : void{
+		$this->shapedRecipes[json_encode($recipe->getResult())][json_encode($recipe->getIngredientMap())] = $recipe;
 		$this->craftingDataCache = null;
 	}
 
 	/**
 	 * @param ShapelessRecipe $recipe
 	 */
-	public function registerShapelessRecipe(ShapelessRecipe $recipe){
-		$result = $recipe->getResult();
-		$hash = "";
+	public function registerShapelessRecipe(ShapelessRecipe $recipe) : void{
 		$ingredients = $recipe->getIngredientList();
 		usort($ingredients, [$this, "sort"]);
 		$this->shapelessRecipes[json_encode($recipe->getResult())][json_encode($ingredients)] = $recipe;
@@ -232,7 +214,7 @@ class CraftingManager{
 	/**
 	 * @param FurnaceRecipe $recipe
 	 */
-	public function registerFurnaceRecipe(FurnaceRecipe $recipe){
+	public function registerFurnaceRecipe(FurnaceRecipe $recipe) : void{
 		$input = $recipe->getInput();
 		$this->furnaceRecipes[$input->getId() . ":" . ($input->hasAnyDamageValue() ? "?" : $input->getDamage())] = $recipe;
 		$this->craftingDataCache = null;
@@ -314,7 +296,7 @@ class CraftingManager{
 	/**
 	 * @param Recipe $recipe
 	 */
-	public function registerRecipe(Recipe $recipe){
+	public function registerRecipe(Recipe $recipe) : void{
 		if($recipe instanceof CraftingRecipe){
 			$result = $recipe->getResult();
 			$recipe->setId($uuid = UUID::fromData((string) ++self::$RECIPE_COUNT, (string) $result->getId(), (string) $result->getDamage(), (string) $result->getCount(), $result->getCompoundTag()));
