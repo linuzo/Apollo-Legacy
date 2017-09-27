@@ -15,14 +15,14 @@ Actual result: What actually happened?
 2. ...
 
 ### OS and versions
-<!--- use the 'version' command SpigotPE
+<!--- use the 'version' command ApolloPE
 
-NOTE: LATEST is not a valid version. SpigotPE version should include Jenkins build number and/or git commit hash.
+NOTE: LATEST is not a valid version. ApolloPE version should include Jenkins build number and/or git commit hash.
 
-NO support whatsoever will be provided for forks or spoons of SpigotPE. Issues relating to non-official distributions will be closed as spam. Please send such issues to whoever is responsible for the fork or spoon you are using.
+NO support whatsoever will be provided for forks or spoons of ApolloPE. Issues relating to non-official distributions will be closed as spam. Please send such issues to whoever is responsible for the fork or spoon you are using.
 
 -->
-* SpigotPE:
+* ApolloPE:
 * PHP:
 * Server OS:
 * Game version: PE/Win10 (delete as appropriate)
