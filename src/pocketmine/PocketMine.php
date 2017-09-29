@@ -81,7 +81,7 @@ namespace pocketmine {
 
 	const NAME = "Apollo";
 	const VERSION = "1.0dev";
-	const API_VERSION = "3.0.0-ALPHA9";
+	const API_VERSION = "3.0.0-ALPHA8";
 	const CODENAME = "Parry wanna cracker?";
 
 	/*
