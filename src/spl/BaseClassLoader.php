@@ -150,7 +150,10 @@ class BaseClassLoader extends \Threaded implements ClassLoader{
 	 * @return string|null
 	 */
 	public function findClass($name){
-		$baseName = str_replace("\\", DIRECTORY_SEPARATOR, $name);
+		$components = explode("\\", $name);
+
+		$baseName = implode(DIRECTORY_SEPARATOR, $components);
+
 
 		foreach($this->lookup as $path){
 			if(PHP_INT_SIZE === 8 and file_exists($path . DIRECTORY_SEPARATOR . $baseName . "__64bit.php")){
