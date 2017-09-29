@@ -21,7 +21,7 @@ class WaterPit extends VariableAmountPopulator{
 			$y = $this->getHighestWorkableBlock($x, $z);
 
 			if($y !== -1 and $this->canWaterPitStay($x, $y, $z)){
-				$this->level->setBlockIdAt($x, $y, $z, Block::WATER);
+				$this->level->setBlockIdAt($x, $y, $z, BlockFactory::WATER);
 				$this->level->setBlockDataAt($x, $y, $z , 8);
 			}
 		}
@@ -29,13 +29,13 @@ class WaterPit extends VariableAmountPopulator{
 
 	private function canWaterPitStay($x, $y, $z){
 		$b = $this->level->getBlockIdAt($x, $y, $z);
-		return ($b === Block::AIR or $b === Block::DIRT) and $this->level->getBlockIdAt($x, $y, $z) === Block::DIRT;
+		return ($b === BlockFactory::AIR or $b === BlockFactory::DIRT) and $this->level->getBlockIdAt($x, $y, $z) === DIRT::DIRT;
 	}
 
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 61; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
-			if($b !== Block::AIR and $b !== Block::LEAVES and $b !== Block::LEAVES2 and $b !== Block::SNOW_LAYER){
+			if($b !== BlockFactory::AIR and $b !== BlockFactory::LEAVES and $b !== BlockFactory::LEAVES2 and $b !== BlockFactory::SNOW_LAYER){
 				break;
 			}
 		}
