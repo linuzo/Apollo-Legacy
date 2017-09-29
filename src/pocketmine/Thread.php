@@ -23,75 +23,70 @@ declare(strict_types=1);
 
 namespace pocketmine;
 
-/**
- * This class must be extended by all custom threading classes
- */
-abstract class Thread extends \Thread{
+use pocketmine\utils\MainLogger;
 
-	/** @var \ClassLoader */
-	protected $classLoader;
-	protected $isKilled = false;
+class ThreadManager extends \Volatile{
 
-	public function getClassLoader(){
-		return $this->classLoader;
-	}
+	/** @var ThreadManager */
+	private static $instance = null;
 
-	public function setClassLoader(\ClassLoader $loader = null){
-		if($loader === null){
-			$loader = Server::getInstance()->getLoader();
-		}
-		$this->classLoader = $loader;
+	public static function init(){
+		self::$instance = new ThreadManager();
 	}
 
 	/**
-	 * Registers the class loader for this thread.
-	 *
-	 * WARNING: This method MUST be called from any descendent threads' run() method to make autoloading usable.
-	 * If you do not do this, you will not be able to use new classes that were not loaded when the thread was started
-	 * (unless you are using a custom autoloader).
+	 * @return ThreadManager
 	 */
-	public function registerClassLoader(){
-		//require(\pocketmine\PATH . "vendor/autoload.php");
-		if(!interface_exists("ClassLoader", false)){
-			require(\pocketmine\PATH . "src/spl/ClassLoader.php");
-			require(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
-		}
-		if($this->classLoader !== null){
-			$this->classLoader->register(false);
-		}
-	}
-
-	public function start(?int $options = \PTHREADS_INHERIT_ALL){
-		ThreadManager::getInstance()->add($this);
-
-		if(!$this->isRunning() and !$this->isJoined() and !$this->isTerminated()){
-			if($this->getClassLoader() === null){
-				$this->setClassLoader();
-			}
-			return parent::start($options);
-		}
-
-		return false;
+	public static function getInstance(){
+		return self::$instance;
 	}
 
 	/**
-	 * Stops the thread using the best way possible. Try to stop it yourself before calling this.
+	 * @param Worker|Thread $thread
 	 */
-	public function quit(){
-		$this->isKilled = true;
+	public function add($thread){
+		if($thread instanceof Thread or $thread instanceof Worker){
+			$this->{spl_object_hash($thread)} = $thread;
+		}
+	}
 
-		$this->notify();
+	/**
+	 * @param Worker|Thread $thread
+	 */
+	public function remove($thread){
+		if($thread instanceof Thread or $thread instanceof Worker){
+			unset($this->{spl_object_hash($thread)});
+		}
+	}
 
-		if(!$this->isJoined()){
-			if(!$this->isTerminated()){
-				$this->join();
+	/**
+	 * @return Worker[]|Thread[]
+	 */
+	public function getAll() : array{
+		$array = [];
+		foreach($this as $key => $thread){
+			$array[$key] = $thread;
+		}
+
+		return $array;
+	}
+
+	public function stopAll() : int{
+		$logger = MainLogger::getLogger();
+
+		$erroredThreads = 0;
+
+		foreach($this->getAll() as $thread){
+			$logger->debug("Stopping " . $thread->getThreadName() . " thread");
+			try{
+				$thread->quit();
+				$logger->debug($thread->getThreadName() . " thread stopped successfully.");
+			}catch(\ThreadException $e){
+				++$erroredThreads;
+				$logger->debug("Could not stop " . $thread->getThreadName() . " thread: " . $e->getMessage());
 			}
 		}
 
-		ThreadManager::getInstance()->remove($this);
-	}
-
-	public function getThreadName() : string{
-		return (new \ReflectionClass($this))->getShortName();
+		return $erroredThreads;
 	}
 }

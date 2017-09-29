@@ -25,25 +25,54 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\ColorBlockMetaHelper;
 use pocketmine\item\Tool;
+use pocketmine\level\Level;
 
-class StainedClay extends Solid{
+class ConcretePowder extends Fallable{
 
-	protected $id = self::STAINED_CLAY;
+	protected $id = self::CONCRETE_POWDER;
 
 	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
+	public function getName() : string{
+		return ColorBlockMetaHelper::getColorFromMeta($this->meta) . " Concrete Powder";
+	}
+
 	public function getHardness() : float{
-		return 1.25;
+		return 0.5;
 	}
 
 	public function getToolType() : int{
-		return Tool::TYPE_PICKAXE;
+		return Tool::TYPE_SHOVEL;
 	}
 
-	public function getName() : string{
-		return ColorBlockMetaHelper::getColorFromMeta($this->meta) . " Stained Clay";
+	public function onUpdate(int $type){
+		if($type === Level::BLOCK_UPDATE_NORMAL and ($block = $this->checkAdjacentWater()) !== null){
+			$this->level->setBlock($this, $block);
+			return $type;
+		}
+
+		return parent::onUpdate($type);
 	}
 
+	/**
+	 * @return null|Block
+	 */
+	public function tickFalling() : ?Block{
+		return $this->checkAdjacentWater();
+	}
+
+	/**
+	 * @return null|Block
+	 */
+	private function checkAdjacentWater(){
+		for($i = 1; $i < 6; ++$i){ //Do not check underneath
+			if($this->getSide($i) instanceof Water){
+				return Block::get(Block::CONCRETE, $this->meta);
+			}
+		}
+
+		return null;
+	}
 }

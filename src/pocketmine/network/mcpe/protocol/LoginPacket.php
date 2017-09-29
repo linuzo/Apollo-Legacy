@@ -27,6 +27,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 
 use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
 
 class LoginPacket extends DataPacket{
@@ -47,11 +48,6 @@ class LoginPacket extends DataPacket{
 	/** @var string */
 	public $serverAddress;
 
-	/** @var string */
-	public $skinId;
-	/** @var string */
-	public $skin = "";
-
 	/** @var array (the "chain" index contains one or more JWTs) */
 	public $chainData = [];
 	/** @var string */
@@ -63,17 +59,24 @@ class LoginPacket extends DataPacket{
 		return true;
 	}
 
+	public function mayHaveUnreadBytes() : bool{
+		return $this->protocol !== null and $this->protocol !== ProtocolInfo::CURRENT_PROTOCOL;
+	}
+
 	protected function decodePayload(){
 		$this->protocol = $this->getInt();
 
 		if($this->protocol !== ProtocolInfo::CURRENT_PROTOCOL){
-			$this->buffer = null;
-			return; //Do not attempt to decode for non-accepted protocols
+			if($this->protocol > 0xffff){ //guess MCPE <= 1.1
+				$this->offset -= 6;
+				$this->protocol = $this->getInt();
+			}
+			return; //Do not attempt to continue decoding for non-accepted protocols
 		}
 
-		$this->setBuffer($this->getString(), 0);
+		$buffer = new BinaryStream($this->getString());
 
-		$this->chainData = json_decode($this->get($this->getLInt()), true);
+		$this->chainData = json_decode($buffer->get($buffer->getLInt()), true);
 		foreach($this->chainData["chain"] as $chain){
 			$webtoken = Utils::decodeJWT($chain);
 			if(isset($webtoken["extraData"])){
@@ -89,16 +92,11 @@ class LoginPacket extends DataPacket{
 			}
 		}
 
-		$this->clientDataJwt = $this->get($this->getLInt());
+		$this->clientDataJwt = $buffer->get($buffer->getLInt());
 		$this->clientData = Utils::decodeJWT($this->clientDataJwt);
 
 		$this->clientId = $this->clientData["ClientRandomId"] ?? null;
 		$this->serverAddress = $this->clientData["ServerAddress"] ?? null;
-		$this->skinId = $this->clientData["SkinId"] ?? null;
-
-		if(isset($this->clientData["SkinData"])){
-			$this->skin = base64_decode($this->clientData["SkinData"]);
-		}
 	}
 
 	protected function encodePayload(){

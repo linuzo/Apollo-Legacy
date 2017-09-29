@@ -34,6 +34,7 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\Living;
+use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageByBlockEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -46,6 +47,7 @@ use pocketmine\event\player\PlayerAnimationEvent;
 use pocketmine\event\player\PlayerBedEnterEvent;
 use pocketmine\event\player\PlayerBedLeaveEvent;
 use pocketmine\event\player\PlayerBlockPickEvent;
+use pocketmine\event\player\PlayerChangeSkinEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerDeathEvent;
@@ -71,7 +73,6 @@ use pocketmine\event\Timings;
 use pocketmine\event\TranslationContainer;
 use pocketmine\inventory\BigCraftingGrid;
 use pocketmine\inventory\CraftingGrid;
-use pocketmine\inventory\FurnaceInventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\PlayerCursorInventory;
 use pocketmine\inventory\PlayerInventory;
@@ -99,7 +100,6 @@ use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\mcpe\PlayerNetworkSessionAdapter;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
-use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\BlockEntityDataPacket;
 use pocketmine\network\mcpe\protocol\BlockPickRequestPacket;
@@ -158,7 +158,6 @@ use pocketmine\tile\ItemFrame;
 use pocketmine\tile\Spawnable;
 use pocketmine\tile\Tile;
 use pocketmine\utils\TextFormat;
-use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 
 
@@ -185,15 +184,6 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		return $lname !== "rcon" and $lname !== "console" and $len >= 1 and $len <= 16 and preg_match("/[^A-Za-z0-9_ ]/", $name) === 0;
 	}
 
-	/**
-	 * Checks the length of a supplied skin bitmap and returns whether the length is valid.
-	 * @param string $skin
-	 *
-	 * @return bool
-	 */
-	public static function isValidSkin(string $skin) : bool{
-		return strlen($skin) === 64 * 64 * 4 or strlen($skin) === 64 * 32 * 4;
-	}
 
 	/** @var SourceInterface */
 	protected $interface;
@@ -203,6 +193,9 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * TODO: remove this once player and network are divorced properly
 	 */
 	protected $sessionAdapter;
+
+	/** @var int */
+	protected $protocol = -1;
 
 	/** @var bool */
 	public $playedBefore;
@@ -717,15 +710,36 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	public function setDisplayName(string $name){
 		$this->displayName = $name;
 		if($this->spawned){
-			$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getDisplayName(), $this->getSkinId(), $this->getSkinData());
+			$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getDisplayName(), $this->getSkin());
 		}
 	}
 
-	public function setSkin(string $str, string $skinId){
-		parent::setSkin($str, $skinId);
-		if($this->spawned){
-			$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getDisplayName(), $skinId, $str);
+	/**
+	 * Called when a player changes their skin.
+	 * Plugin developers should not use this, use setSkin() and sendSkin() instead.
+	 *
+	 * @param Skin   $skin
+	 * @param string $newSkinName
+	 * @param string $oldSkinName
+	 *
+	 * @return bool
+	 */
+	public function changeSkin(Skin $skin, string $newSkinName, string $oldSkinName) : bool{
+		if(!$skin->isValid()){
+			return false;
 		}
+
+		$ev = new PlayerChangeSkinEvent($this, $this->getSkin(), $skin);
+		$this->server->getPluginManager()->callEvent($ev);
+
+		if($ev->isCancelled()){
+			$this->sendSkin([$this]);
+			return true;
+		}
+
+		$this->setSkin($ev->getNewSkin());
+		$this->sendSkin($this->server->getOnlinePlayers());
+		return true;
 	}
 
 	public function jump(){
@@ -800,6 +814,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 			$this->usedChunks = [];
 			$this->level->sendTime($this);
+			$this->level->sendDifficulty($this);
 
 			return true;
 		}
@@ -1115,23 +1130,23 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 		$timings = Timings::getSendDataPacketTimings($packet);
 		$timings->startTiming();
-		$this->server->getPluginManager()->callEvent($ev = new DataPacketSendEvent($this, $packet));
-		if($ev->isCancelled()){
+		try{
+			$this->server->getPluginManager()->callEvent($ev = new DataPacketSendEvent($this, $packet));
+			if($ev->isCancelled()){
+				return false;
+			}
+
+			$identifier = $this->interface->putPacket($this, $packet, $needACK, $immediate);
+
+			if($needACK and $identifier !== null){
+				$this->needACK[$identifier] = false;
+				return $identifier;
+			}
+
+			return true;
+		}finally{
 			$timings->stopTiming();
-			return false;
 		}
-
-		$identifier = $this->interface->putPacket($this, $packet, $needACK, $immediate);
-
-		if($needACK and $identifier !== null){
-			$this->needACK[$identifier] = false;
-
-			$timings->stopTiming();
-			return $identifier;
-		}
-
-		$timings->stopTiming();
-		return true;
 	}
 
 	/**
@@ -1921,7 +1936,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		$pk->seed = -1;
 		$pk->dimension = DimensionIds::OVERWORLD; //TODO: implement this properly
 		$pk->worldGamemode = Player::getClientFriendlyGamemode($this->server->getGamemode());
-		$pk->difficulty = $this->server->getDifficulty();
+		$pk->difficulty = $this->level->getDifficulty();
 		$pk->spawnX = $spawnPosition->getFloorX();
 		$pk->spawnY = $spawnPosition->getFloorY();
 		$pk->spawnZ = $spawnPosition->getFloorZ();
@@ -1970,6 +1985,8 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			return false;
 		}
 
+		$this->protocol = $packet->protocol;
+
 		if($packet->protocol !== ProtocolInfo::CURRENT_PROTOCOL){
 			if($packet->protocol < ProtocolInfo::CURRENT_PROTOCOL){
 				$this->sendPlayStatus(PlayStatusPacket::LOGIN_FAILED_CLIENT, true);
@@ -2002,12 +2019,20 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			return true;
 		}
 
-		if(!Player::isValidSkin($packet->skin)){
+		$skin = new Skin(
+			$packet->clientData["SkinId"],
+			base64_decode($packet->clientData["SkinData"] ?? ""),
+			base64_decode($packet->clientData["CapeData"] ?? ""),
+			$packet->clientData["SkinGeometryName"],
+			base64_decode($packet->clientData["SkinGeometry"] ?? "")
+		);
+
+		if(!$skin->isValid()){
 			$this->close("", "disconnectionScreen.invalidSkin");
 			return true;
 		}
 
-		$this->setSkin($packet->skin, $packet->skinId);
+		$this->setSkin($skin);
 
 		if(!$this->server->isWhitelisted($this->iusername) and $this->kick("Server is white-listed", false)){
 			return true;
@@ -2035,6 +2060,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	public function sendPlayStatus(int $status, bool $immediate = false){
 		$pk = new PlayStatusPacket();
 		$pk->status = $status;
+		$pk->protocol = $this->protocol;
 		if($immediate){
 			$this->directDataPacket($pk);
 		}else{
@@ -2246,6 +2272,9 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			}
 
 			return true;
+		}elseif($this->craftingTransaction !== null){
+			$this->server->getLogger()->debug("Got unexpected normal inventory action with incomplete crafting transaction from " . $this->getName() . ", refusing to execute crafting");
+			$this->craftingTransaction = null;
 		}
 
 		switch($packet->transactionType){
@@ -2421,7 +2450,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 							}elseif($target instanceof Player){
 								if(($target->getGamemode() & 0x01) > 0){
 									return true;
-								}elseif($this->server->getConfigBoolean("pvp") !== true or $this->server->getDifficulty() === 0){
+								}elseif($this->server->getConfigBoolean("pvp") !== true or $this->level->getDifficulty() === Level::DIFFICULTY_PEACEFUL){
 									$cancelled = true;
 								}
 
@@ -2466,64 +2495,68 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 				break;
 			case InventoryTransactionPacket::TYPE_RELEASE_ITEM:
-				$type = $packet->trData->actionType;
-				switch($type){
-					case InventoryTransactionPacket::RELEASE_ITEM_ACTION_RELEASE:
-						if($this->isUsingItem()){
-							$item = $this->inventory->getItemInHand();
-							if($item->onReleaseUsing($this)){
-								$this->inventory->setItemInHand($item);
-							}
-						}else{
-							$this->inventory->sendContents($this);
-						}
-
-						$this->setGenericFlag(self::DATA_FLAG_ACTION, false);
-						return true;
-					case InventoryTransactionPacket::RELEASE_ITEM_ACTION_CONSUME:
-						$slot = $this->inventory->getItemInHand();
-
-						if($slot->canBeConsumed()){
-							$ev = new PlayerItemConsumeEvent($this, $slot);
-							if(!$slot->canBeConsumedBy($this)){
-								$ev->setCancelled();
-							}
-							$this->server->getPluginManager()->callEvent($ev);
-							if(!$ev->isCancelled()){
-								$slot->onConsume($this);
+				try{
+					$type = $packet->trData->actionType;
+					switch($type){
+						case InventoryTransactionPacket::RELEASE_ITEM_ACTION_RELEASE:
+							if($this->isUsingItem()){
+								$item = $this->inventory->getItemInHand();
+								if($item->onReleaseUsing($this)){
+									$this->inventory->setItemInHand($item);
+								}
 							}else{
 								$this->inventory->sendContents($this);
 							}
 
 							return true;
-						}elseif($this->inventory->getItemInHand()->getId() === Item::BUCKET and $this->inventory->getItemInHand()->getDamage() === 1){ //Milk!
-							$this->server->getPluginManager()->callEvent($ev = new PlayerItemConsumeEvent($this, $this->inventory->getItemInHand()));
-							if($ev->isCancelled()){
-								$this->inventory->sendContents($this);
+						case InventoryTransactionPacket::RELEASE_ITEM_ACTION_CONSUME:
+							$slot = $this->inventory->getItemInHand();
+
+							if($slot->canBeConsumed()){
+								$ev = new PlayerItemConsumeEvent($this, $slot);
+								if(!$slot->canBeConsumedBy($this)){
+									$ev->setCancelled();
+								}
+								$this->server->getPluginManager()->callEvent($ev);
+								if(!$ev->isCancelled()){
+									$slot->onConsume($this);
+								}else{
+									$this->inventory->sendContents($this);
+								}
+
+								return true;
+							}elseif($this->inventory->getItemInHand()->getId() === Item::BUCKET and $this->inventory->getItemInHand()->getDamage() === 1){ //Milk!
+								$this->server->getPluginManager()->callEvent($ev = new PlayerItemConsumeEvent($this, $this->inventory->getItemInHand()));
+								if($ev->isCancelled()){
+									$this->inventory->sendContents($this);
+
+									return true;
+								}
+
+								$pk = new EntityEventPacket();
+								$pk->entityRuntimeId = $this->getId();
+								$pk->event = EntityEventPacket::USE_ITEM;
+								$this->dataPacket($pk);
+								$this->server->broadcastPacket($this->getViewers(), $pk);
+
+								if($this->isSurvival()){
+									$slot = $this->inventory->getItemInHand();
+									--$slot->count;
+									$this->inventory->setItemInHand($slot);
+									$this->inventory->addItem(ItemFactory::get(Item::BUCKET, 0, 1));
+								}
+
+								$this->removeAllEffects();
+
 								return true;
 							}
 
-							$pk = new EntityEventPacket();
-							$pk->entityRuntimeId = $this->getId();
-							$pk->event = EntityEventPacket::USE_ITEM;
-							$this->dataPacket($pk);
-							$this->server->broadcastPacket($this->getViewers(), $pk);
-
-							if($this->isSurvival()){
-								$slot = $this->inventory->getItemInHand();
-								--$slot->count;
-								$this->inventory->setItemInHand($slot);
-								$this->inventory->addItem(ItemFactory::get(Item::BUCKET, 0, 1));
-							}
-
-							$this->removeAllEffects();
-
-							return true;
-						}
-
-						return false;
-					default:
-						break;
+							return false;
+						default:
+							break;
+					}
+				}finally{
+					$this->setUsingItem(false);
 				}
 				break;
 			default:
@@ -2584,7 +2617,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		$block = $this->level->getBlock($this->temporalVector->setComponents($packet->blockX, $packet->blockY, $packet->blockZ));
 
 		//TODO: this doesn't handle crops correctly (need more API work)
-		$item = Item::get($block->getItemId(), $block->getDamage() & $block->getVariantBitmask());
+		$item = Item::get($block->getItemId(), $block->getVariant());
 
 		if($packet->addUserData){
 			$tile = $this->getLevel()->getTile($block);

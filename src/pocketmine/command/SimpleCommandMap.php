@@ -125,8 +125,8 @@ class SimpleCommandMap implements CommandMap{
 			new TitleCommand("title"),
 			new TransferServerCommand("transferserver"),
 			new VersionCommand("version"),
-			new WhitelistCommand("whitelist"),
-		        new UpdateServerCommand("updateserver")
+			new WhitelistCommand("whitelist")
+	        new UpdateServerCommand("updateserver")
 		]);
 
 		if($this->server->getProperty("debug.commands", false)){
