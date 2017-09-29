@@ -11,7 +11,7 @@ Apollo is more abandonate, but have epic generator in creations :)
 ## Information
 
 - Need to communicate with us? Join our [discord](https://discord.gg/xBN3WR6) group!
-- We are a edited version of Genisys. We have edited their generators to our version and have improved the performance
+- We are a edited version of PmmP. We have edited their generators to our version and have improved the performance
 - You can download .phar from Circle CI. Tab to latest build,tap to artifacts selection, tap to DevTools and download Apollo1.0dev.phar
 
 ## Features
@@ -20,46 +20,6 @@ Apollo is more abandonate, but have epic generator in creations :)
 - Little to no lag at all!
 
 Apollo is a perfect software for your server
-
-
-## todo
- - New better and epic world with epic chunks loaded
- - Bugs fixed
- - Hoppers
- - More TNT performance ( support 500 TNT without lag with official configurations : apollo.yml, pocketmine.yml )
- - Redstone performance, all epic mecanism redstone work
- - New biomes and better mobs
- - Boats
- - Different door color
- - Enchantment table work epic fine
- - Enchanted items
- - Potions
- - Anvil and Brewing
- - Weather
- - Experience
- - More commands :
- *deviceban
- *biome
- *extractphar
- *extractplugin
- *fill
- *loadplugin
- *lvdat
- *makeplugin
- *ms
- *pardondevice
- *setblock
- *summon
- *weather
- *xp
- - Monster Spawner
- - Item Frame
- - Multiple types of Boat, Villager and Rabbit
- - Dispenser and Dropper
- - Colorful Sheep
- - Splash Potions 
- - Nether [ more more changes and performance ]
-
 
 ## Upcoming Update
 
