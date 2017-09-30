@@ -2,7 +2,7 @@
 
 CHANNEL="alpha"
 BRANCH="master"
-NAME="PocketMine-MP"
+NAME="ApolloPE"
 BUILD_URL=""
 
 update=off
@@ -50,7 +50,7 @@ done
 
 
 if [ `getconf LONG_BIT` == "32" ]; then
-	echo "[ERROR] PocketMine-MP is no longer supported on 32-bit systems."
+	echo "[ERROR] ApolloPE is no longer supported on 32-bit systems."
 	exit 1
 fi
 
