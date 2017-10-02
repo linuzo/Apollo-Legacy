@@ -32,7 +32,7 @@ class Pumpkin extends VariableAmountPopulator{
 				$zz = $z - 7 + $random->nextRange(0, 15);
 				$yy = $this->getHighestWorkableBlock($xx, $zz);
 				if($yy !== -1 and $this->canPumpkinStay($xx, $yy, $zz)){
-					$this->level->setBlockIdAt($xx, $yy, $zz, (($random->nextRange(0, 4)) == 0 ? BlockFactory::PUMPKIN : BlockFactory::BROWN_MUSHROOM));
+					$this->level->setBlockIdAt($xx, $yy, $zz, (($random->nextRange(0, 4)) == 0 ? Block::PUMPKIN : Block::BROWN_MUSHROOM));
 				}
 			}
 		}
