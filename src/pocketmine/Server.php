@@ -1484,7 +1484,7 @@ class Server{
 	}
 
 	public function about(){
-	 $version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
+	// $version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
 		$string = "
 			
 			
@@ -1493,7 +1493,6 @@ class Server{
 	Client Version: §b' . $version . '§f
 	PHP Version: §e' . PHP_VERSION . '§f
 	OS: §6' . PHP_OS .'§f
-	This core is maintained by §dGenisysPro§f (https://github.com/GenisysPro)
 	';
 		
 		$this->getLogger()->info($string);
