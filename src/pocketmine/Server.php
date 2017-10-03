@@ -89,6 +89,8 @@ use pocketmine\utils\TextFormat;
 use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
+use pocketmine\block\BlockFactory;
+use pocketmine\item\ItemFactory;
 
 /**
  * The class that manages everything
@@ -1741,13 +1743,12 @@ OS: §6' . PHP_OS .'§f
 
 			Entity::init();
 			Tile::init();
-			Block::init();
+			BlockFactory::init();
 			Enchantment::init();
-			Item::init();
+			ItemFactory::init();
 			Biome::init();
 			Effect::init();
 			Attribute::init();
-		//	Color::init();
 			$this->craftingManager = new CraftingManager();
 
 			$this->resourceManager = new ResourcePackManager($this, $this->getDataPath() . "resource_packs" . DIRECTORY_SEPARATOR);
