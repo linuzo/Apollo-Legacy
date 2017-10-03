@@ -1490,7 +1490,7 @@ class Server{
 			
         §3Apollo §fis a fork of PocketMine-MP, made by §5Apollo-SoftwareTeam§f.
 	Version: §6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')§f
-	Client Version: §b' . $version . '§f
+	Client Version: §b' . ProtocolInfo::MINECRAFT_VERSION . '§f
 	PHP Version: §e' . PHP_VERSION . '§f
 	OS: §6' . PHP_OS .'§f
 	';
