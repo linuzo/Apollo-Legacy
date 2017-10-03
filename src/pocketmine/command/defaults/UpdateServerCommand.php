@@ -19,7 +19,7 @@ class UpdateServerCommand extends VanillaCommand{
 	}
 
 	public function execute(CommandSender $sender, string $commandLabel, array $args){
-		//$apollocfg = yaml_parse_file('apollo.yml');
+		$apollocfg = yaml_parse_file('apollo.yml');
 		$branch = $apollocfg['updater']['branch'];
 		$raw = json_decode(Utils::getURL('https://circleci.com/api/v1/project/Apollo-SoftwareTeam/Apollo-Legacy/tree/'.$branch.'?circle-token:token&limit=1&offset=1&filter=successfull'), true);
 		$buildinfo = $raw[0];
