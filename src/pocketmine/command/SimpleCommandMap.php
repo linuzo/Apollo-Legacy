@@ -69,9 +69,6 @@ use pocketmine\event\TranslationContainer;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 
-//apollo commands
-use pocketmine\command\defaults\UpdateServerCommand;
-
 class SimpleCommandMap implements CommandMap{
 
 	/**
@@ -125,8 +122,7 @@ class SimpleCommandMap implements CommandMap{
 			new TitleCommand("title"),
 			new TransferServerCommand("transferserver"),
 			new VersionCommand("version"),
-			new WhitelistCommand("whitelist"),
-	        new UpdateServerCommand("updateserver")
+			new WhitelistCommand("whitelist")
 		]);
 
 		if($this->server->getProperty("debug.commands", false)){

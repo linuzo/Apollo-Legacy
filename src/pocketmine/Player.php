@@ -206,6 +206,8 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	public $lastBreak;
 	/** @var bool */
 	protected $authenticated = false;
+	/** @var string */
+	protected $xuid = "";
 
 	protected $windowCnt = 2;
 	/** @var \SplObjectStorage<Inventory> */
@@ -238,7 +240,6 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 	protected $randomClientId;
 
-	protected $connected = true;
 	protected $ip;
 	protected $removeFormat = true;
 	protected $port;
@@ -351,6 +352,16 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 	public function isAuthenticated() : bool{
 		return $this->authenticated;
+	}
+
+	/**
+	 * If the player is logged into Xbox Live, returns their Xbox user ID (XUID) as a string. Returns an empty string if
+	 * the player is not logged into Xbox Live.
+	 *
+	 * @return string
+	 */
+	public function getXuid() : string{
+		return $this->xuid;
 	}
 
 	public function getPlayer(){
@@ -518,7 +529,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * @return bool
 	 */
 	public function isOnline() : bool{
-		return $this->connected === true and $this->loggedIn === true;
+		return $this->isConnected() and $this->loggedIn === true;
 	}
 
 	/**
@@ -692,7 +703,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * @return bool
 	 */
 	public function isConnected() : bool{
-		return $this->connected === true;
+		return $this->sessionAdapter !== null;
 	}
 
 	/**
@@ -859,7 +870,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	}
 
 	public function sendChunk(int $x, int $z, BatchPacket $payload){
-		if($this->connected === false){
+		if(!$this->isConnected()){
 			return;
 		}
 
@@ -882,7 +893,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	}
 
 	protected function sendNextChunk(){
-		if($this->connected === false){
+		if(!$this->isConnected()){
 			return;
 		}
 
@@ -976,7 +987,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	}
 
 	protected function orderChunks(){
-		if($this->connected === false or $this->viewDistance === -1){
+		if(!$this->isConnected() or $this->viewDistance === -1){
 			return false;
 		}
 
@@ -1074,7 +1085,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * @return bool
 	 */
 	public function batchDataPacket(DataPacket $packet) : bool{
-		if($this->connected === false){
+		if(!$this->isConnected()){
 			return false;
 		}
 
@@ -1119,7 +1130,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * @return bool|int
 	 */
 	public function sendDataPacket(DataPacket $packet, bool $needACK = false, bool $immediate = false){
-		if($this->connected === false){
+		if(!$this->isConnected()){
 			return false;
 		}
 
@@ -1826,11 +1837,19 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		if(!$isAuthenticated){
 			if($this->server->requiresAuthentication() and $this->kick("disconnectionScreen.notAuthenticated", false)){ //use kick to allow plugins to cancel this
 				return;
-			}else{
-				$this->server->getLogger()->debug($this->getName() . " is NOT logged into to Xbox Live");
+			}
+
+			$this->server->getLogger()->debug($this->getName() . " is NOT logged into to Xbox Live");
+			if($packet->xuid !== ""){
+				$this->server->getLogger()->warning($this->getName() . " has an XUID, but their login keychain is not signed by Mojang");
 			}
 		}else{
 			$this->server->getLogger()->debug($this->getName() . " is logged into Xbox Live");
+
+			if($packet->xuid === ""){
+				$this->server->getLogger()->error($this->getName() . " should have an XUID, but none found");
+			}
+			$this->xuid = $packet->xuid; //don't set this unless we know they are logged in
 		}
 
 		//TODO: get data from loginpacket (xbox user ID and stuff), add events
@@ -2019,12 +2038,23 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			return true;
 		}
 
+		/* Mojang, some stupid reason, send every single model for every single skin in the selected skin-pack.
+		 * Not only that, they are pretty-printed. This decode/encode is to get rid of the pretty-print, which cuts down
+		 * significantly on the amount of wasted bytes.
+		 * TODO: find out what model crap can be safely dropped from the packet (unless it gets fixed first)
+		 */
+
+		$geometryJsonEncoded = base64_decode($packet->clientData["SkinGeometry"] ?? "");
+		if($geometryJsonEncoded !== ""){
+			$geometryJsonEncoded = json_encode(json_decode($geometryJsonEncoded));
+		}
+
 		$skin = new Skin(
 			$packet->clientData["SkinId"],
 			base64_decode($packet->clientData["SkinData"] ?? ""),
 			base64_decode($packet->clientData["CapeData"] ?? ""),
 			$packet->clientData["SkinGeometryName"],
-			base64_decode($packet->clientData["SkinGeometry"] ?? "")
+			$geometryJsonEncoded
 		);
 
 		if(!$skin->isValid()){
@@ -2267,7 +2297,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			if($this->craftingTransaction->getPrimaryOutput() !== null){
 				//we get the actions for this in several packets, so we can't execute it until we get the result
 
-				$this->craftingTransaction->execute(); //if it can't execute, no inventories will be modified
+				$this->craftingTransaction->execute();
 				$this->craftingTransaction = null;
 			}
 
@@ -2282,16 +2312,8 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 				$transaction = new InventoryTransaction($this, $actions);
 
 				if(!$transaction->execute()){
-					foreach($transaction->getInventories() as $inventory){
-						$inventory->sendContents($this);
-						if($inventory instanceof PlayerInventory){
-							$inventory->sendArmorContents($this);
-						}
-					}
-
 					$this->server->getLogger()->debug("Failed to execute inventory transaction from " . $this->getName() . " with actions: " . json_encode($packet->actions));
 
-					//TODO: check more stuff that might need reversion
 					return false; //oops!
 				}
 
@@ -3248,7 +3270,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	 * @param bool                 $notify
 	 */
 	final public function close($message = "", string $reason = "generic reason", bool $notify = true){
-		if($this->connected and !$this->closed){
+		if($this->isConnected() and !$this->closed){
 
 			try{
 				if($notify and strlen($reason) > 0){
@@ -3258,7 +3280,6 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 				}
 
 				$this->sessionAdapter = null;
-				$this->connected = false;
 
 				$this->server->getPluginManager()->unsubscribeFromPermission(Server::BROADCAST_CHANNEL_USERS, $this);
 				$this->server->getPluginManager()->unsubscribeFromPermission(Server::BROADCAST_CHANNEL_ADMINISTRATIVE, $this);
