@@ -486,17 +486,17 @@ class Server{
 	/**
 	 * @return int
 	 */
-	public function getGamemode(){
+	public function getGamemode() : int{
 		return $this->getConfigInt("gamemode", 0) & 0b11;
 	}
-
+	
 	/**
 	 * @return bool
 	 */
-	public function getForceGamemode(){
+	public function getForceGamemode() : bool{
 		return $this->getConfigBoolean("force-gamemode", false);
 	}
-
+	
 	/**
 	 * Returns the gamemode text name
 	 *
@@ -504,8 +504,8 @@ class Server{
 	 *
 	 * @return string
 	 */
-	public static function getGamemodeString($mode){
-		switch((int) $mode){
+	public static function getGamemodeString(int $mode) : string{
+		switch($mode){
 			case Player::SURVIVAL:
 				return "%gameMode.survival";
 			case Player::CREATIVE:
@@ -515,10 +515,23 @@ class Server{
 			case Player::SPECTATOR:
 				return "%gameMode.spectator";
 		}
-
 		return "UNKNOWN";
 	}
-
+	public static function getGamemodeName(int $mode) : string{
+		switch($mode){
+			case Player::SURVIVAL:
+				return "Survival";
+			case Player::CREATIVE:
+				return "Creative";
+			case Player::ADVENTURE:
+				return "Adventure";
+			case Player::SPECTATOR:
+				return "Spectator";
+			default:
+				throw new \InvalidArgumentException("Invalid gamemode $mode");
+		}
+	}
+	
 	/**
 	 * Parses a string and returns a gamemode integer, -1 if not found
 	 *
@@ -526,23 +539,20 @@ class Server{
 	 *
 	 * @return int
 	 */
-	public static function getGamemodeFromString($str){
+	public static function getGamemodeFromString(string $str) : int{
 		switch(strtolower(trim($str))){
 			case (string) Player::SURVIVAL:
 			case "survival":
 			case "s":
 				return Player::SURVIVAL;
-
 			case (string) Player::CREATIVE:
 			case "creative":
 			case "c":
 				return Player::CREATIVE;
-
 			case (string) Player::ADVENTURE:
 			case "adventure":
 			case "a":
 				return Player::ADVENTURE;
-
 			case (string) Player::SPECTATOR:
 			case "spectator":
 			case "view":
@@ -551,7 +561,7 @@ class Server{
 		}
 		return -1;
 	}
-
+	
 	/**
 	 * @param string $str
 	 *
