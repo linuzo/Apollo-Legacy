@@ -157,6 +157,15 @@ abstract class Biome {
 
 	public function addPopulator(Populator $populator){
 		$this->populators[] = $populator;
+ 	}
+ 
+ 	/**
+ 	 * @param $class
+ 	 */
+ 	public function removePopulator($class){
+ 		if(isset($this->populators[$class])){
+ 			unset($this->populators[$class]);
+ 		}
 	}
 
 	/**
