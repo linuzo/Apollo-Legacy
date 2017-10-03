@@ -1,27 +1,5 @@
 <?php
 
-/*
- *
- *  _____            _               _____
- * / ____|          (_)             |  __ \
- *| |  __  ___ _ __  _ ___ _   _ ___| |__) | __ ___
- *| | |_ |/ _ \ '_ \| / __| | | / __|  ___/ '__/ _ \
- *| |__| |  __/ | | | \__ \ |_| \__ \ |   | | | (_) |
- * \_____|\___|_| |_|_|___/\__, |___/_|   |_|  \___/
- *                         __/ |
- *                        |___/
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author GenisysPro
- * @link https://github.com/GenisysPro/GenisysPro
- *
- *
-*/
-
 namespace pocketmine;
 
 use pocketmine\block\Block;
@@ -1505,19 +1483,21 @@ class Server{
 		}, $microseconds);
 	}
 
-			$version = new VersionString($this->getPocketMineVersion());
-			//$this->version = $version;
-			$this->aboutstring = "\n
+	public function about(){
+	 $version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
+		$string = "
 			
 			
-		  §3Apollo §fis a fork of PocketMine-MP, made by §5NycuRO§f.
-	          Version: §6' . $this->getPocketMineVersion() . '§f
-	          Target client version: §b' . ProtocolInfo::MINECRAFT_VERSION . '§f
-		  §fLatest source code is available at https://github.com/NycuRO/Apollo
-		  
-		\n";
-	
-			$this->about();
+        §3Apollo §fis a fork of PocketMine-MP, made by §5Apollo-SoftwareTeam§f.
+	Version: §6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')§f
+	Client Version: §b' . $version . '§f
+	PHP Version: §e' . PHP_VERSION . '§f
+	OS: §6' . PHP_OS .'§f
+	This core is maintained by §dGenisysPro§f (https://github.com/GenisysPro)
+	';
+		
+		$this->getLogger()->info($string);
+	}
 
 	public function loadAdvancedConfig(){
 		$this->playerMsgType = $this->getAdvancedProperty("server.player-msg-type", self::PLAYER_MSG_TYPE_MESSAGE);
