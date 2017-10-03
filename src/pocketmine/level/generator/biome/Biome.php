@@ -90,43 +90,34 @@ abstract class Biome {
 
 	const MAX_BIOMES = 256;
 
+
 	/** @var Biome[] */
 	private static $biomes = [];
 
+	/** @var int */
 	private $id;
+	/** @var bool */
 	private $registered = false;
+
 	/** @var Populator[] */
 	private $populators = [];
 
+	/** @var int */
 	private $minElevation;
+	/** @var int */
 	private $maxElevation;
 
+	/** @var Block[] */
 	private $groundCover = [];
 
+	/** @var float */
 	protected $rainfall = 0.5;
+	/** @var float */
 	protected $temperature = 0.5;
 
-	/**
-	 * @param       $id
-	 * @param Biome $biome
-	 */
-	protected static function register($id, Biome $biome){
-		self::$biomes[(int) $id] = $biome;
-		$biome->setId((int) $id);
-
-		$flowerPopFound = false;
-
-		foreach($biome->getPopulators() as $populator){
-			if($populator instanceof Flower){
-				$flowerPopFound = true;
-				break;
-			}
-		}
-
-		if($flowerPopFound === false){
-			$flower = new Flower();
-			$biome->addPopulator($flower);
-		}
+	protected static function register(int $id, Biome $biome){
+		self::$biomes[$id] = $biome;
+		$biome->setId($id);
 	}
 
 	public static function init(){
@@ -149,44 +140,32 @@ abstract class Biome {
 		self::register(self::MESA, new MesaBiome());
 		self::register(self::HELL, new HellBiome());
 		self::register(self::BIRCH_FOREST, new ForestBiome(ForestBiome::TYPE_BIRCH));
-	}
+}
 
 	/**
-	 * @param $id
+	 * @param int $id
 	 *
 	 * @return Biome
 	 */
-	public static function getBiome($id){
-		return isset(self::$biomes[$id]) ? self::$biomes[$id] : self::$biomes[self::OCEAN];
+	public static function getBiome(int $id) : Biome{
+		return self::$biomes[$id] ?? self::$biomes[self::OCEAN];
 	}
 
 	public function clearPopulators(){
 		$this->populators = [];
 	}
 
-	/**
-	 * @param Populator $populator
-	 */
 	public function addPopulator(Populator $populator){
-		$this->populators[get_class($populator)] = $populator;
-	}
-
-	/**
-	 * @param $class
-	 */
-	public function removePopulator($class){
-		if(isset($this->populators[$class])){
-			unset($this->populators[$class]);
-		}
+		$this->populators[] = $populator;
 	}
 
 	/**
 	 * @param ChunkManager $level
-	 * @param              $chunkX
-	 * @param              $chunkZ
+	 * @param int          $chunkX
+	 * @param int          $chunkZ
 	 * @param Random       $random
 	 */
-	public function populateChunk(ChunkManager $level, $chunkX, $chunkZ, Random $random){
+	public function populateChunk(ChunkManager $level, int $chunkX, int $chunkZ, Random $random){
 		foreach($this->populators as $populator){
 			$populator->populate($level, $chunkX, $chunkZ, $random);
 		}
@@ -195,39 +174,32 @@ abstract class Biome {
 	/**
 	 * @return Populator[]
 	 */
-	public function getPopulators(){
+	public function getPopulators() : array{
 		return $this->populators;
 	}
 
-	/**
-	 * @param $id
-	 */
-	public function setId($id){
+	public function setId(int $id){
 		if(!$this->registered){
 			$this->registered = true;
 			$this->id = $id;
 		}
 	}
 
-	public function getId(){
+	public function getId() : int{
 		return $this->id;
 	}
 
-	public abstract function getName();
+	abstract public function getName() : string;
 
-	public function getMinElevation(){
+	public function getMinElevation() : int{
 		return $this->minElevation;
 	}
 
-	public function getMaxElevation(){
+	public function getMaxElevation() : int{
 		return $this->maxElevation;
 	}
 
-	/**
-	 * @param $min
-	 * @param $max
-	 */
-	public function setElevation($min, $max){
+	public function setElevation(int $min, int $max){
 		$this->minElevation = $min;
 		$this->maxElevation = $max;
 	}
@@ -235,7 +207,7 @@ abstract class Biome {
 	/**
 	 * @return Block[]
 	 */
-	public function getGroundCover(){
+	public function getGroundCover() : array{
 		return $this->groundCover;
 	}
 
@@ -246,17 +218,11 @@ abstract class Biome {
 		$this->groundCover = $covers;
 	}
 
-	/**
-	 * @return float
-	 */
-	public function getTemperature(){
+	public function getTemperature() : float{
 		return $this->temperature;
 	}
 
-	/**
-	 * @return float
-	 */
-	public function getRainfall(){
+	public function getRainfall() : float{
 		return $this->rainfall;
 	}
 }
