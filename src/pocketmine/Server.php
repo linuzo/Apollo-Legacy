@@ -1879,7 +1879,7 @@ OS: §6' . PHP_OS .'§f
 			}
 
 			$this->start();
-		}catch(\Throwable $e){
+		//}catch(\Throwable $e){
 			$this->exceptionHandler($e);
 		}
 	}
