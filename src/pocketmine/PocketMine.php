@@ -80,9 +80,9 @@ namespace pocketmine {
 	use raklib\RakLib;
 
 	const NAME = "Apollo";
-	const VERSION = "1.0dev";
+	const VERSION = "1.0beta";
 	const API_VERSION = "3.0.0-ALPHA8";
-	const CODENAME = "Parry wanna cracker?";
+	const CODENAME = "Legacy";
 
 	/*
 	 * Startup code. Do not look at it, it may harm you.
