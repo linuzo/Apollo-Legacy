@@ -278,6 +278,51 @@ class Server{
 
 	/** @var Level */
 	private $levelDefault = null;
+	
+		/** Advanced Config */
+ 	public $advancedConfig = null;
+ 
+ 	public $weatherEnabled = true;
+ 	public $foodEnabled = true;
+ 	public $expEnabled = true;
+ 	public $keepInventory = false;
+ 	public $netherEnabled = false;
+ 	public $netherName = "nether";
+ 	public $netherLevel = null;
+ 	public $weatherRandomDurationMin = 6000;
+ 	public $weatherRandomDurationMax = 12000;
+ 	public $lightningTime = 200;
+ 	public $lightningFire = false;
+ 	public $version;
+ 	public $allowSnowGolem;
+ 	public $allowIronGolem;
+ 	public $autoClearInv = true;
+ 	public $dserverConfig = [];
+ 	public $dserverPlayers = 0;
+ 	public $dserverAllPlayers = 0;
+ 	public $redstoneEnabled = false;
+ 	public $allowFrequencyPulse = true;
+ 	public $anvilEnabled = false;
+        public $pulseFrequency = 20;
+ 	public $playerMsgType = self::PLAYER_MSG_TYPE_MESSAGE;
+ 	public $playerLoginMsg = "";
+ 	public $playerLogoutMsg = "";
+ 	public $keepExperience = false;
+ 	public $limitedCreative = true;
+ 	public $chunkRadius = -1;
+ 	public $destroyBlockParticle = true;
+ 	public $allowSplashPotion = true;
+ 	public $fireSpread = false;
+ 	public $advancedCommandSelector = false;
+ 	public $enchantingTableEnabled = true;
+ 	public $countBookshelf = false;
+ 	public $allowInventoryCheats = false;
+ 	public $folderpluginloader = true;
+ 	public $loadIncompatibleAPI = true;
+ 	public $enderEnabled = true;
+ 	public $enderName = "ender";
+ 	public $enderLevel = null;
+ 	public $absorbWater = false;
 
 	/**
 	 * @return string
