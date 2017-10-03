@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\plugin;
 
 use pocketmine\event\plugin\PluginDisableEvent;
@@ -30,7 +28,7 @@ use pocketmine\Server;
 /**
  * Handles different types of plugins
  */
-class PharPluginLoader implements PluginLoader{
+class PharPluginLoader implements PluginLoader {
 
 	/** @var Server */
 	private $server;
@@ -47,9 +45,11 @@ class PharPluginLoader implements PluginLoader{
 	 *
 	 * @param string $file
 	 *
-	 * @return Plugin|null
+	 * @return Plugin
+	 *
+	 * @throws \Throwable
 	 */
-	public function loadPlugin(string $file){
+	public function loadPlugin($file){
 		if(($description = $this->getPluginDescription($file)) instanceof PluginDescription){
 			$this->server->getLogger()->info($this->server->getLanguage()->translateString("pocketmine.plugin.load", [$description->getFullName()]));
 			$dataFolder = dirname($file) . DIRECTORY_SEPARATOR . $description->getName();
@@ -78,9 +78,9 @@ class PharPluginLoader implements PluginLoader{
 	 *
 	 * @param string $file
 	 *
-	 * @return null|PluginDescription
+	 * @return PluginDescription
 	 */
-	public function getPluginDescription(string $file){
+	public function getPluginDescription($file){
 		$phar = new \Phar($file);
 		if(isset($phar["plugin.yml"])){
 			$pluginYml = $phar["plugin.yml"];
@@ -97,7 +97,7 @@ class PharPluginLoader implements PluginLoader{
 	 *
 	 * @return string
 	 */
-	public function getPluginFilters() : string{
+	public function getPluginFilters(){
 		return "/\\.phar$/i";
 	}
 

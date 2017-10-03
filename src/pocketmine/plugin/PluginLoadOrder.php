@@ -19,12 +19,10 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\plugin;
 
 
-abstract class PluginLoadOrder{
+abstract class PluginLoadOrder {
 	/*
 	 * The plugin will be loaded at startup
 	 */
