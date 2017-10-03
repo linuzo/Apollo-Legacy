@@ -379,7 +379,7 @@ class Server{
 	 * @return string
 	 */
 	public function getVersion(){
-		$version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
+		//$version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
 		return $version;
 	}
 
@@ -1487,9 +1487,7 @@ class Server{
 
 	public function about(){
 	// $version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
-		$string = "
-			
-			
+		$string = "	
 §3Apollo §fis a fork of PocketMine-MP, made by §5Apollo-SoftwareTeam§f.
 Version: §6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')§f
 Client Version: §b' . ProtocolInfo::MINECRAFT_VERSION . '§f
@@ -1759,7 +1757,7 @@ OS: §6' . PHP_OS .'§f
 			$this->profilingTickRate = (float) $this->getProperty("settings.profile-report-trigger", 20);
 			$this->pluginManager->registerInterface(PharPluginLoader::class);
 			if($this->folderpluginloader === true) {
-                $this->pluginManager->registerInterface(FolderPluginLoader::class);
+                        $this->pluginManager->registerInterface(FolderPluginLoader::class);
             }
 			$this->pluginManager->registerInterface(ScriptPluginLoader::class);
 
