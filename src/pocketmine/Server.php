@@ -321,7 +321,7 @@ class Server{
 	 * @return string
 	 */
 	public function getName() : string{
-        return "GenisysPro";
+        return "Apollo";
 	}
 
 	/**
@@ -1506,7 +1506,7 @@ class Server{
 	}
 
 			$version = new VersionString($this->getPocketMineVersion());
-			$this->version = $version;
+			//$this->version = $version;
 			$this->aboutstring = "\n
 			
 			
