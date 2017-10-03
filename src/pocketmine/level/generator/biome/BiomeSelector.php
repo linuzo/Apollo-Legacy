@@ -42,9 +42,6 @@ class BiomeSelector{
 	/** @var \SplFixedArray */
 	private $map = null;
 
-	/** @var callable */
-	private $lookup;
-
 	public function __construct(Random $random, Biome $fallback){
 		$this->fallback = $fallback;
 		//$this->lookup = $lookup;
