@@ -47,6 +47,8 @@ class PluginDescription{
 	/** @var string */
 	private $prefix = "";
 	private $order = PluginLoadOrder::POSTWORLD;
+	
+        private $geniapi;
 
 	/**
 	 * @var Permission[]
