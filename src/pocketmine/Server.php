@@ -1715,8 +1715,8 @@ OS: §6' . PHP_OS .'§f
 				$this->setConfigInt("difficulty", Level::DIFFICULTY_HARD);
 			}
 
-			//if(\pocketmine\DEBUG >= 0){
-				//@cli_set_process_title($this->getName() . " " . $this->getPocketMineVersion());
+			if(\pocketmine\DEBUG >= 0){
+				@cli_set_process_title($this->getName() . " " . $this->getPocketMineVersion());
 			}
 
 			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.networkStart", [$this->getIp() === "" ? "*" : $this->getIp(), $this->getPort()]));
