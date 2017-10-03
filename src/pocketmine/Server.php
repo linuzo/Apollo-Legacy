@@ -20,7 +20,7 @@ use pocketmine\event\Timings;
 use pocketmine\event\TimingsHandler;
 use pocketmine\event\TranslationContainer;
 use pocketmine\inventory\CraftingManager;
-use pocketmine\inventory\InventoryType;
+//use pocketmine\inventory\InventoryType;
 use pocketmine\inventory\Recipe;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\EnchantmentLevelTable;
@@ -1741,15 +1741,13 @@ class Server{
 
 			Entity::init();
 			Tile::init();
-			InventoryType::init();
 			Block::init();
 			Enchantment::init();
 			Item::init();
 			Biome::init();
 			Effect::init();
 			Attribute::init();
-			EnchantmentLevelTable::init();
-			Color::init();
+		//	Color::init();
 			$this->craftingManager = new CraftingManager();
 
 			$this->resourceManager = new ResourcePackManager($this, $this->getDataPath() . "resource_packs" . DIRECTORY_SEPARATOR);
