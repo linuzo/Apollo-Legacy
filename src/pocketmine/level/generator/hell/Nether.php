@@ -30,20 +30,17 @@ use pocketmine\level\ChunkManager;
 use pocketmine\level\generator\biome\Biome;
 use pocketmine\level\generator\biome\BiomeSelector;
 use pocketmine\level\generator\Generator;
-
 use pocketmine\level\generator\noise\Simplex;
-
 use pocketmine\level\generator\object\OreType;
 use pocketmine\level\generator\populator\GroundFire;
 use pocketmine\level\generator\populator\NetherGlowStone;
 use pocketmine\level\generator\populator\NetherLava;
 use pocketmine\level\generator\populator\NetherOre;
 use pocketmine\level\generator\populator\Populator;
-
 use pocketmine\math\Vector3 as Vector3;
 use pocketmine\utils\Random;
 
-class Nether extends Generator{
+class Nether extends Generator {
 
 	/** @var Populator[] */
 	private $populators = [];
@@ -55,19 +52,20 @@ class Nether extends Generator{
 	private $emptyHeight = 64;
 	private $emptyAmplitude = 1;
 	private $density = 0.5;
-	private $bedrockDepth = 5;
 
 	/** @var Populator[] */
 	private $generationPopulators = [];
 	/** @var Simplex */
 	private $noiseBase;
 
-	/** @var BiomeSelector */
-	private $selector;
-
 	private static $GAUSSIAN_KERNEL = null;
 	private static $SMOOTH_SIZE = 2;
 
+	/**
+	 * Nether constructor.
+	 *
+	 * @param array $options
+	 */
 	public function __construct(array $options = []){
 		if(self::$GAUSSIAN_KERNEL === null){
 			self::generateKernel();
@@ -91,18 +89,33 @@ class Nether extends Generator{
 		}
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getName() : string{
 		return "Nether";
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getWaterHeight() : int{
 		return $this->waterHeight;
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getSettings(){
 		return [];
 	}
 
+	/**
+	 * @param ChunkManager $level
+	 * @param Random       $random
+	 *
+	 * @return mixed|void
+	 */
 	public function init(ChunkManager $level, Random $random){
 		$this->level = $level;
 		$this->random = $random;
@@ -120,15 +133,21 @@ class Nether extends Generator{
 		$this->populators[] = $ores;
 		$this->populators[] = new NetherGlowStone();
 		$groundFire = new GroundFire();
-		$groundFire->setBaseAmount(0);
+		$groundFire->setBaseAmount(1);
 		$groundFire->setRandomAmount(1);
 		$this->populators[] = $groundFire;
 		$lava = new NetherLava();
 		$lava->setBaseAmount(0);
-		$lava->setRandomAmount(3);
+		$lava->setRandomAmount(0);
 		$this->populators[] = $lava;
 	}
 
+	/**
+	 * @param $chunkX
+	 * @param $chunkZ
+	 *
+	 * @return mixed|void
+	 */
 	public function generateChunk($chunkX, $chunkZ){
 		$this->random->setSeed(0xdeadbeef ^ ($chunkX << 8) ^ $chunkZ ^ $this->level->getSeed());
 
@@ -141,13 +160,6 @@ class Nether extends Generator{
 
 				$biome = Biome::getBiome(Biome::HELL);
 				$chunk->setBiomeId($x, $z, $biome->getId());
-				$color = [0, 0, 0];
-				$bColor = $biome->getColor();
-				$color[0] += (($bColor >> 16) ** 2);
-				$color[1] += ((($bColor >> 8) & 0xff) ** 2);
-				$color[2] += (($bColor & 0xff) ** 2);
-
-				$chunk->setBiomeColor($x, $z, $color[0], $color[1], $color[2]);
 
 				for($y = 0; $y < 128; ++$y){
 					if($y === 0 or $y === 127){
@@ -172,6 +184,12 @@ class Nether extends Generator{
 		}
 	}
 
+	/**
+	 * @param $chunkX
+	 * @param $chunkZ
+	 *
+	 * @return mixed|void
+	 */
 	public function populateChunk($chunkX, $chunkZ){
 		$this->random->setSeed(0xdeadbeef ^ ($chunkX << 8) ^ $chunkZ ^ $this->level->getSeed());
 		foreach($this->populators as $populator){
@@ -183,6 +201,9 @@ class Nether extends Generator{
 		$biome->populateChunk($this->level, $chunkX, $chunkZ, $this->random);
 	}
 
+	/**
+	 * @return Vector3
+	 */
 	public function getSpawn(){
 		return new Vector3(127.5, 128, 127.5);
 	}

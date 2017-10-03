@@ -19,8 +19,6 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\level\generator;
 
 use pocketmine\level\format\Chunk;
@@ -29,12 +27,19 @@ use pocketmine\level\SimpleChunkManager;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
-class GenerationTask extends AsyncTask{
+
+class GenerationTask extends AsyncTask {
 
 	public $state;
 	public $levelId;
 	public $chunk;
 
+	/**
+	 * GenerationTask constructor.
+	 *
+	 * @param Level $level
+	 * @param Chunk $chunk
+	 */
 	public function __construct(Level $level, Chunk $chunk){
 		$this->state = true;
 		$this->levelId = $level->getId();
@@ -69,6 +74,9 @@ class GenerationTask extends AsyncTask{
 		$manager->setChunk($chunk->getX(), $chunk->getZ(), null);
 	}
 
+	/**
+	 * @param Server $server
+	 */
 	public function onCompletion(Server $server){
 		$level = $server->getLevel($this->levelId);
 		if($level !== null){
