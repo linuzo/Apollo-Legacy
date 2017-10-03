@@ -118,6 +118,20 @@ abstract class Biome {
 	protected static function register(int $id, Biome $biome){
 		self::$biomes[$id] = $biome;
 		$biome->setId($id);
+		
+ 		$flowerPopFound = false;
+ 
+ 		foreach($biome->getPopulators() as $populator){
+ 			if($populator instanceof Flower){
+ 				$flowerPopFound = true;
+ 				break;
+ 			}
+ 		}
+ 
+ 		if($flowerPopFound === false){
+ 			$flower = new Flower();
+ 			$biome->addPopulator($flower);
+ 		}
 	}
 
 	public static function init(){
