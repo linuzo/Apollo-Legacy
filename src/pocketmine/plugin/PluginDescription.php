@@ -252,6 +252,13 @@ class PluginDescription{
 	public function getName() : string{
 		return $this->name;
 	}
+	
+	/**
+	 * @return array
+	 */
+	public function getCompatibleGeniApis(){
+		return $this->geniapi;
+	}
 
 	/**
 	 * @return int
