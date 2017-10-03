@@ -41,7 +41,7 @@ class GroundCover extends Populator {
 	 */
 	public function populate(ChunkManager $level, $chunkX, $chunkZ, Random $random){
 		$chunk = $level->getChunk($chunkX, $chunkZ);
-		if($level instanceof Level or $level instanceof SimpleChunkManager){
+		//if($level instanceof Level or $level instanceof SimpleChunkManager){
 		//	$waterHeight = $level->getWaterHeight();
 		//}else $waterHeight = 0;
 		for($x = 0; $x < 16; ++$x){
