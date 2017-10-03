@@ -1846,7 +1846,7 @@ OS: §6' . PHP_OS .'§f
 				$this->forceShutdown();
 
 				return;
-	}
+			}
 
 			if($this->netherEnabled){
 				if(!$this->loadLevel($this->netherName)){
@@ -1866,20 +1866,13 @@ OS: §6' . PHP_OS .'§f
 				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
 			}
 
-			$this->enablePlugins(PluginLoadOrder::POSTWORLD);
-
-		//	if($this->dserverConfig["enable"] and ($this->getAdvancedProperty("dserver.server-list", "") != "")) $this->scheduler->scheduleRepeatingTask(new CallbackTask([
-		//		$this,
-			//	"updateDServerInfo"
-			//]), $this->dserverConfig["timer"]);
-
 			if($cfgVer > $advVer){
 				$this->logger->notice("Your apollo.yml needs update");
 				$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
 			}
 
 			$this->start();
-		//}catch(\Throwable $e){
+		}catch(\Throwable $e){
 			$this->exceptionHandler($e);
 		}
 	}
@@ -2798,6 +2791,6 @@ OS: §6' . PHP_OS .'§f
 	 * @throws \BadMethodCallException because Server instances cannot be serialized
 	 */
 	public function __sleep(){
-		throw new \BadMethodCallException("Cannot serialize Server instance");
+		throw new \BadMethodCallException("Cannot serialize Server instance"); //pocketmine\DEBUG
 	}
 }
