@@ -648,6 +648,21 @@ class Server{
 	public function getPlayerMetadata(){
 		return $this->playerMetadata;
 	}
+	
+	/**
+	* @return string
+	*/
+	public function getGitCommit(){
+		return \pocketmine\GIT_COMMIT;
+	}
+	
+	/**
+	* @return string
+	*/
+	public function getShortGitCommit(){
+		return substr(\pocketmine\GIT_COMMIT, 0, 7);
+	}
+
 
 	/**
 	 * @return LevelMetadataStore
