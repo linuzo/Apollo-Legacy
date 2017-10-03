@@ -67,7 +67,7 @@ class GroundCover extends Populator {
 						if($column{$y} === "\x00" and $b->isSolid()){
 							break;
 						}
-						if($y <= $waterHeight and $b->getId() == Block::GRASS and $chunk->getBlockId($x, $y + 1, $z) == Block::STILL_WATER){
+						if($b->getId() == Block::GRASS and $chunk->getBlockId($x, $y + 1, $z) == Block::STILL_WATER){
 							$b = Block::get(Block::DIRT);
 						}
 						if($b->getDamage() === 0){
