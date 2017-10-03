@@ -1072,6 +1072,14 @@ class Server{
 	}
 
 	/**
+	 * @internal
+	 * @param Level $level
+	 */
+	public function removeLevel(Level $level) : void{
+		unset($this->levels[$level->getId()]);
+	}
+
+	/**
 	 * Loads a level from the data directory
 	 *
 	 * @param string $name

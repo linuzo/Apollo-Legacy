@@ -22,7 +22,6 @@
 /**
  * Noise classes used in Levels
  */
-
 namespace pocketmine\level\generator;
 
 use pocketmine\level\ChunkManager;
@@ -30,15 +29,9 @@ use pocketmine\level\generator\noise\Noise;
 use pocketmine\level\generator\normal\Normal;
 use pocketmine\utils\Random;
 
-abstract class Generator {
+abstract class Generator{
 	private static $list = [];
 
-	/**
-	 * @param $object
-	 * @param $name
-	 *
-	 * @return bool
-	 */
 	public static function addGenerator($object, $name){
 		if(is_subclass_of($object, Generator::class) and !isset(Generator::$list[$name = strtolower($name)])){
 			Generator::$list[$name] = $object;
@@ -69,11 +62,6 @@ abstract class Generator {
 		return Normal::class;
 	}
 
-	/**
-	 * @param $class
-	 *
-	 * @return int|string
-	 */
 	public static function getGeneratorName($class){
 		foreach(Generator::$list as $name => $c){
 			if($c === $class){
@@ -98,7 +86,7 @@ abstract class Generator {
 		if($samplingRate === 0){
 			throw new \InvalidArgumentException("samplingRate cannot be 0");
 		}
-		if($xSize % $samplingRate !== 0){
+		if ($xSize % $samplingRate !== 0) {
 			throw new \InvalidArgumentCountException("xSize % samplingRate must return 0");
 		}
 
@@ -133,10 +121,10 @@ abstract class Generator {
 		if($samplingRate === 0){
 			throw new \InvalidArgumentException("samplingRate cannot be 0");
 		}
-		if($xSize % $samplingRate !== 0){
+		if ($xSize % $samplingRate !== 0) {
 			throw new \InvalidArgumentCountException("xSize % samplingRate must return 0");
 		}
-		if($zSize % $samplingRate !== 0){
+		if ($zSize % $samplingRate !== 0) {
 			throw new \InvalidArgumentCountException("zSize % samplingRate must return 0");
 		}
 
@@ -194,13 +182,13 @@ abstract class Generator {
 		if($ySamplingRate === 0){
 			throw new \InvalidArgumentException("ySamplingRate cannot be 0");
 		}
-		if($xSize % $xSamplingRate !== 0){
+		if ($xSize % $xSamplingRate !== 0) {
 			throw new \InvalidArgumentCountException("xSize % xSamplingRate must return 0");
 		}
-		if($zSize % $zSamplingRate !== 0){
+		if ($zSize % $zSamplingRate !== 0) {
 			throw new \InvalidArgumentCountException("zSize % zSamplingRate must return 0");
 		}
-		if($ySize % $ySamplingRate !== 0){
+		if ($ySize % $ySamplingRate !== 0) {
 			throw new \InvalidArgumentCountException("ySize % ySamplingRate must return 0");
 		}
 
@@ -232,18 +220,18 @@ abstract class Generator {
 						$dy2 = (($yy - $ny) / ($nny - $ny));
 
 						$noiseArray[$xx][$zz][$yy] = (($nnz - $zz) / ($nnz - $nz)) * (
-								$dy1 * (
-									$dx1 * $noiseArray[$nx][$nz][$ny] + $dx2 * $noiseArray[$nnx][$nz][$ny]
-								) + $dy2 * (
-									$dx1 * $noiseArray[$nx][$nz][$nny] + $dx2 * $noiseArray[$nnx][$nz][$nny]
-								)
-							) + (($zz - $nz) / ($nnz - $nz)) * (
-								$dy1 * (
-									$dx1 * $noiseArray[$nx][$nnz][$ny] + $dx2 * $noiseArray[$nnx][$nnz][$ny]
-								) + $dy2 * (
-									$dx1 * $noiseArray[$nx][$nnz][$nny] + $dx2 * $noiseArray[$nnx][$nnz][$nny]
-								)
-							);
+							$dy1 * (
+								$dx1 * $noiseArray[$nx][$nz][$ny] + $dx2 * $noiseArray[$nnx][$nz][$ny]
+							) + $dy2 * (
+								$dx1 * $noiseArray[$nx][$nz][$nny] + $dx2 * $noiseArray[$nnx][$nz][$nny]
+							)
+						) + (($zz - $nz) / ($nnz - $nz)) * (
+							$dy1 * (
+								$dx1 * $noiseArray[$nx][$nnz][$ny] + $dx2 * $noiseArray[$nnx][$nnz][$ny]
+							) + $dy2 * (
+								$dx1 * $noiseArray[$nx][$nnz][$nny] + $dx2 * $noiseArray[$nnx][$nnz][$nny]
+							)
+						);
 					}
 				}
 			}
@@ -252,42 +240,16 @@ abstract class Generator {
 		return $noiseArray;
 	}
 
-	/**
-	 * @return int
-	 */
 	public function getWaterHeight() : int{
 		return 0;
 	}
 
-	/**
-	 * Generator constructor.
-	 *
-	 * @param array $settings
-	 */
 	public abstract function __construct(array $settings = []);
 
-	/**
-	 * @param ChunkManager $level
-	 * @param Random       $random
-	 *
-	 * @return mixed
-	 */
 	public abstract function init(ChunkManager $level, Random $random);
 
-	/**
-	 * @param $chunkX
-	 * @param $chunkZ
-	 *
-	 * @return mixed
-	 */
 	public abstract function generateChunk($chunkX, $chunkZ);
 
-	/**
-	 * @param $chunkX
-	 * @param $chunkZ
-	 *
-	 * @return mixed
-	 */
 	public abstract function populateChunk($chunkX, $chunkZ);
 
 	public abstract function getSettings();
