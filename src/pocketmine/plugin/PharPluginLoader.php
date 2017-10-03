@@ -1,36 +1,33 @@
 <?php
 
 /*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ * DevTools plugin for PocketMine-MP
+ * Copyright (C) 2014 PocketMine Team <https://github.com/PocketMine/DevTools>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
 */
-
-declare(strict_types=1);
 
 namespace pocketmine\plugin;
 
 use pocketmine\event\plugin\PluginDisableEvent;
 use pocketmine\event\plugin\PluginEnableEvent;
+use pocketmine\plugin\Plugin;
+use pocketmine\plugin\PluginBase;
+use pocketmine\plugin\PluginDescription;
+use pocketmine\plugin\PluginLoader;
 use pocketmine\Server;
+use pocketmine\utils\MainLogger;
+use pocketmine\utils\TextFormat;
 
-/**
- * Handles different types of plugins
- */
-class PharPluginLoader implements PluginLoader{
+class FolderPluginLoader implements PluginLoader{
 
 	/** @var Server */
 	private $server;
@@ -50,23 +47,30 @@ class PharPluginLoader implements PluginLoader{
 	 * @return Plugin|null
 	 */
 	public function loadPlugin(string $file){
-		if(($description = $this->getPluginDescription($file)) instanceof PluginDescription){
-			$this->server->getLogger()->info($this->server->getLanguage()->translateString("pocketmine.plugin.load", [$description->getFullName()]));
-			$dataFolder = dirname($file) . DIRECTORY_SEPARATOR . $description->getName();
-			if(file_exists($dataFolder) and !is_dir($dataFolder)){
-				throw new \InvalidStateException("Projected dataFolder '" . $dataFolder . "' for " . $description->getName() . " exists and is not a directory");
-			}
-			$file = "phar://$file";
-			$className = $description->getMain();
-			$this->server->getLoader()->addPath("$file/src");
+		if(is_dir($file) and file_exists($file . "/plugin.yml") and file_exists($file . "/src/")){
+			if(($description = $this->getPluginDescription($file)) instanceof PluginDescription){
+				MainLogger::getLogger()->info(TextFormat::LIGHT_PURPLE . "Loading source plugin " . $description->getFullName());
+				$dataFolder = dirname($file) . DIRECTORY_SEPARATOR . $description->getName();
+				if(file_exists($dataFolder) and !is_dir($dataFolder)){
+					trigger_error("Projected dataFolder '" . $dataFolder . "' for " . $description->getName() . " exists and is not a directory", E_USER_WARNING);
 
-			if(class_exists($className, true)){
-				$plugin = new $className();
-				$this->initPlugin($plugin, $description, $dataFolder, $file);
+					return null;
+				}
 
-				return $plugin;
-			}else{
-				throw new PluginException("Couldn't load plugin " . $description->getName() . ": main class not found");
+
+				$className = $description->getMain();
+				$this->server->getLoader()->addPath($file . "/src");
+
+				if(class_exists($className, true)){
+					$plugin = new $className();
+					$this->initPlugin($plugin, $description, $dataFolder, $file);
+
+					return $plugin;
+				}else{
+					trigger_error("Couldn't load source plugin " . $description->getName() . ": main class not found", E_USER_WARNING);
+
+					return null;
+				}
 			}
 		}
 
@@ -81,11 +85,10 @@ class PharPluginLoader implements PluginLoader{
 	 * @return null|PluginDescription
 	 */
 	public function getPluginDescription(string $file){
-		$phar = new \Phar($file);
-		if(isset($phar["plugin.yml"])){
-			$pluginYml = $phar["plugin.yml"];
-			if($pluginYml instanceof \PharFileInfo){
-				return new PluginDescription($pluginYml->getContent());
+		if(is_dir($file) and file_exists($file . "/plugin.yml")){
+			$yaml = @file_get_contents($file . "/plugin.yml");
+			if($yaml != ""){
+				return new PluginDescription($yaml);
 			}
 		}
 
@@ -98,7 +101,7 @@ class PharPluginLoader implements PluginLoader{
 	 * @return string
 	 */
 	public function getPluginFilters() : string{
-		return "/\\.phar$/i";
+		return "/[^\\.]/";
 	}
 
 	/**
@@ -117,11 +120,11 @@ class PharPluginLoader implements PluginLoader{
 	 */
 	public function enablePlugin(Plugin $plugin){
 		if($plugin instanceof PluginBase and !$plugin->isEnabled()){
-			$this->server->getLogger()->info($this->server->getLanguage()->translateString("pocketmine.plugin.enable", [$plugin->getDescription()->getFullName()]));
+			MainLogger::getLogger()->info("Enabling " . $plugin->getDescription()->getFullName());
 
 			$plugin->setEnabled(true);
 
-			$this->server->getPluginManager()->callEvent(new PluginEnableEvent($plugin));
+			Server::getInstance()->getPluginManager()->callEvent(new PluginEnableEvent($plugin));
 		}
 	}
 
@@ -130,9 +133,9 @@ class PharPluginLoader implements PluginLoader{
 	 */
 	public function disablePlugin(Plugin $plugin){
 		if($plugin instanceof PluginBase and $plugin->isEnabled()){
-			$this->server->getLogger()->info($this->server->getLanguage()->translateString("pocketmine.plugin.disable", [$plugin->getDescription()->getFullName()]));
+			MainLogger::getLogger()->info("Disabling " . $plugin->getDescription()->getFullName());
 
-			$this->server->getPluginManager()->callEvent(new PluginDisableEvent($plugin));
+			Server::getInstance()->getPluginManager()->callEvent(new PluginDisableEvent($plugin));
 
 			$plugin->setEnabled(false);
 		}
