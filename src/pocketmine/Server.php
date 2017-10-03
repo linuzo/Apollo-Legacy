@@ -1559,13 +1559,6 @@ OS: §6' . PHP_OS .'§f
 			$this->config = new Config($configPath = $this->dataPath . "pocketmine.yml", Config::YAML, []);
 			$nowLang = $this->getProperty("settings.language", "eng");
 
-			//Crashes unsupported builds without the correct configuration
-			if(strpos(\pocketmine\VERSION, "unsupported") !== false and getenv("CI") === false){
-				if($this->getProperty("settings.enable-testing", false) !== true){
-					throw new ServerException("This build is not intended for production use. You may set 'settings.enable-testing: true' under pocketmine.yml to allow use of non-production builds. Do so at your own risk and ONLY if you know what you are doing.");
-				}else{
-					$this->logger->warning("You are using an unsupported build. Do not use this build in a production environment.");
-				}
 			}
 			if($defaultLang != "unknown" and $nowLang != $defaultLang){
 				@file_put_contents($configPath, str_replace('language: "' . $nowLang . '"', 'language: "' . $defaultLang . '"', file_get_contents($configPath)));
@@ -1707,8 +1700,8 @@ OS: §6' . PHP_OS .'§f
 				$this->setConfigInt("difficulty", Level::DIFFICULTY_HARD);
 			}
 
-			if(\pocketmine\DEBUG >= 0){
-				@cli_set_process_title($this->getName() . " " . $this->getPocketMineVersion());
+			//if(\pocketmine\DEBUG >= 0){
+				//@cli_set_process_title($this->getName() . " " . $this->getPocketMineVersion());
 			}
 
 			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.networkStart", [$this->getIp() === "" ? "*" : $this->getIp(), $this->getPort()]));
