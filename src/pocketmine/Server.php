@@ -2738,21 +2738,6 @@ OS: §6' . PHP_OS .'§f
 			$this->titleTick();
 			$this->maxTick = 20;
 			$this->maxUse = 0;
-
-			if(($this->tickCounter & 0b111111111) === 0){
-				if(($this->dserverConfig["enable"] and $this->dserverConfig["queryTickUpdate"]) or !$this->dserverConfig["enable"]){
-					$this->updateQuery();
-				}
-			}
-
-  if($this->dserverConfig["enable"] and $this->dserverConfig["motdPlayers"]){
-			 $max = $this->getDServerMaxPlayers();
-			 $online = $this->getDServerOnlinePlayers();
-			 $name = $this->getNetwork()->getName().'['.$online.'/'.$max.']';
-			 $this->getNetwork()->setName($name);
-			 //TODO: 检测是否爆满,不同状态颜色
-			}
-			$this->getNetwork()->updateName();
 		}
 
 		if($this->autoSave and ++$this->autoSaveTicker >= $this->autoSaveTicks){
@@ -2766,7 +2751,7 @@ OS: §6' . PHP_OS .'§f
 		}*/
 
 		if(($this->tickCounter % 100) === 0){
-			foreach($this->levels as $level){
+			foreach($this->levels as $level){ //dserverConfig
 				$level->clearCache();
 			}
 
