@@ -595,6 +595,21 @@ class Server{
 	public function getSpawnRadius() : int{
 		return $this->getConfigInt("spawn-protection", 16);
 	}
+	
+		/**
+	 * @return string
+	 */
+	public function getiTXApiVersion(){
+		return \pocketmine\GENISYS_API_VERSION;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getGeniApiVersion(){
+		return \pocketmine\GENISYS_API_VERSION;
+	}
+
 
 	/**
 	 * @return bool
