@@ -80,3 +80,4 @@ class GroundCover extends Populator {
 			}
 		}
 	}
+}
