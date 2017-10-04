@@ -90,48 +90,43 @@ abstract class Biome {
 
 	const MAX_BIOMES = 256;
 
-
 	/** @var Biome[] */
 	private static $biomes = [];
 
-	/** @var int */
 	private $id;
-	/** @var bool */
 	private $registered = false;
-
 	/** @var Populator[] */
 	private $populators = [];
 
-	/** @var int */
 	private $minElevation;
-	/** @var int */
 	private $maxElevation;
 
-	/** @var Block[] */
 	private $groundCover = [];
 
-	/** @var float */
 	protected $rainfall = 0.5;
-	/** @var float */
 	protected $temperature = 0.5;
 
-	protected static function register(int $id, Biome $biome){
-		self::$biomes[$id] = $biome;
-		$biome->setId($id);
-		
- 		$flowerPopFound = false;
- 
- 		foreach($biome->getPopulators() as $populator){
- 			if($populator instanceof Flower){
- 				$flowerPopFound = true;
- 				break;
- 			}
- 		}
- 
- 		if($flowerPopFound === false){
- 			$flower = new Flower();
- 			$biome->addPopulator($flower);
- 		}
+	/**
+	 * @param       $id
+	 * @param Biome $biome
+	 */
+	protected static function register($id, Biome $biome){
+		self::$biomes[(int) $id] = $biome;
+		$biome->setId((int) $id);
+
+		$flowerPopFound = false;
+
+		foreach($biome->getPopulators() as $populator){
+			if($populator instanceof Flower){
+				$flowerPopFound = true;
+				break;
+			}
+		}
+
+		if($flowerPopFound === false){
+			$flower = new Flower();
+			$biome->addPopulator($flower);
+		}
 	}
 
 	public static function init(){
@@ -154,41 +149,44 @@ abstract class Biome {
 		self::register(self::MESA, new MesaBiome());
 		self::register(self::HELL, new HellBiome());
 		self::register(self::BIRCH_FOREST, new ForestBiome(ForestBiome::TYPE_BIRCH));
-}
+	}
 
 	/**
-	 * @param int $id
+	 * @param $id
 	 *
 	 * @return Biome
 	 */
-	public static function getBiome(int $id) : Biome{
-		return self::$biomes[$id] ?? self::$biomes[self::OCEAN];
+	public static function getBiome($id){
+		return isset(self::$biomes[$id]) ? self::$biomes[$id] : self::$biomes[self::OCEAN];
 	}
 
 	public function clearPopulators(){
 		$this->populators = [];
 	}
 
+	/**
+	 * @param Populator $populator
+	 */
 	public function addPopulator(Populator $populator){
-		$this->populators[] = $populator;
- 	}
- 
- 	/**
- 	 * @param $class
- 	 */
- 	public function removePopulator($class){
- 		if(isset($this->populators[$class])){
- 			unset($this->populators[$class]);
- 		}
+		$this->populators[get_class($populator)] = $populator;
+	}
+
+	/**
+	 * @param $class
+	 */
+	public function removePopulator($class){
+		if(isset($this->populators[$class])){
+			unset($this->populators[$class]);
+		}
 	}
 
 	/**
 	 * @param ChunkManager $level
-	 * @param int          $chunkX
-	 * @param int          $chunkZ
+	 * @param              $chunkX
+	 * @param              $chunkZ
 	 * @param Random       $random
 	 */
-	public function populateChunk(ChunkManager $level, int $chunkX, int $chunkZ, Random $random){
+	public function populateChunk(ChunkManager $level, $chunkX, $chunkZ, Random $random){
 		foreach($this->populators as $populator){
 			$populator->populate($level, $chunkX, $chunkZ, $random);
 		}
@@ -197,32 +195,39 @@ abstract class Biome {
 	/**
 	 * @return Populator[]
 	 */
-	public function getPopulators() : array{
+	public function getPopulators(){
 		return $this->populators;
 	}
 
-	public function setId(int $id){
+	/**
+	 * @param $id
+	 */
+	public function setId($id){
 		if(!$this->registered){
 			$this->registered = true;
 			$this->id = $id;
 		}
 	}
 
-	public function getId() : int{
+	public function getId(){
 		return $this->id;
 	}
 
-	abstract public function getName() : string;
+	public abstract function getName();
 
-	public function getMinElevation() : int{
+	public function getMinElevation(){
 		return $this->minElevation;
 	}
 
-	public function getMaxElevation() : int{
+	public function getMaxElevation(){
 		return $this->maxElevation;
 	}
 
-	public function setElevation(int $min, int $max){
+	/**
+	 * @param $min
+	 * @param $max
+	 */
+	public function setElevation($min, $max){
 		$this->minElevation = $min;
 		$this->maxElevation = $max;
 	}
@@ -230,7 +235,7 @@ abstract class Biome {
 	/**
 	 * @return Block[]
 	 */
-	public function getGroundCover() : array{
+	public function getGroundCover(){
 		return $this->groundCover;
 	}
 
@@ -241,11 +246,17 @@ abstract class Biome {
 		$this->groundCover = $covers;
 	}
 
-	public function getTemperature() : float{
+	/**
+	 * @return float
+	 */
+	public function getTemperature(){
 		return $this->temperature;
 	}
 
-	public function getRainfall() : float{
+	/**
+	 * @return float
+	 */
+	public function getRainfall(){
 		return $this->rainfall;
 	}
 }
