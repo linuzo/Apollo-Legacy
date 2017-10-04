@@ -1534,15 +1534,31 @@ OS: Â§6' . PHP_OS .'Â§f
 
 			$version = new VersionString($this->getPocketMineVersion());
 
-			$this->logger->info("Loading pocketmine.yml...");
+
+			$this->logger->info("Loading properties and configuration...");
 			if(!file_exists($this->dataPath . "pocketmine.yml")){
-				$content = file_get_contents($this->filePath . "src/pocketmine/resources/pocketmine.yml");
-				if($version->isDev()){
-					$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
+				if(file_exists($this->dataPath . "lang.txt")){
+					$langFile = new Config($configPath = $this->dataPath . "lang.txt", Config::ENUM, []);
+                    $wizardLang = null;
+					foreach ($langFile->getAll(true) as $langName) {
+						$wizardLang = $langName;
+						break;
+					}
+					if(file_exists($this->filePath . "src/pocketmine/resources/pocketmine_$wizardLang.yml")){
+						$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_$wizardLang.yml");
+					}else{
+						$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_eng.yml");
+					}
+				}else{
+					$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_eng.yml");
 				}
 				@file_put_contents($this->dataPath . "pocketmine.yml", $content);
 			}
-			$this->config = new Config($this->dataPath . "pocketmine.yml", Config::YAML, []);
+			if(file_exists($this->dataPath . "lang.txt")){
+				unlink($this->dataPath . "lang.txt");
+			}
+			$this->config = new Config($configPath = $this->dataPath . "pocketmine.yml", Config::YAML, []);
+			$nowLang = $this->getProperty("settings.language", "eng");[]);
 
 			define('pocketmine\DEBUG', (int) $this->getProperty("debug.level", 1));
 
@@ -1574,7 +1590,7 @@ OS: Â§6' . PHP_OS .'Â§f
 			}
 			
 			$internelConfig = new Config($file, Config::YAML, []);
-			$this->advancedConfig = new Config($this->dataPath . "genisys.yml", Config::YAML, []);
+			$this->advancedConfig = new Config($this->dataPath . "apollo.yml", Config::YAML, []);
 			$cfgVer = $this->getAdvancedProperty("config.version", 0, $internelConfig);
 			$advVer = $this->getAdvancedProperty("config.version", 0);
 			
