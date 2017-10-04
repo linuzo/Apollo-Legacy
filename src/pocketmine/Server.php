@@ -1840,44 +1840,36 @@ OS: Â§6' . PHP_OS .'Â§f
 
 
 			$this->properties->save(true);
-
+		
 			if(!($this->getDefaultLevel() instanceof Level)){
 				$this->getLogger()->emergency($this->getLanguage()->translateString("pocketmine.level.defaultError"));
 				$this->forceShutdown();
-
 				return;
-	}
-
+			}
+		
 			if($this->netherEnabled){
 				if(!$this->loadLevel($this->netherName)){
 					$this->generateLevel($this->netherName, time(), Generator::getGenerator("nether"));
 				}
+				
 				$this->netherLevel = $this->getLevelByName($this->netherName);
 			}
-
+		
 			if($this->enderEnabled){
 				if(!$this->loadLevel($this->enderName)){
 					$this->generateLevel($this->enderName, time(), Generator::getGenerator("ender"));
 				}
 				$this->enderLevel = $this->getLevelByName($this->enderName);
 			}
-
+		
 			if($this->getProperty("ticks-per.autosave", 6000) > 0){
 				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
 			}
-
-			$this->enablePlugins(PluginLoadOrder::POSTWORLD);
-
-		//	if($this->dserverConfig["enable"] and ($this->getAdvancedProperty("dserver.server-list", "") != "")) $this->scheduler->scheduleRepeatingTask(new CallbackTask([
-		//		$this,
-			//	"updateDServerInfo"
-			//]), $this->dserverConfig["timer"]);
-
+		
 			if($cfgVer > $advVer){
-				$this->logger->notice("Your apollo.yml needs update");
+				$this->logger->notice("Your genisys.yml needs update");
 				$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
 			}
-
 			$this->start();
 		}catch(\Throwable $e){
 			$this->exceptionHandler($e);
