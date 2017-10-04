@@ -1857,10 +1857,10 @@ OS: Â§6' . PHP_OS .'Â§f
 				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
 			}
 
-			if($cfgVer > $advVer){
-				$this->logger->notice("Your genisys.yml needs update");
-				$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
-			}
+	//		if($cfgVer > $advVer){
+		//		$this->logger->notice("Your genisys.yml needs update");
+			//	$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
+			//}
 
 			$this->enablePlugins(PluginLoadOrder::POSTWORLD);
 
