@@ -112,12 +112,6 @@ use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
 
 /**
- * apollo stuff here
- */
- 
- use pocketmine\level\generator\normal\Normal2;
-
-/**
  * The class that manages everything
  */
 class Server{
@@ -278,6 +272,47 @@ class Server{
 
 	/** @var Level */
 	private $levelDefault = null;
+	
+		/** Advanced Config */
+	public $advancedConfig = null;
+	public $weatherEnabled = true;
+	public $foodEnabled = true;
+	public $expEnabled = true;
+	public $keepInventory = false;
+	public $netherEnabled = false;
+	public $netherName = "nether";
+	public $netherLevel = null;
+	public $weatherRandomDurationMin = 6000;
+	public $weatherRandomDurationMax = 12000;
+	public $lightningTime = 200;
+	public $lightningFire = false;
+	public $version;
+	public $allowSnowGolem;
+	public $allowIronGolem;
+	public $autoClearInv = true;
+	public $dserverConfig = [];
+	public $dserverPlayers = 0;
+	public $dserverAllPlayers = 0;
+	public $redstoneEnabled = false;
+	public $allowFrequencyPulse = true;
+	public $anvilEnabled = false;
+	public $pulseFrequency = 20;
+	public $keepExperience = false;
+	public $limitedCreative = true;
+	public $chunkRadius = -1;
+	public $destroyBlockParticle = true;
+	public $allowSplashPotion = true;
+	public $fireSpread = false;
+	public $advancedCommandSelector = false;
+	public $enchantingTableEnabled = true;
+	public $countBookshelf = false;
+	public $allowInventoryCheats = false;
+	public $folderpluginloader = true;
+	public $loadIncompatibleAPI = true;
+	public $enderEnabled = true;
+	public $enderName = "ender";
+	public $enderLevel = null;
+	public $absorbWater = false;
 
 	/**
 	 * @return string
@@ -321,6 +356,36 @@ class Server{
 		return \pocketmine\API_VERSION;
 	}
 
+		/**
+	 * @return string
+	 */
+	public function getiTXApiVersion(){
+		return \pocketmine\GENISYS_API_VERSION;
+	}
+	
+	/**
+	 * @return string
+	 */
+	public function getGeniApiVersion(){
+		return \pocketmine\GENISYS_API_VERSION;
+	}
+		
+ 	/**
+ 	* @return string
+ 	*/
+ 	public function getGitCommit(){
+ 		return \pocketmine\GIT_COMMIT;
+ 	}
+ 	
+ 	/**
+ 	* @return string
+ 	*/
+	public function getShortGitCommit(){
+ 		return substr(\pocketmine\GIT_COMMIT, 0, 7);
+ 	}
+
+  
+	
 	/**
 	 * @return string
 	 */
@@ -1411,6 +1476,28 @@ class Server{
 			Server::$sleeper->wait($ms);
 		}, $microseconds);
 	}
+	
+public function about(){
+		$string = "	
+Â§3Apollo Â§fis a fork of PocketMine-MP, made by Â§5Apollo-SoftwareTeamÂ§f.
+Version: Â§6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')Â§f
+Client Version: Â§b' . ProtocolInfo::MINECRAFT_VERSION . 'Â§f
+PHP Version: Â§e' . PHP_VERSION . 'Â§f
+OS: Â§6' . PHP_OS .'Â§f
+	';
+		
+		$this->getLogger()->info($string);
+	}
+	
+	public function loadAdvancedConfig(){
+		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
+		$this->netherEnabled = $this->getAdvancedProperty("nether.allow-nether", false);
+		$this->netherName = $this->getAdvancedProperty("nether.level-name", "nether");
+		$this->enderEnabled = $this->getAdvancedProperty("ender.allow-ender", false);
+		$this->enderName = $this->getAdvancedProperty("ender.level-name", "ender");
+		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", true);
+		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
+	}
 
 	/**
 	 * @param \ClassLoader    $autoloader
@@ -1447,15 +1534,31 @@ class Server{
 
 			$version = new VersionString($this->getPocketMineVersion());
 
-			$this->logger->info("Loading pocketmine.yml...");
+
+			$this->logger->info("Loading properties and configuration...");
 			if(!file_exists($this->dataPath . "pocketmine.yml")){
-				$content = file_get_contents($this->filePath . "src/pocketmine/resources/pocketmine.yml");
-				if($version->isDev()){
-					$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
+				if(file_exists($this->dataPath . "lang.txt")){
+					$langFile = new Config($configPath = $this->dataPath . "lang.txt", Config::ENUM, []);
+                    $wizardLang = null;
+					foreach ($langFile->getAll(true) as $langName) {
+						$wizardLang = $langName;
+						break;
+					}
+					if(file_exists($this->filePath . "src/pocketmine/resources/pocketmine_$wizardLang.yml")){
+						$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_$wizardLang.yml");
+					}else{
+						$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_eng.yml");
+					}
+				}else{
+					$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_eng.yml");
 				}
 				@file_put_contents($this->dataPath . "pocketmine.yml", $content);
 			}
-			$this->config = new Config($this->dataPath . "pocketmine.yml", Config::YAML, []);
+			if(file_exists($this->dataPath . "lang.txt")){
+				unlink($this->dataPath . "lang.txt");
+			}
+			$this->config = new Config($configPath = $this->dataPath . "pocketmine.yml", Config::YAML, []);
+			//$nowLang = $this->getProperty("settings.language", "eng");[]);
 
 			define('pocketmine\DEBUG', (int) $this->getProperty("debug.level", 1));
 
@@ -1468,6 +1571,24 @@ class Server{
 			if($this->logger instanceof MainLogger){
 				$this->logger->setLogDebug(\pocketmine\DEBUG > 1);
 			}
+			
+			$lang = $this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE);
+			if(file_exists($this->filePath . "src/pocketmine/resources/apollo_$lang.yml")){
+				$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/apollo_$lang.yml");
+			}else{
+				$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/apollo_eng.yml");
+			}
+			
+			if(!file_exists($this->dataPath . "apollo.yml")){
+				@file_put_contents($this->dataPath . "apollo.yml", $content);
+			}
+			
+			$internelConfig = new Config($file, Config::YAML, []);
+			$this->advancedConfig = new Config($this->dataPath . "apollo.yml", Config::YAML, []);
+			$cfgVer = $this->getAdvancedProperty("config.version", 0, $internelConfig);
+			$advVer = $this->getAdvancedProperty("config.version", 0);
+			
+			$this->loadAdvancedConfig();
 
 			$this->logger->info("Loading server properties...");
 			$this->properties = new Config($this->dataPath . "server.properties", Config::PROPERTIES, [
@@ -1494,7 +1615,7 @@ class Server{
 				"rcon.password" => substr(base64_encode(random_bytes(20)), 3, 10),
 				"auto-save" => true,
 				"view-distance" => 8,
-				"online-mode" => true
+				"xbox-auth" => true
 			]);
 
 			$this->forceLanguage = $this->getProperty("settings.force-language", false);
@@ -1521,7 +1642,12 @@ class Server{
 			}else{
 				Network::$BATCH_THRESHOLD = -1;
 			}
+
 			$this->networkCompressionLevel = $this->getProperty("network.compression-level", 7);
+			if($this->networkCompressionLevel < 1 or $this->networkCompressionLevel > 9){
+				$this->logger->warning("Invalid network compression level $this->networkCompressionLevel set, setting to default 7");
+				$this->networkCompressionLevel = 7;
+			}
 			$this->networkCompressionAsync = $this->getProperty("network.async-compression", true);
 
 			$this->autoTickRate = (bool) $this->getProperty("level-settings.auto-tick-rate", true);
@@ -1567,7 +1693,7 @@ class Server{
 			$this->maxPlayers = $this->getConfigInt("max-players", 20);
 			$this->setAutoSave($this->getConfigBoolean("auto-save", true));
 
-			$this->onlineMode = $this->getConfigBoolean("online-mode", true);
+			$this->onlineMode = $this->getConfigBoolean("xbox-auth", true);
 			if($this->onlineMode){
 				$this->logger->notice($this->getLanguage()->translateString("pocketmine.server.auth", ["enabled", "will"]));
 				$this->logger->notice($this->getLanguage()->translateString("pocketmine.server.authProperty", ["disable", "false"]));
@@ -1627,6 +1753,9 @@ class Server{
 			$this->pluginManager->setUseTimings($this->getProperty("settings.enable-profiling", false));
 			$this->profilingTickRate = (float) $this->getProperty("settings.profile-report-trigger", 20);
 			$this->pluginManager->registerInterface(PharPluginLoader::class);
+			if($this->folderpluginloader === true) {
+                        $this->pluginManager->registerInterface(FolderPluginLoader::class);
+                        }
 			$this->pluginManager->registerInterface(ScriptPluginLoader::class);
 
 			register_shutdown_function([$this, "crashDump"]);
@@ -1653,8 +1782,7 @@ class Server{
 
 			Generator::addGenerator(Flat::class, "flat");
 			Generator::addGenerator(Normal::class, "normal");
-			Generator::addGenerator(Normal2::class, "normal2");
-			Generator::addGenerator(Normal2::class, "default");
+			Generator::addGenerator(Normal::class, "default");
 			Generator::addGenerator(Nether::class, "hell");
 			Generator::addGenerator(Nether::class, "nether");
 
@@ -1713,6 +1841,28 @@ class Server{
 
 			if($this->getProperty("ticks-per.autosave", 6000) > 0){
 				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
+			}
+			
+						if($this->netherEnabled){
+				if(!$this->loadLevel($this->netherName)){
+					$this->generateLevel($this->netherName, time(), Generator::getGenerator("nether"));
+				}
+				$this->netherLevel = $this->getLevelByName($this->netherName);
+			}
+			if($this->enderEnabled){
+				if(!$this->loadLevel($this->enderName)){
+					$this->generateLevel($this->enderName, time(), Generator::getGenerator("ender"));
+				}
+				$this->enderLevel = $this->getLevelByName($this->enderName);
+			}
+			
+			if($this->getProperty("ticks-per.autosave", 6000) > 0){
+				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
+			}
+
+			if($cfgVer > $advVer){
+				$this->logger->notice("Your apollo.yml needs update");
+				$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
 			}
 
 			$this->enablePlugins(PluginLoadOrder::POSTWORLD);
@@ -1993,6 +2143,8 @@ class Server{
 
 		$this->logger->info("Reloading properties...");
 		$this->properties->reload();
+		$this->advancedConfig->reload();
+		$this->loadAdvancedConfig();
 		$this->maxPlayers = $this->getConfigInt("max-players", 20);
 
 		if($this->getConfigBoolean("hardcore", false) === true and $this->getDifficulty() < Level::DIFFICULTY_HARD){
@@ -2097,7 +2249,35 @@ class Server{
 	 */
 	public function getQueryInformation(){
 		return $this->queryRegenerateTask;
-	}
+	}	
+ 	
+ 	/**
+ 	 * @param             $variable
+ 	 * @param null        $defaultValue
+ 	 * @param Config|null $cfg
+ 	 * @return bool|mixed|null
+ 	 */
+ 	public function getAdvancedProperty($variable, $defaultValue = null, Config $cfg = null){
+		$vars = explode(".", $variable);
+ 		$base = array_shift($vars);
+ 		if($cfg == null) $cfg = $this->advancedConfig;
+ 		if($cfg->exists($base)){
+ 			$base = $cfg->get($base);
+ 		}else{
+ 			return $defaultValue;
+ 		}
+ 
+ 		while(count($vars) > 0){
+ 			$baseKey = array_shift($vars);
+ 			if(is_array($base) and isset($base[$baseKey])){
+ 				$base = $base[$baseKey];
+ 			}else{
+ 				return $defaultValue;
+ 			}
+ 		}
+ 
+ 		return $base;
+ 	}
 
 	/**
 	 * Starts the PocketMine-MP server and starts processing ticks and packets

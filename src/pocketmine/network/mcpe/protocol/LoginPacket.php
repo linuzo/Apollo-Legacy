@@ -44,6 +44,8 @@ class LoginPacket extends DataPacket{
 	/** @var int */
 	public $clientId;
 	/** @var string */
+	public $xuid;
+	/** @var string */
 	public $identityPublicKey;
 	/** @var string */
 	public $serverAddress;
@@ -86,9 +88,13 @@ class LoginPacket extends DataPacket{
 				if(isset($webtoken["extraData"]["identity"])){
 					$this->clientUUID = $webtoken["extraData"]["identity"];
 				}
-				if(isset($webtoken["identityPublicKey"])){
-					$this->identityPublicKey = $webtoken["identityPublicKey"];
+				if(isset($webtoken["extraData"]["XUID"])){
+					$this->xuid = $webtoken["extraData"]["XUID"];
 				}
+			}
+
+			if(isset($webtoken["identityPublicKey"])){
+				$this->identityPublicKey = $webtoken["identityPublicKey"];
 			}
 		}
 

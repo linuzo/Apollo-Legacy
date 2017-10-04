@@ -336,9 +336,8 @@ class Level implements ChunkManager, Metadatable{
 		$this->chunksPerTick = (int) $this->server->getProperty("chunk-ticking.per-tick", 40);
 		$this->chunkGenerationQueueSize = (int) $this->server->getProperty("chunk-generation.queue-size", 8);
 		$this->chunkPopulationQueueSize = (int) $this->server->getProperty("chunk-generation.population-queue-size", 2);
-		$this->chunkTickList = [];
 		$this->clearChunksOnTick = (bool) $this->server->getProperty("chunk-ticking.clear-tick-list", true);
-		$this->cacheChunks = (bool) $this->server->getProperty("chunk-sending.cache-chunks", false);
+		$this->cacheChunks = (bool) $this->server->getProperty("chunk-sending.cache-chunks", true);
 
 		$dontTickBlocks = $this->server->getProperty("chunk-ticking.disable-block-ticking", []);
 		$this->randomTickBlocks = new \SplFixedArray(256);
@@ -1094,12 +1093,13 @@ class Level implements ChunkManager, Metadatable{
 	 * @return Block[]
 	 */
 	public function getCollisionBlocks(AxisAlignedBB $bb, bool $targetFirst = false) : array{
-		$minX = Math::floorFloat($bb->minX);
-		$minY = Math::floorFloat($bb->minY);
-		$minZ = Math::floorFloat($bb->minZ);
-		$maxX = Math::ceilFloat($bb->maxX);
-		$maxY = Math::ceilFloat($bb->maxY);
-		$maxZ = Math::ceilFloat($bb->maxZ);
+		$bbPlusOne = $bb->grow(1, 1, 1);
+		$minX = Math::floorFloat($bbPlusOne->minX);
+		$minY = Math::floorFloat($bbPlusOne->minY);
+		$minZ = Math::floorFloat($bbPlusOne->minZ);
+		$maxX = Math::ceilFloat($bbPlusOne->maxX);
+		$maxY = Math::ceilFloat($bbPlusOne->maxY);
+		$maxZ = Math::ceilFloat($bbPlusOne->maxZ);
 
 		$collides = [];
 
@@ -1157,12 +1157,13 @@ class Level implements ChunkManager, Metadatable{
 	 * @return AxisAlignedBB[]
 	 */
 	public function getCollisionCubes(Entity $entity, AxisAlignedBB $bb, bool $entities = true) : array{
-		$minX = Math::floorFloat($bb->minX);
-		$minY = Math::floorFloat($bb->minY);
-		$minZ = Math::floorFloat($bb->minZ);
-		$maxX = Math::ceilFloat($bb->maxX);
-		$maxY = Math::ceilFloat($bb->maxY);
-		$maxZ = Math::ceilFloat($bb->maxZ);
+		$bbPlusOne = $bb->grow(1, 1, 1);
+		$minX = Math::floorFloat($bbPlusOne->minX);
+		$minY = Math::floorFloat($bbPlusOne->minY);
+		$minZ = Math::floorFloat($bbPlusOne->minZ);
+		$maxX = Math::ceilFloat($bbPlusOne->maxX);
+		$maxY = Math::ceilFloat($bbPlusOne->maxY);
+		$maxZ = Math::ceilFloat($bbPlusOne->maxZ);
 
 		$collides = [];
 
@@ -1772,14 +1773,11 @@ class Level implements ChunkManager, Metadatable{
 			return false;
 		}
 
-		if(!($blockReplace->canBeReplaced() === true or ($hand->getId() === Item::WOODEN_SLAB and $blockReplace->getId() === Item::WOODEN_SLAB) or ($hand->getId() === Item::STONE_SLAB and $blockReplace->getId() === Item::STONE_SLAB))){
-			return false;
-		}
-
-		if($blockClicked->canBeReplaced() === true){
+		if($hand->canBePlacedAt($blockClicked, $facePos)){
 			$blockReplace = $blockClicked;
 			$hand->position($blockReplace);
-			//$face = -1;
+		}elseif(!$hand->canBePlacedAt($blockReplace, $facePos)){
+			return false;
 		}
 
 		if($hand->isSolid() === true and $hand->getBoundingBox() !== null){

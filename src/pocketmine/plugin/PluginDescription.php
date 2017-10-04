@@ -47,6 +47,8 @@ class PluginDescription{
 	/** @var string */
 	private $prefix = "";
 	private $order = PluginLoadOrder::POSTWORLD;
+	
+        private $geniapi;
 
 	/**
 	 * @var Permission[]
@@ -76,9 +78,15 @@ class PluginDescription{
 		if(stripos($this->main, "pocketmine\\") === 0){
 			throw new PluginException("Invalid PluginDescription main, cannot start within the PocketMine namespace");
 		}
+ 
 
 		$this->api = array_map("strval", (array) $plugin["api"] ?? []);
-		$this->compatibleMcpeProtocols = array_map("intval", (array) ($plugin["mcpe-protocol"] ?? []));
+		$this->compatibleMcpeProtocols = array_map("intval", (array) ($plugin["mcpe-protocol"] ?? []));		
+		if(!isset($plugin["geniapi"])){
+ 		$this->geniapi = ["2.0.0"];
+ 		}else{
+ 		$this->geniapi = !is_array($plugin["geniapi"]) ? [$plugin["geniapi"]] : $plugin["geniapi"];
+ 		}
 
 		if(isset($plugin["commands"]) and is_array($plugin["commands"])){
 			$this->commands = $plugin["commands"];
@@ -251,6 +259,13 @@ class PluginDescription{
 	 */
 	public function getName() : string{
 		return $this->name;
+	}
+	
+	/**
+	 * @return array
+	 */
+	public function getCompatibleGeniApis(){
+		return $this->geniapi;
 	}
 
 	/**
