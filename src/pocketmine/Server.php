@@ -1753,6 +1753,9 @@ OS: Â§6' . PHP_OS .'Â§f
 			$this->pluginManager->setUseTimings($this->getProperty("settings.enable-profiling", false));
 			$this->profilingTickRate = (float) $this->getProperty("settings.profile-report-trigger", 20);
 			$this->pluginManager->registerInterface(PharPluginLoader::class);
+			if($this->folderpluginloader === true) {
+                        $this->pluginManager->registerInterface(FolderPluginLoader::class);
+                        }
 			$this->pluginManager->registerInterface(ScriptPluginLoader::class);
 
 			register_shutdown_function([$this, "crashDump"]);
