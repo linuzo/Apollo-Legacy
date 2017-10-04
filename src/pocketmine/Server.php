@@ -1496,7 +1496,7 @@ OS: Â§6' . PHP_OS .'Â§f
 		$this->enderEnabled = $this->getAdvancedProperty("ender.allow-ender", false);
 		$this->enderName = $this->getAdvancedProperty("ender.level-name", "ender");
 		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", true);
-		$this->absorbWater = $this->getAdvancedProperty("server.absorb-water", false);
+		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
 	}
 
 	/**
@@ -1860,10 +1860,10 @@ OS: Â§6' . PHP_OS .'Â§f
 				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
 			}
 
-	//		if($cfgVer > $advVer){
-		//		$this->logger->notice("Your genisys.yml needs update");
-			//	$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
-			//}
+			if($cfgVer > $advVer){
+				$this->logger->notice("Your apollo.yml needs update");
+				$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
+			}
 
 			$this->enablePlugins(PluginLoadOrder::POSTWORLD);
 
