@@ -2246,7 +2246,35 @@ OS: Â§6' . PHP_OS .'Â§f
 	 */
 	public function getQueryInformation(){
 		return $this->queryRegenerateTask;
-	}
+	}	
+ 	
+ 	/**
+ 	 * @param             $variable
+ 	 * @param null        $defaultValue
+ 	 * @param Config|null $cfg
+ 	 * @return bool|mixed|null
+ 	 */
+ 	public function getAdvancedProperty($variable, $defaultValue = null, Config $cfg = null){
+		$vars = explode(".", $variable);
+ 		$base = array_shift($vars);
+ 		if($cfg == null) $cfg = $this->advancedConfig;
+ 		if($cfg->exists($base)){
+ 			$base = $cfg->get($base);
+ 		}else{
+ 			return $defaultValue;
+ 		}
+ 
+ 		while(count($vars) > 0){
+ 			$baseKey = array_shift($vars);
+ 			if(is_array($base) and isset($base[$baseKey])){
+ 				$base = $base[$baseKey];
+ 			}else{
+ 				return $defaultValue;
+ 			}
+ 		}
+ 
+ 		return $base;
+ 	}
 
 	/**
 	 * Starts the PocketMine-MP server and starts processing ticks and packets
