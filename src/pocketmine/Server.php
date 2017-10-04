@@ -1572,12 +1572,6 @@ OS: Â§6' . PHP_OS .'Â§f
 				$this->logger->setLogDebug(\pocketmine\DEBUG > 1);
 			}
 			
-			if($defaultLang != "unknown" and $nowLang != $defaultLang){
-				@file_put_contents($configPath, str_replace('language: "' . $nowLang . '"', 'language: "' . $defaultLang . '"', file_get_contents($configPath)));
-				$this->config->reload();
-				unset($this->propertyCache["settings.language"]);
-			}
-			
 			$lang = $this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE);
 			if(file_exists($this->filePath . "src/pocketmine/resources/apollo_$lang.yml")){
 				$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/apollo_$lang.yml");
