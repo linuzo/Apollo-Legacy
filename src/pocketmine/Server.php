@@ -1888,11 +1888,6 @@ OS: §6' . PHP_OS .'§f
 			return $this->broadcast($message, self::BROADCAST_CHANNEL_USERS);
 		}
 
-		/** @var Player[] $recipients */
-		foreach($recipients as $recipient){
-			$recipient->sendMessage($message);
-		}
-
 		return count($recipients);
 	}
 
