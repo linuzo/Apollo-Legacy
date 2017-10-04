@@ -1558,7 +1558,7 @@ OS: Â§6' . PHP_OS .'Â§f
 				unlink($this->dataPath . "lang.txt");
 			}
 			$this->config = new Config($configPath = $this->dataPath . "pocketmine.yml", Config::YAML, []);
-			$nowLang = $this->getProperty("settings.language", "eng");[]);
+			//$nowLang = $this->getProperty("settings.language", "eng");[]);
 
 			define('pocketmine\DEBUG', (int) $this->getProperty("debug.level", 1));
 
