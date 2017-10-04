@@ -1,4 +1,6 @@
-# Apollo-Legacy [v1.2.0.81] (PHP7)
+![Apollo](http://i.imgur.com/KBlbnkp.png)
+
+
 Apollo is a Minecraft: PE Server Software with an improved Generator and a lot more features. 
 
 Note: 
