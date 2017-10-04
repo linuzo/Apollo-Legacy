@@ -1516,7 +1516,7 @@ OS: Â§6' . PHP_OS .'Â§f
 	 * @param string          $dataPath
 	 * @param string          $pluginPath
 	 */
-	public function __construct(\ClassLoader $autoloader, \ThreadedLogger $logger, $filePath, $dataPath, $pluginPath, $defaultLang = "unknown"){
+	public function __construct(\ClassLoader $autoloader, \ThreadedLogger $logger, string $filePath, string $dataPath, string $pluginPath){
 		self::$instance = $this;
 		self::$sleeper = new \Threaded;
 		$this->autoloader = $autoloader;
@@ -1762,8 +1762,8 @@ OS: Â§6' . PHP_OS .'Â§f
 			$this->profilingTickRate = (float) $this->getProperty("settings.profile-report-trigger", 20);
 			$this->pluginManager->registerInterface(PharPluginLoader::class);
 			if($this->folderpluginloader === true) {
-               $this->pluginManager->registerInterface(FolderPluginLoader::class);
-            }
+                        $this->pluginManager->registerInterface(FolderPluginLoader::class);
+                         }
 			
 			$this->pluginManager->registerInterface(ScriptPluginLoader::class); //getDefaultlevel
 
