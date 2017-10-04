@@ -369,6 +369,22 @@ class Server{
 	public function getGeniApiVersion(){
 		return \pocketmine\GENISYS_API_VERSION;
 	}
+		
+ 	/**
+ 	* @return string
+ 	*/
+ 	public function getGitCommit(){
+ 		return \pocketmine\GIT_COMMIT;
+ 	}
+ 	
+ 	/**
+ 	* @return string
+ 	*/
+	public function getShortGitCommit(){
+ 		return substr(\pocketmine\GIT_COMMIT, 0, 7);
+ 	}
+
+  
 	
 	/**
 	 * @return string
@@ -2114,6 +2130,8 @@ OS: Â§6' . PHP_OS .'Â§f
 
 		$this->logger->info("Reloading properties...");
 		$this->properties->reload();
+		$this->advancedConfig->reload();
+		$this->loadAdvancedConfig();
 		$this->maxPlayers = $this->getConfigInt("max-players", 20);
 
 		if($this->getConfigBoolean("hardcore", false) === true and $this->getDifficulty() < Level::DIFFICULTY_HARD){
