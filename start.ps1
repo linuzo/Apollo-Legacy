@@ -1,4 +1,4 @@
-﻿param (
+param (
 	[switch]$Loop = $false
 )
 
@@ -9,12 +9,16 @@ if(Test-Path "bin\php\php.exe"){
 	$binary = "php"
 }
 
-if(Test-Path "SpigotPE.phar"){
-	$file = "SpigotPE.phar"
+if(Test-Path "Apollo.phar"){
+	$file = "Apollo.phar"
 }elseif(Test-Path "src\pocketmine\PocketMine.php"){
 	$file = "src\pocketmine\PocketMine.php"
+}elseif(Test-Path "SpigotPE.phar"){
+	echo "hey you are using a old version we are now Apollo!"
+	pause
+	exit 1
 }else{
-	echo "Couldn't find a valid SpigotPE installation"
+	echo "Couldn't find a valid Apollo installation"
 	pause
 	exit 1
 }
