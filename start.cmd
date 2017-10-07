@@ -8,13 +8,17 @@ if exist bin\php\php.exe (
 ) else (
 	set PHP_BINARY=php
 )
-if exist SpigotPE.phar (
-               echo "hey you are using a old version we are now Apollo!"
 if exist Apollo.phar (
 	set POCKETMINE_FILE=Apollo.phar
 ) else (
 	if exist src\pocketmine\PocketMine.php (
 		set POCKETMINE_FILE=src\pocketmine\PocketMine.php
+		
+	)
+	if exist SpigotPE.phar (
+        echo "hey you are using a old version we are now Apollo!"
+		pause
+		exit 1
 	) else (
 		echo "Couldn't find a valid Apollo installation"
 		pause
