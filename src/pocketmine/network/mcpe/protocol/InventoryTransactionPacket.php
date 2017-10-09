@@ -25,8 +25,14 @@ namespace pocketmine\network\mcpe\protocol;
 
 #include <rules/DataPacket.h>
 
+use pocketmine\inventory\CraftingGrid;
+use pocketmine\inventory\PlayerInventory;
+use pocketmine\inventory\transaction\action\CreativeInventoryAction;
+use pocketmine\inventory\transaction\action\DropItemAction;
+use pocketmine\inventory\transaction\action\InventoryAction;
+use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\types\NetworkInventoryAction;
+use pocketmine\network\mcpe\protocol\types\ContainerIds;
 
 class InventoryTransactionPacket extends DataPacket{
 	const NETWORK_ID = ProtocolInfo::INVENTORY_TRANSACTION_PACKET;
@@ -47,101 +53,170 @@ class InventoryTransactionPacket extends DataPacket{
 	const USE_ITEM_ON_ENTITY_ACTION_INTERACT = 0;
 	const USE_ITEM_ON_ENTITY_ACTION_ATTACK = 1;
 
-	/** @var int */
-	public $transactionType;
+	const SOURCE_CONTAINER = 0;
+
+	const SOURCE_WORLD = 2; //drop/pickup item entity
+	const SOURCE_CREATIVE = 3;
+
+	const SOURCE_CRAFT = 99999;
 
 	/**
-	 * @var bool
-	 * NOTE: THIS FIELD DOES NOT EXIST IN THE PROTOCOL, it's merely used for convenience for PocketMine-MP to easily
-	 * determine whether we're doing a crafting transaction.
+	 * These identifiers are used for special slot types for transaction/inventory types that are not yet implemented.
+	 * Expect these to change in the future.
 	 */
-	public $isCraftingPart = false;
+	const SOURCE_TYPE_CRAFTING_ADD_INGREDIENT = -2;
+	const SOURCE_TYPE_CRAFTING_REMOVE_INGREDIENT = -3;
+	const SOURCE_TYPE_CRAFTING_RESULT = -4;
+	const SOURCE_TYPE_CRAFTING_USE_INGREDIENT = -5;
 
-	/** @var NetworkInventoryAction[] */
+	const SOURCE_TYPE_ANVIL_INPUT = -10;
+	const SOURCE_TYPE_ANVIL_MATERIAL = -11;
+	const SOURCE_TYPE_ANVIL_RESULT = -12;
+	const SOURCE_TYPE_ANVIL_OUTPUT = -13;
+
+	const SOURCE_TYPE_ENCHANT_INPUT = -15;
+	const SOURCE_TYPE_ENCHANT_MATERIAL = -16;
+	const SOURCE_TYPE_ENCHANT_OUTPUT = -17;
+
+	const SOURCE_TYPE_TRADING_INPUT_1 = -20;
+	const SOURCE_TYPE_TRADING_INPUT_2 = -21;
+	const SOURCE_TYPE_TRADING_USE_INPUTS = -22;
+	const SOURCE_TYPE_TRADING_OUTPUT = -23;
+
+	const SOURCE_TYPE_BEACON = -24;
+
+	const SOURCE_TYPE_CONTAINER_DROP_CONTENTS = -100;
+
+
+	const ACTION_MAGIC_SLOT_DROP_ITEM = 0;
+	const ACTION_MAGIC_SLOT_PICKUP_ITEM = 1;
+
+	const ACTION_MAGIC_SLOT_CREATIVE_DELETE_ITEM = 0;
+	const ACTION_MAGIC_SLOT_CREATIVE_CREATE_ITEM = 1;
+
+	const ACTION_CRAFT_PUT_SLOT = 3;
+	const ACTION_CRAFT_GET_SLOT = 5;
+	const ACTION_CRAFT_GET_RESULT = 7;
+	const ACTION_CRAFT_USE = 9;
+
+	/** @var InventoryAction[] */
 	public $actions = [];
 
 	/** @var \stdClass */
-	public $trData;
+	public $transactionData;
 
 	protected function decodePayload(){
-		$this->transactionType = $this->getUnsignedVarInt();
+		$type = $this->getUnsignedVarInt();
 
-		for($i = 0, $count = $this->getUnsignedVarInt(); $i < $count; ++$i){
-			$this->actions[] = (new NetworkInventoryAction())->read($this);
+		$actionCount = $this->getUnsignedVarInt();
+		for($i = 0; $i < $actionCount; ++$i){
+			$this->actions[] = $this->decodeInventoryAction();
 		}
 
-		$this->trData = new \stdClass();
+		$this->transactionData = new \stdClass();
+		$this->transactionData->transactionType = $type;
 
-		switch($this->transactionType){
+		switch($type){
 			case self::TYPE_NORMAL:
 			case self::TYPE_MISMATCH:
 				//Regular ComplexInventoryTransaction doesn't read any extra data
 				break;
 			case self::TYPE_USE_ITEM:
-				$this->trData->actionType = $this->getUnsignedVarInt();
-				$this->getBlockPosition($this->trData->x, $this->trData->y, $this->trData->z);
-				$this->trData->face = $this->getVarInt();
-				$this->trData->hotbarSlot = $this->getVarInt();
-				$this->trData->itemInHand = $this->getSlot();
-				$this->trData->playerPos = $this->getVector3Obj();
-				$this->trData->clickPos = $this->getVector3Obj();
+				$this->transactionData->useItemActionType = $this->getUnsignedVarInt();
+				$this->getBlockPosition($this->transactionData->x, $this->transactionData->y, $this->transactionData->z);
+				$this->transactionData->face = $this->getVarInt();
+				$this->transactionData->hotbarSlot = $this->getVarInt();
+				$this->transactionData->itemInHand = $this->getSlot();
+				$this->transactionData->playerPos = $this->getVector3Obj();
+				$this->transactionData->clickPos = $this->getVector3Obj();
 				break;
 			case self::TYPE_USE_ITEM_ON_ENTITY:
-				$this->trData->entityRuntimeId = $this->getEntityRuntimeId();
-				$this->trData->actionType = $this->getUnsignedVarInt();
-				$this->trData->hotbarSlot = $this->getVarInt();
-				$this->trData->itemInHand = $this->getSlot();
-				$this->trData->vector1 = $this->getVector3Obj();
-				$this->trData->vector2 = $this->getVector3Obj();
+				$this->transactionData->entityRuntimeId = $this->getEntityRuntimeId();
+				$this->transactionData->actionType = $this->getUnsignedVarInt();
+				$this->transactionData->hotbarSlot = $this->getVarInt();
+				$this->transactionData->itemInHand = $this->getSlot();
+				$this->transactionData->vector1 = $this->getVector3Obj();
+				$this->transactionData->vector2 = $this->getVector3Obj();
 				break;
 			case self::TYPE_RELEASE_ITEM:
-				$this->trData->actionType = $this->getUnsignedVarInt();
-				$this->trData->hotbarSlot = $this->getVarInt();
-				$this->trData->itemInHand = $this->getSlot();
-				$this->trData->headPos = $this->getVector3Obj();
+				$this->transactionData->releaseItemActionType = $this->getUnsignedVarInt();
+				$this->transactionData->hotbarSlot = $this->getVarInt();
+				$this->transactionData->itemInHand = $this->getSlot();
+				$this->transactionData->headPos = $this->getVector3Obj();
 				break;
 			default:
-				throw new \UnexpectedValueException("Unknown transaction type $this->transactionType");
+				throw new \UnexpectedValueException("Unknown transaction type $type");
 		}
 	}
 
 	protected function encodePayload(){
-		$this->putUnsignedVarInt($this->transactionType);
+		//TODO
+	}
 
-		$this->putUnsignedVarInt(count($this->actions));
-		foreach($this->actions as $action){
-			$action->write($this);
-		}
+	protected function decodeInventoryAction(){
+		$sourceType = $this->getUnsignedVarInt();
+		$containerId = ContainerIds::NONE;
+		$unknown = 0;
+		$action = -1;
 
-		switch($this->transactionType){
-			case self::TYPE_NORMAL:
-			case self::TYPE_MISMATCH:
+		switch($sourceType){
+			case self::SOURCE_CONTAINER:
+				$containerId = $this->getVarInt();
 				break;
-			case self::TYPE_USE_ITEM:
-				$this->putUnsignedVarInt($this->trData->actionType);
-				$this->putBlockPosition($this->trData->x, $this->trData->y, $this->trData->z);
-				$this->putVarInt($this->trData->face);
-				$this->putVarInt($this->trData->hotbarSlot);
-				$this->putSlot($this->trData->itemInHand);
-				$this->putVector3Obj($this->trData->playerPos);
-				$this->putVector3Obj($this->trData->clickPos);
+			case self::SOURCE_WORLD:
+				$unknown = $this->getUnsignedVarInt();
 				break;
-			case self::TYPE_USE_ITEM_ON_ENTITY:
-				$this->putEntityRuntimeId($this->trData->entityRuntimeId);
-				$this->putUnsignedVarInt($this->trData->actionType);
-				$this->putVarInt($this->trData->hotbarSlot);
-				$this->putSlot($this->trData->itemInHand);
-				$this->putVector3Obj($this->trData->vector1);
-				$this->putVector3Obj($this->trData->vector2);
+			case self::SOURCE_CREATIVE:
 				break;
-			case self::TYPE_RELEASE_ITEM:
-				$this->putUnsignedVarInt($this->trData->actionType);
-				$this->putVarInt($this->trData->hotbarSlot);
-				$this->putSlot($this->trData->itemInHand);
-				$this->putVector3Obj($this->trData->headPos);
+			case self::SOURCE_CRAFT:
+				$action = $this->getVarInt();
 				break;
 			default:
-				throw new \UnexpectedValueException("Unknown transaction type $this->transactionType");
+				throw new \UnexpectedValueException("Unexpected inventory source type $sourceType");
+		}
+
+		$inventorySlot = $this->getUnsignedVarInt();
+		$sourceItem = $this->getSlot();
+		$targetItem = $this->getSlot();
+
+		switch($sourceType){
+			case self::SOURCE_CONTAINER:
+				if($containerId === ContainerIds::ARMOR){
+					//TODO: HACK!
+					$inventorySlot += 36;
+					$containerId = ContainerIds::INVENTORY;
+				}
+				if($containerId === ContainerIds::CURSOR){
+					$inventorySlot = PlayerInventory::CURSOR_INDEX;
+					$containerId = ContainerIds::INVENTORY;
+				}
+				return new SlotChangeAction($sourceItem, $targetItem, $containerId, $inventorySlot);
+			case self::SOURCE_WORLD:
+				if($inventorySlot !== self::ACTION_MAGIC_SLOT_DROP_ITEM){
+					throw new \UnexpectedValueException("Only expect drop item world action types from client");
+				}
+
+				return new DropItemAction($sourceItem, $targetItem);
+			case self::SOURCE_CREATIVE:
+				if($inventorySlot === self::ACTION_MAGIC_SLOT_CREATIVE_DELETE_ITEM){
+					return new CreativeInventoryAction($sourceItem, $targetItem, CreativeInventoryAction::TYPE_DELETE_ITEM);
+				}elseif($inventorySlot === self::ACTION_MAGIC_SLOT_CREATIVE_CREATE_ITEM){
+					return new CreativeInventoryAction($sourceItem, $targetItem, CreativeInventoryAction::TYPE_CREATE_ITEM);
+				}else{
+					throw new \UnexpectedValueException("Unknown creative inventory action type $inventorySlot");
+				}
+			case self::SOURCE_CRAFT:
+				switch($action){
+					case self::SOURCE_TYPE_CRAFTING_RESULT:
+						$slot = CraftingGrid::RESULT_INDEX;
+						break;
+					default:
+						$slot = $inventorySlot;
+						break;
+				}
+				return new SlotChangeAction($sourceItem, $targetItem, CraftingGrid::WINDOW_ID, $slot);
+			default:
+				throw new \UnexpectedValueException("Unknown source type $sourceType");
 		}
 	}
 
