@@ -29,7 +29,7 @@ use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
 use pocketmine\Player;
 
 abstract class ContainerInventory extends BaseInventory{
-	public function onOpen(Player $who) : void{
+	public function onOpen(Player $who){
 		parent::onOpen($who);
 		$pk = new ContainerOpenPacket();
 		$pk->windowId = $who->getWindowId($this);
@@ -48,16 +48,10 @@ abstract class ContainerInventory extends BaseInventory{
 		$this->sendContents($who);
 	}
 
-	public function onClose(Player $who) : void{
+	public function onClose(Player $who){
 		$pk = new ContainerClosePacket();
 		$pk->windowId = $who->getWindowId($this);
 		$who->dataPacket($pk);
 		parent::onClose($who);
 	}
-
-	/**
-	 * Returns the Minecraft PE inventory type used to show the inventory window to clients.
-	 * @return int
-	 */
-	abstract public function getNetworkType() : int;
 }

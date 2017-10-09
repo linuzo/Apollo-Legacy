@@ -337,19 +337,19 @@ class Effect{
 			case Effect::POISON:
 				if($entity->getHealth() > 1){
 					$ev = new EntityDamageEvent($entity, EntityDamageEvent::CAUSE_MAGIC, 1);
-					$entity->attack($ev);
+					$entity->attack($ev->getFinalDamage(), $ev);
 				}
 				break;
 
 			case Effect::WITHER:
 				$ev = new EntityDamageEvent($entity, EntityDamageEvent::CAUSE_MAGIC, 1);
-				$entity->attack($ev);
+				$entity->attack($ev->getFinalDamage(), $ev);
 				break;
 
 			case Effect::REGENERATION:
 				if($entity->getHealth() < $entity->getMaxHealth()){
 					$ev = new EntityRegainHealthEvent($entity, 1, EntityRegainHealthEvent::CAUSE_MAGIC);
-					$entity->heal($ev);
+					$entity->heal($ev->getAmount(), $ev);
 				}
 				break;
 
@@ -362,13 +362,13 @@ class Effect{
 				//TODO: add particles (witch spell)
 				if($entity->getHealth() < $entity->getMaxHealth()){
 					$amount = 2 * (2 ** ($this->getEffectLevel() % 32));
-					$entity->heal(new EntityRegainHealthEvent($entity, $amount, EntityRegainHealthEvent::CAUSE_MAGIC));
+					$entity->heal($amount, new EntityRegainHealthEvent($entity, $amount, EntityRegainHealthEvent::CAUSE_MAGIC));
 				}
 				break;
 			case Effect::INSTANT_DAMAGE:
 				//TODO: add particles (witch spell)
 				$amount = 2 * (2 ** ($this->getEffectLevel() % 32));
-				$entity->attack(new EntityDamageEvent($entity, EntityDamageEvent::CAUSE_MAGIC, $amount));
+				$entity->attack($amount, new EntityDamageEvent($entity, EntityDamageEvent::CAUSE_MAGIC, $amount));
 				break;
 		}
 	}
@@ -396,10 +396,11 @@ class Effect{
 	 * Adds this effect to the Entity, performing effect overriding as specified.
 	 *
 	 * @param Entity      $entity
+	 * @param bool        $modify
 	 * @param Effect|null $oldEffect
 	 */
-	public function add(Entity $entity, Effect $oldEffect = null){
-		$entity->getLevel()->getServer()->getPluginManager()->callEvent($ev = new EntityEffectAddEvent($entity, $this, $oldEffect));
+	public function add(Entity $entity, bool $modify = false, Effect $oldEffect = null){
+		$entity->getLevel()->getServer()->getPluginManager()->callEvent($ev = new EntityEffectAddEvent($entity, $this, $modify, $oldEffect));
 		if($ev->isCancelled()){
 			return;
 		}
@@ -410,17 +411,13 @@ class Effect{
 			$pk->amplifier = $this->getAmplifier();
 			$pk->particles = $this->isVisible();
 			$pk->duration = $this->getDuration();
-			if($oldEffect !== null){
+			if($ev->willModify()){
 				$pk->eventId = MobEffectPacket::EVENT_MODIFY;
 			}else{
 				$pk->eventId = MobEffectPacket::EVENT_ADD;
 			}
 
 			$entity->dataPacket($pk);
-		}
-
-		if($oldEffect !== null){
-			$oldEffect->remove($entity, false);
 		}
 
 		switch($this->id){
@@ -430,16 +427,35 @@ class Effect{
 				break;
 			case Effect::SPEED:
 				$attr = $entity->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED);
-				$attr->setValue($attr->getValue() * (1 + 0.2 * $this->getEffectLevel()));
+				if($ev->willModify() and $oldEffect !== null){
+					$speed = $attr->getValue() / (1 + 0.2 * $oldEffect->getEffectLevel());
+				}else{
+					$speed = $attr->getValue();
+				}
+				$speed *= (1 + 0.2 * $this->getEffectLevel());
+				$attr->setValue($speed);
 				break;
 			case Effect::SLOWNESS:
 				$attr = $entity->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED);
-				$attr->setValue($attr->getValue() * (1 - 0.15 * $this->getEffectLevel()), true);
+				if($ev->willModify() and $oldEffect !== null){
+					$speed = $attr->getValue() / (1 - 0.15 * $oldEffect->getEffectLevel());
+				}else{
+					$speed = $attr->getValue();
+				}
+				$speed *= (1 - 0.15 * $this->getEffectLevel());
+				$attr->setValue($speed, true);
 				break;
 
 			case Effect::HEALTH_BOOST:
 				$attr = $entity->getAttributeMap()->getAttribute(Attribute::HEALTH);
-				$attr->setMaxValue($attr->getMaxValue() + 4 * $this->getEffectLevel());
+				if($ev->willModify() and $oldEffect !== null){
+					$max = $attr->getMaxValue() - (4 * $oldEffect->getEffectLevel());
+				}else{
+					$max = $attr->getMaxValue();
+				}
+
+				$max += (4 * $this->getEffectLevel());
+				$attr->setMaxValue($max);
 				break;
 			case Effect::ABSORPTION:
 				$new = (4 * $this->getEffectLevel());
@@ -454,15 +470,13 @@ class Effect{
 	 * Removes the effect from the entity, resetting any changed values back to their original defaults.
 	 *
 	 * @param Entity $entity
-	 * @param bool   $send
 	 */
-	public function remove(Entity $entity, bool $send = true){
+	public function remove(Entity $entity){
 		$entity->getLevel()->getServer()->getPluginManager()->callEvent($ev = new EntityEffectRemoveEvent($entity, $this));
 		if($ev->isCancelled()){
 			return;
 		}
-
-		if($send and $entity instanceof Player){
+		if($entity instanceof Player){
 			$pk = new MobEffectPacket();
 			$pk->entityRuntimeId = $entity->getId();
 			$pk->eventId = MobEffectPacket::EVENT_REMOVE;

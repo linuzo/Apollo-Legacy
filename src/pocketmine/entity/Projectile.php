@@ -42,16 +42,29 @@ abstract class Projectile extends Entity{
 
 	public $hadCollision = false;
 
+	protected $shootingEntity;
+
 	public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null){
 		if($shootingEntity !== null){
 			$this->setOwningEntity($shootingEntity);
 		}
-		parent::__construct($level, $nbt);
+		$this->shootingEntity = $shootingEntity;
+  		parent::__construct($level, $nbt);
+  	}
+  
+	public function getShootingEntity(){
+		return $this->shootingEntity;
 	}
 
-	public function attack(EntityDamageEvent $source){
+	public function setShootingEntity(Entity $entity){
+		$this->setOwningEntity($entity);
+		$this->shootingEntity = $entity;
+	}
+
+
+	public function attack($damage, EntityDamageEvent $source){
 		if($source->getCause() === EntityDamageEvent::CAUSE_VOID){
-			parent::attack($source);
+			parent::attack($damage, $source);
 		}
 	}
 
@@ -88,7 +101,7 @@ abstract class Projectile extends Entity{
 			$ev = new EntityDamageByChildEntityEvent($this->getOwningEntity(), $this, $entity, EntityDamageEvent::CAUSE_PROJECTILE, $damage);
 		}
 
-		$entity->attack($ev);
+		$entity->attack($ev->getFinalDamage(), $ev);
 
 		$this->hadCollision = true;
 

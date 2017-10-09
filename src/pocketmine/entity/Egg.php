@@ -28,8 +28,8 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\Player;
 
-class Snowball extends Projectile{
-	const NETWORK_ID = 81;
+class Egg extends Projectile{
+	const NETWORK_ID = 82;
 
 	public $width = 0.25;
 	public $length = 0.25;
@@ -42,24 +42,28 @@ class Snowball extends Projectile{
 		parent::__construct($level, $nbt, $shootingEntity);
 	}
 
-	public function entityBaseTick(int $tickDiff = 1) : bool{
+	public function onUpdate(int $currentTick): bool{
 		if($this->closed){
 			return false;
 		}
 
-		$hasUpdate = parent::entityBaseTick($tickDiff);
+		$this->timings->startTiming();
+
+		$hasUpdate = parent::onUpdate($currentTick);
 
 		if($this->age > 1200 or $this->isCollided){
 			$this->kill();
 			$hasUpdate = true;
 		}
 
+		$this->timings->stopTiming();
+
 		return $hasUpdate;
 	}
 
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();
-		$pk->type = Snowball::NETWORK_ID;
+		$pk->type = Egg::NETWORK_ID;
 		$pk->entityRuntimeId = $this->getId();
 		$pk->position = $this->asVector3();
 		$pk->motion = $this->getMotion();
