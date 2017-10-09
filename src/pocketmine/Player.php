@@ -88,7 +88,7 @@ use pocketmine\inventory\ShapelessRecipe;
 use pocketmine\inventory\transaction\SimpleInventoryTransaction;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Food;
-use pocketmine\item\ItemFactory as Item;
+use pocketmine\item\Item;
 use pocketmine\item\Potion;
 use pocketmine\level\ChunkLoader;
 use pocketmine\level\format\Chunk;
