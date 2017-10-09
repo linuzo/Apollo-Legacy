@@ -46,7 +46,7 @@ class BulkCurlTask extends AsyncTask{
 	 * @param mixed|null $complexData
 	 */
 	public function __construct(array $operations, $complexData = null){
-		$this->storeLocal($complexData);
+		parent::__construct($complexData);
 		$this->operations = serialize($operations);
 	}
 

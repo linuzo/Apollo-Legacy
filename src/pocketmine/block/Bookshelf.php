@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 
 class Bookshelf extends Solid{
@@ -49,7 +48,7 @@ class Bookshelf extends Solid{
 
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get(Item::BOOK, 0, 3)
+			Item::get(Item::BOOK, 0, 3)
 		];
 	}
 

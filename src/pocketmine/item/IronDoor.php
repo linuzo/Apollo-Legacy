@@ -27,12 +27,12 @@ use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 
 class IronDoor extends Item{
-	public function __construct(int $meta = 0){
+	public function __construct($meta = 0, $count = 1){
 		$this->block = BlockFactory::get(Block::IRON_DOOR_BLOCK);
-		parent::__construct(self::IRON_DOOR, $meta, "Iron Door");
+		parent::__construct(self::IRON_DOOR, $meta, $count, "Iron Door");
 	}
 
-	public function getMaxStackSize() : int{
+	public function getMaxStackSize(){
 		return 1;
 	}
 }

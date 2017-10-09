@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 
 class LapisOre extends Solid{
@@ -50,7 +49,7 @@ class LapisOre extends Solid{
 	public function getDrops(Item $item) : array{
 		if($item->isPickaxe() >= Tool::TIER_STONE){
 			return [
-				ItemFactory::get(Item::DYE, 4, mt_rand(4, 8))
+				Item::get(Item::DYE, 4, mt_rand(4, 8))
 			];
 		}
 

@@ -30,7 +30,7 @@ use pocketmine\event\TranslationContainer;
 
 class PardonCommand extends VanillaCommand{
 
-	public function __construct(string $name){
+	public function __construct($name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.unban.player.description",

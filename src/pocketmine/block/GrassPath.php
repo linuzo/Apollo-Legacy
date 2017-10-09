@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 use pocketmine\math\AxisAlignedBB;
 
@@ -61,7 +60,7 @@ class GrassPath extends Transparent{
 
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get(Item::DIRT, 0, 1)
+			Item::get(Item::DIRT, 0, 1)
 		];
 	}
 }

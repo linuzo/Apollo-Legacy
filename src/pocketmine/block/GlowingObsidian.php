@@ -40,11 +40,4 @@ class GlowingObsidian extends Solid{
 		return 12;
 	}
 
-	public function getHardness() : float{
-		return 10;
-	}
-
-	public function getBlastResistance() : float{
-		return 50;
-	}
 }

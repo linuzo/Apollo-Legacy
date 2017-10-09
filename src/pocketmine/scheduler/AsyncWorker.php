@@ -41,9 +41,6 @@ class AsyncWorker extends Worker{
 	}
 
 	public function run(){
-		error_reporting(-1);
-		set_error_handler('\pocketmine\error_handler');
-
 		$this->registerClassLoader();
 		$this->logger->registerStatic();
 		gc_enable();
@@ -66,9 +63,5 @@ class AsyncWorker extends Worker{
 
 	public function getThreadName() : string{
 		return "Asynchronous Worker #" . $this->id;
-	}
-
-	public function getAsyncWorkerId() : int{
-		return $this->id;
 	}
 }

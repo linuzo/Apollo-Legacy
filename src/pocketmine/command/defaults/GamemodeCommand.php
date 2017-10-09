@@ -33,7 +33,7 @@ use pocketmine\utils\TextFormat;
 
 class GamemodeCommand extends VanillaCommand{
 
-	public function __construct(string $name){
+	public function __construct($name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.gamemode.description",

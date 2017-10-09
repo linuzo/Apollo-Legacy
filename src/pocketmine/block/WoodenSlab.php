@@ -78,46 +78,38 @@ class WoodenSlab extends Transparent{
 		}
 	}
 
-	public function canBePlacedAt(Block $blockReplace, Vector3 $clickVector) : bool{
-		return parent::canBePlacedAt($blockReplace, $clickVector) or
-			(
-				$blockReplace->getId() === $this->getId() and
-				$blockReplace->getVariant() === $this->getVariant() and
-				(
-					(($blockReplace->getDamage() & 0x08) !== 0 and ($clickVector->y <= 0.5 or $clickVector->y === 1.0)) or //top slab, fill bottom half
-					(($blockReplace->getDamage() & 0x08) === 0 and ($clickVector->y >= 0.5 or $clickVector->y === 0.0)) //bottom slab, fill top half
-				)
-			);
+	public function canBeReplaced(Block $with = null) : bool{
+		return $with !== null and $with->getId() === $this->getId() and ($with->getDamage() & 0x07) === ($this->getDamage() & 0x07);
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		$this->meta &= 0x07;
 		if($face === Vector3::SIDE_DOWN){
-			if($blockClicked->getId() === $this->id and ($blockClicked->getDamage() & 0x08) === 0x08 and ($blockClicked->getDamage() & 0x07) === $this->meta){
-				$this->getLevel()->setBlock($blockClicked, BlockFactory::get($this->doubleId, $this->meta), true);
+			if($target->getId() === $this->id and ($target->getDamage() & 0x08) === 0x08 and ($target->getDamage() & 0x07) === $this->meta){
+				$this->getLevel()->setBlock($target, BlockFactory::get($this->doubleId, $this->meta), true);
 
 				return true;
-			}elseif($blockReplace->getId() === $this->id and ($blockReplace->getDamage() & 0x07) === $this->meta){
-				$this->getLevel()->setBlock($blockReplace, BlockFactory::get($this->doubleId, $this->meta), true);
+			}elseif($block->getId() === $this->id and ($block->getDamage() & 0x07) === $this->meta){
+				$this->getLevel()->setBlock($block, BlockFactory::get($this->doubleId, $this->meta), true);
 
 				return true;
 			}else{
 				$this->meta |= 0x08;
 			}
 		}elseif($face === Vector3::SIDE_UP){
-			if($blockClicked->getId() === $this->id and ($blockClicked->getDamage() & 0x08) === 0 and ($blockClicked->getDamage() & 0x07) === $this->meta){
-				$this->getLevel()->setBlock($blockClicked, BlockFactory::get($this->doubleId, $this->meta), true);
+			if($target->getId() === $this->id and ($target->getDamage() & 0x08) === 0 and ($target->getDamage() & 0x07) === $this->meta){
+				$this->getLevel()->setBlock($target, BlockFactory::get($this->doubleId, $this->meta), true);
 
 				return true;
-			}elseif($blockReplace->getId() === $this->id and ($blockReplace->getDamage() & 0x07) === $this->meta){
-				$this->getLevel()->setBlock($blockReplace, BlockFactory::get($this->doubleId, $this->meta), true);
+			}elseif($block->getId() === $this->id and ($block->getDamage() & 0x07) === $this->meta){
+				$this->getLevel()->setBlock($block, BlockFactory::get($this->doubleId, $this->meta), true);
 
 				return true;
 			}
 		}else{ //TODO: collision
-			if($blockReplace->getId() === $this->id){
-				if(($blockReplace->getDamage() & 0x07) === $this->meta){
-					$this->getLevel()->setBlock($blockReplace, BlockFactory::get($this->doubleId, $this->meta), true);
+			if($block->getId() === $this->id){
+				if(($block->getDamage() & 0x07) === $this->meta){
+					$this->getLevel()->setBlock($block, BlockFactory::get($this->doubleId, $this->meta), true);
 
 					return true;
 				}
@@ -130,10 +122,10 @@ class WoodenSlab extends Transparent{
 			}
 		}
 
-		if($blockReplace->getId() === $this->id and ($blockClicked->getDamage() & 0x07) !== ($this->meta & 0x07)){
+		if($block->getId() === $this->id and ($target->getDamage() & 0x07) !== ($this->meta & 0x07)){
 			return false;
 		}
-		$this->getLevel()->setBlock($blockReplace, $this, true, true);
+		$this->getLevel()->setBlock($block, $this, true, true);
 
 		return true;
 	}

@@ -57,17 +57,13 @@ class Fire extends Flowable{
 		return false;
 	}
 
-	public function canBeReplaced() : bool{
-		return true;
-	}
-
-	public function ticksRandomly() : bool{
+	public function canBeReplaced(Block $with = null) : bool{
 		return true;
 	}
 
 	public function onEntityCollide(Entity $entity){
 		$ev = new EntityDamageByBlockEvent($this, $entity, EntityDamageEvent::CAUSE_FIRE, 1);
-		$entity->attack($ev);
+		$entity->attack($ev->getFinalDamage(), $ev);
 
 		$ev = new EntityCombustByBlockEvent($this, $entity, 8);
 		if($entity instanceof Arrow){
@@ -107,8 +103,6 @@ class Fire extends Flowable{
 					return Level::BLOCK_UPDATE_NORMAL;
 				}
 			}
-
-			//TODO: fire spread
 		}
 
 		return false;

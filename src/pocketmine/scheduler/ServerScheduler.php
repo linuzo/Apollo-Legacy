@@ -24,7 +24,6 @@ declare(strict_types=1);
 /**
  * Task scheduling related classes
  */
-
 namespace pocketmine\scheduler;
 
 use pocketmine\plugin\Plugin;
@@ -76,16 +75,16 @@ class ServerScheduler{
 	 *
 	 * @param AsyncTask $task
 	 *
-	 * @return int
+	 * @return void
 	 */
-	public function scheduleAsyncTask(AsyncTask $task) : int{
+	public function scheduleAsyncTask(AsyncTask $task){
 		if($task->getTaskId() !== null){
 			throw new \UnexpectedValueException("Attempt to schedule the same AsyncTask instance twice");
 		}
 		$id = $this->nextId();
 		$task->setTaskId($id);
 		$task->progressUpdates = new \Threaded;
-		return $this->asyncPool->submitTask($task);
+		$this->asyncPool->submitTask($task);
 	}
 
 	/**

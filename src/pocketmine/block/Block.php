@@ -27,8 +27,8 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\entity\Entity;
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\level\MovingObjectPosition;
@@ -43,9 +43,7 @@ use pocketmine\plugin\Plugin;
 class Block extends Position implements BlockIds, Metadatable{
 
 	/**
-	 * Returns a new Block instance with the specified ID, meta and position.
-	 *
-	 * This function redirects to {@link BlockFactory#get}.
+	 * @deprecated This functionality has moved to {@link BlockFactory#get}
 	 *
 	 * @param int           $id
 	 * @param int           $meta
@@ -61,7 +59,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	protected $id;
 	/** @var int */
 	protected $meta = 0;
-	/** @var string|null */
+	/** @var string */
 	protected $fallbackName;
 	/** @var int|null */
 	protected $itemId;
@@ -70,12 +68,12 @@ class Block extends Position implements BlockIds, Metadatable{
 	public $boundingBox = null;
 
 	/**
-	 * @param int         $id     The block type's ID, 0-255
-	 * @param int         $meta   Meta value of the block type
-	 * @param string|null $name   English name of the block type (TODO: implement translations)
-	 * @param int         $itemId The item ID of the block type, used for block picking and dropping items.
+	 * @param int    $id     The block type's ID, 0-255
+	 * @param int    $meta   Meta value of the block type
+	 * @param string $name   English name of the block type (TODO: implement translations)
+	 * @param int    $itemId The item ID of the block type, used for block picking and dropping items.
 	 */
-	public function __construct(int $id, int $meta = 0, string $name = null, int $itemId = null){
+	public function __construct(int $id, int $meta = 0, string $name = "Unknown", int $itemId = null){
 		$this->id = $id;
 		$this->meta = $meta;
 		$this->fallbackName = $name;
@@ -86,7 +84,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	 * @return string
 	 */
 	public function getName() : string{
-		return $this->fallbackName ?? "Unknown";
+		return $this->fallbackName;
 	}
 
 	/**
@@ -117,10 +115,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	 * @param int $meta
 	 */
 	final public function setDamage(int $meta){
-		if($meta < 0 or $meta > 0xf){
-			throw new \InvalidArgumentException("Block damage values must be 0-15, not $meta");
-		}
-		$this->meta = $meta;
+		$this->meta = $meta & 0x0f;
 	}
 
 	/**
@@ -137,46 +132,18 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 	/**
-	 * Returns the block meta, stripped of non-variant flags.
-	 * @return int
-	 */
-	public function getVariant() : int{
-		return $this->meta & $this->getVariantBitmask();
-	}
-
-
-	/**
-	 * AKA: Block->isPlaceable
-	 * @return bool
-	 */
-	public function canBePlaced() : bool{
-		return true;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function canBeReplaced() : bool{
-		return false;
-	}
-
-	public function canBePlacedAt(Block $blockReplace, Vector3 $clickVector) : bool{
-		return $blockReplace->canBeReplaced();
-	}
-
-	/**
 	 * Places the Block, using block space and block target, and side. Returns if the block has been placed.
 	 *
 	 * @param Item        $item
-	 * @param Block       $blockReplace
-	 * @param Block       $blockClicked
+	 * @param Block       $block
+	 * @param Block       $target
 	 * @param int         $face
 	 * @param Vector3     $facePos
 	 * @param Player|null $player
 	 *
 	 * @return bool
 	 */
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		return $this->getLevel()->setBlock($this, $this, true, true);
 	}
 
@@ -191,77 +158,15 @@ class Block extends Position implements BlockIds, Metadatable{
 		return true;
 	}
 
-	public function canBeBrokenWith(Item $item) : bool{
-		return $this->getHardness() !== -1;
-	}
-
 	/**
 	 * Do the actions needed so the block is broken with the Item
 	 *
-	 * @param Item        $item
-	 * @param Player|null $player
-	 *
-	 * @return bool
-	 */
-	public function onBreak(Item $item, Player $player = null) : bool{
-		return $this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), true, true);
-	}
-
-
-	/**
-	 * Returns the seconds that this block takes to be broken using an specific Item
-	 *
 	 * @param Item $item
 	 *
-	 * @return float
-	 */
-	public function getBreakTime(Item $item) : float{
-		$base = $this->getHardness() * 1.5;
-		if($this->canBeBrokenWith($item)){
-			if($this->getToolType() === Tool::TYPE_SHEARS and $item->isShears()){
-				$base /= 15;
-			}elseif(
-				($this->getToolType() === Tool::TYPE_PICKAXE and ($tier = $item->isPickaxe()) !== false) or
-				($this->getToolType() === Tool::TYPE_AXE and ($tier = $item->isAxe()) !== false) or
-				($this->getToolType() === Tool::TYPE_SHOVEL and ($tier = $item->isShovel()) !== false)
-			){
-				switch($tier){
-					case Tool::TIER_WOODEN:
-						$base /= 2;
-						break;
-					case Tool::TIER_STONE:
-						$base /= 4;
-						break;
-					case Tool::TIER_IRON:
-						$base /= 6;
-						break;
-					case Tool::TIER_DIAMOND:
-						$base /= 8;
-						break;
-					case Tool::TIER_GOLD:
-						$base /= 12;
-						break;
-				}
-			}
-		}else{
-			$base *= 3.33;
-		}
-
-		if($item->isSword()){
-			$base *= 0.5;
-		}
-
-		return $base;
-	}
-
-
-	/**
-	 * Returns whether random block updates will be done on this block.
-	 *
 	 * @return bool
 	 */
-	public function ticksRandomly() : bool{
-		return false;
+	public function onBreak(Item $item) : bool{
+		return $this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), true, true);
 	}
 
 	/**
@@ -356,6 +261,23 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 	/**
+	 * AKA: Block->isPlaceable
+	 * @return bool
+	 */
+	public function canBePlaced() : bool{
+		return true;
+	}
+
+	/**
+	 * @param Block|null $with
+	 *
+	 * @return bool
+	 */
+	public function canBeReplaced(Block $with = null) : bool{
+		return false;
+	}
+
+	/**
 	 * @return bool
 	 */
 	public function isTransparent() : bool{
@@ -417,8 +339,61 @@ class Block extends Position implements BlockIds, Metadatable{
 	 */
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get($this->getItemId(), $this->getVariant(), 1)
+			Item::get($this->getItemId(), $this->getDamage() & $this->getVariantBitmask(), 1),
 		];
+	}
+
+	/**
+	 * Returns the seconds that this block takes to be broken using an specific Item
+	 *
+	 * @param Item $item
+	 *
+	 * @return float
+	 */
+	public function getBreakTime(Item $item) : float{
+		$base = $this->getHardness() * 1.5;
+		if($this->canBeBrokenWith($item)){
+			if(($this->getToolType() === Tool::TYPE_SHEARS and $item->isShears()) or ($this->getToolType() === Tool::TYPE_SWORD and $item->isSword())){
+				$base /= 15;
+			}elseif(
+				($this->getToolType() === Tool::TYPE_PICKAXE and ($tier = $item->isPickaxe()) !== false) or
+				($this->getToolType() === Tool::TYPE_AXE and ($tier = $item->isAxe()) !== false) or
+				($this->getToolType() === Tool::TYPE_SHOVEL and ($tier = $item->isShovel()) !== false)
+			){
+				switch($tier){
+					case Tool::TIER_WOODEN:
+						$base /= 2;
+						break;
+					case Tool::TIER_STONE:
+						$base /= 4;
+						break;
+					case Tool::TIER_IRON:
+						$base /= 6;
+						break;
+					case Tool::TIER_DIAMOND:
+						$base /= 8;
+						break;
+					case Tool::TIER_GOLD:
+						$base /= 12;
+						break;
+				}
+			}
+			if(($enchantment = $item->getEnchantment(Enchantment::EFFICIENCY)) !== null){
+				$base /= (1.3 ** (2 ** ($enchantment->getLevel() - 1)));
+			}
+		}else{
+			$base *= 3.33;
+		}
+
+		if($item->isSword()){
+			$base *= 0.5;
+		}
+
+		return $base;
+	}
+
+	public function canBeBrokenWith(Item $item) : bool{
+		return $this->getHardness() !== -1;
 	}
 
 	/**
@@ -486,6 +461,9 @@ class Block extends Position implements BlockIds, Metadatable{
 	 * @return AxisAlignedBB|null
 	 */
 	protected function recalculateBoundingBox(){
+		if($this->x === null || $this->y === null || $this->z === null){
+			return null;
+		}
 		return new AxisAlignedBB(
 			$this->x,
 			$this->y,

@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\tile;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\CompoundTag;
@@ -45,19 +44,19 @@ class ItemFrame extends Spawnable{
 	}
 
 	public function hasItem() : bool{
-		return !$this->getItem()->isNull();
+		return $this->getItem()->getId() !== Item::AIR;
 	}
 
 	public function getItem() : Item{
 		if(isset($this->namedtag->Item)){
 			return Item::nbtDeserialize($this->namedtag->Item);
 		}else{
-			return ItemFactory::get(Item::AIR, 0, 0);
+			return Item::get(Item::AIR);
 		}
 	}
 
 	public function setItem(Item $item = null){
-		if($item !== null and !$item->isNull()){
+		if($item !== null and $item->getId() !== Item::AIR){
 			$this->namedtag->Item = $item->nbtSerialize(-1, "Item");
 		}else{
 			unset($this->namedtag->Item);

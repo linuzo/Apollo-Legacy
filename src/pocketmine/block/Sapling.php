@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\level\generator\object\Tree;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
@@ -57,14 +56,11 @@ class Sapling extends Flowable{
 		return $names[$this->meta & 0x07] ?? "Unknown";
 	}
 
-	public function ticksRandomly() : bool{
-		return true;
-	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		$down = $this->getSide(Vector3::SIDE_DOWN);
 		if($down->getId() === self::GRASS or $down->getId() === self::DIRT or $down->getId() === self::FARMLAND){
-			$this->getLevel()->setBlock($blockReplace, $this, true, true);
+			$this->getLevel()->setBlock($block, $this, true, true);
 
 			return true;
 		}
@@ -76,8 +72,9 @@ class Sapling extends Flowable{
 		if($item->getId() === Item::DYE and $item->getDamage() === 0x0F){ //Bonemeal
 			//TODO: change log type
 			Tree::growTree($this->getLevel(), $this->x, $this->y, $this->z, new Random(mt_rand()), $this->meta & 0x07);
-
-			$item->count--;
+			if(($player->gamemode & 0x01) === 0){
+				$item->count--;
+			}
 
 			return true;
 		}
@@ -112,7 +109,7 @@ class Sapling extends Flowable{
 
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get($this->getItemId(), $this->getDamage() & 0x07, 1)
+			Item::get($this->getItemId(), $this->getDamage() & 0x07, 1)
 		];
 	}
 

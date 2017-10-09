@@ -50,42 +50,42 @@ class EntityDespawnEvent extends EntityEvent{
 	/**
 	 * @return int
 	 */
-	public function getType() : int{
+	public function getType(){
 		return $this->entityType;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isCreature() : bool{
+	public function isCreature(){
 		return $this->entity instanceof Creature;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isHuman() : bool{
+	public function isHuman(){
 		return $this->entity instanceof Human;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isProjectile() : bool{
+	public function isProjectile(){
 		return $this->entity instanceof Projectile;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isVehicle() : bool{
+	public function isVehicle(){
 		return $this->entity instanceof Vehicle;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isItem() : bool{
+	public function isItem(){
 		return $this->entity instanceof Item;
 	}
 

@@ -26,7 +26,6 @@ namespace pocketmine\utils;
 #include <rules/DataPacket.h>
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 
 class BinaryStream{
 
@@ -249,7 +248,7 @@ class BinaryStream{
 	public function getSlot() : Item{
 		$id = $this->getVarInt();
 		if($id <= 0){
-			return ItemFactory::get(0, 0, 0);
+			return Item::get(0, 0, 0);
 		}
 
 		$auxValue = $this->getVarInt();
@@ -282,7 +281,7 @@ class BinaryStream{
 			}
 		}
 
-		return ItemFactory::get($id, $data, $cnt, $nbt);
+		return Item::get($id, $data, $cnt, $nbt);
 	}
 
 

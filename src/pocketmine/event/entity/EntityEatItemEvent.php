@@ -39,9 +39,6 @@ class EntityEatItemEvent extends EntityEatEvent{
 		return parent::getResidue();
 	}
 
-	/**
-	 * @param Item $residue
-	 */
 	public function setResidue($residue){
 		if(!($residue instanceof Item)){
 			throw new \InvalidArgumentException("Eating an Item can only result in an Item residue");

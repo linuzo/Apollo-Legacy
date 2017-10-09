@@ -25,7 +25,6 @@ namespace pocketmine\scheduler;
 
 use pocketmine\event\Timings;
 use pocketmine\event\TimingsHandler;
-use pocketmine\utils\MainLogger;
 
 class TaskHandler{
 
@@ -137,15 +136,10 @@ class TaskHandler{
 	 * Changes to this function won't be recorded on the version.
 	 */
 	public function cancel(){
-		try{
-			if(!$this->isCancelled()){
-				$this->task->onCancel();
-			}
-		}catch(\Throwable $e){
-			MainLogger::getLogger()->logException($e);
-		}finally{
-			$this->remove();
+		if(!$this->isCancelled()){
+			$this->task->onCancel();
 		}
+		$this->remove();
 	}
 
 	public function remove(){
