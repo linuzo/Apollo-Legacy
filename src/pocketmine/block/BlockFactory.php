@@ -31,10 +31,9 @@ use pocketmine\level\Position;
  */
 class BlockFactory{
 	/** @var \SplFixedArray<Block> */
-	private static $list = null;
+	public static $list = null;
 	/** @var \SplFixedArray<Block> */
-	private static $fullList = null;
-
+	public static $fullList = null;
 	/** @var \SplFixedArray<bool> */
 	public static $solid = null;
 	/** @var \SplFixedArray<bool> */
@@ -60,14 +59,12 @@ class BlockFactory{
 		if(self::$list === null or $force){
 			self::$list = new \SplFixedArray(256);
 			self::$fullList = new \SplFixedArray(4096);
-
 			self::$light = new \SplFixedArray(256);
 			self::$lightFilter = new \SplFixedArray(256);
 			self::$solid = new \SplFixedArray(256);
 			self::$hardness = new \SplFixedArray(256);
 			self::$transparent = new \SplFixedArray(256);
 			self::$diffusesSkyLight = new \SplFixedArray(256);
-			self::$blastResistance = new \SplFixedArray(256);
 
 			self::registerBlock(new Air());
 			self::registerBlock(new Stone());
@@ -153,7 +150,7 @@ class BlockFactory{
 			self::registerBlock(new Cactus());
 			self::registerBlock(new Clay());
 			self::registerBlock(new Sugarcane());
-			//TODO: JUKEBOX
+
 			self::registerBlock(new Fence());
 			self::registerBlock(new Pumpkin());
 			self::registerBlock(new Netherrack());
@@ -168,8 +165,8 @@ class BlockFactory{
 			self::registerBlock(new Trapdoor());
 			//TODO: MONSTER_EGG
 			self::registerBlock(new StoneBricks());
-			self::registerBlock(new BrownMushroomBlock());
-			self::registerBlock(new RedMushroomBlock());
+			//TODO: BROWN_MUSHROOM_BLOCK
+			//TODO: RED_MUSHROOM_BLOCK
 			self::registerBlock(new IronBars());
 			self::registerBlock(new GlassPane());
 			self::registerBlock(new Melon());
@@ -245,8 +242,7 @@ class BlockFactory{
 			self::registerBlock(new Coal());
 			self::registerBlock(new PackedIce());
 			self::registerBlock(new DoublePlant());
-			//TODO: STANDING_BANNER
-			//TODO: WALL_BANNER
+
 			//TODO: DAYLIGHT_DETECTOR_INVERTED
 			//TODO: RED_SANDSTONE
 			//TODO: RED_SANDSTONE_STAIRS
@@ -272,7 +268,6 @@ class BlockFactory{
 
 			//TODO: PURPUR_STAIRS
 
-			//TODO: UNDYED_SHULKER_BOX
 			//TODO: END_BRICKS
 			//TODO: FROSTED_ICE
 			self::registerBlock(new EndRod());
@@ -281,7 +276,7 @@ class BlockFactory{
 			self::registerBlock(new Magma());
 			self::registerBlock(new NetherWartBlock());
 			self::registerBlock(new NetherBrick(Block::RED_NETHER_BRICK, 0, "Red Nether Bricks"));
-			self::registerBlock(new BoneBlock());
+			//TODO: BONE_BLOCK
 
 			//TODO: SHULKER_BOX
 			self::registerBlock(new GlazedTerracotta(Block::PURPLE_GLAZED_TERRACOTTA, 0, "Purple Glazed Terracotta"));
@@ -301,8 +296,8 @@ class BlockFactory{
 			self::registerBlock(new GlazedTerracotta(Block::GREEN_GLAZED_TERRACOTTA, 0, "Green Glazed Terracotta"));
 			self::registerBlock(new GlazedTerracotta(Block::RED_GLAZED_TERRACOTTA, 0, "Red Glazed Terracotta"));
 			self::registerBlock(new GlazedTerracotta(Block::BLACK_GLAZED_TERRACOTTA, 0, "Black Glazed Terracotta"));
-			self::registerBlock(new Concrete());
-			self::registerBlock(new ConcretePowder());
+			//TODO: CONCRETE
+			//TODO: CONCRETEPOWDER
 
 			//TODO: CHORUS_PLANT
 			self::registerBlock(new StainedGlass());
@@ -316,7 +311,6 @@ class BlockFactory{
 			//TODO: INFO_UPDATE2
 			//TODO: MOVINGBLOCK
 			//TODO: OBSERVER
-			//TODO: STRUCTURE_BLOCK
 
 			//TODO: RESERVED6
 
@@ -344,7 +338,7 @@ class BlockFactory{
 	public static function registerBlock(Block $block, bool $override = false){
 		$id = $block->getId();
 
-		if(!$override and self::isRegistered($id)){
+		if(self::$list[$id] !== null and !(self::$list[$id] instanceof UnknownBlock) and !$override){
 			throw new \RuntimeException("Trying to overwrite an already registered block");
 		}
 
@@ -366,8 +360,6 @@ class BlockFactory{
 	}
 
 	/**
-	 * Returns a new Block instance with the specified ID, meta and position.
-	 *
 	 * @param int      $id
 	 * @param int      $meta
 	 * @param Position $pos
@@ -375,18 +367,16 @@ class BlockFactory{
 	 * @return Block
 	 */
 	public static function get(int $id, int $meta = 0, Position $pos = null) : Block{
-		if($meta < 0 or $meta > 0xf){
-			throw new \InvalidArgumentException("Block meta value $meta is out of bounds");
-		}
-
 		try{
-			if(self::$fullList !== null){
-				$block = clone self::$fullList[($id << 4) | $meta];
+			$block = self::$fullList[($id << 4) | $meta];
+			if($block !== null){
+				$block = clone $block;
 			}else{
 				$block = new UnknownBlock($id, $meta);
 			}
 		}catch(\RuntimeException $e){
-			throw new \InvalidArgumentException("Block ID $id is out of bounds");
+			//TODO: this probably should return null (out of bounds IDs may cause unexpected behaviour)
+			$block = new UnknownBlock($id, $meta);
 		}
 
 		if($pos !== null){
@@ -397,24 +387,5 @@ class BlockFactory{
 		}
 
 		return $block;
-	}
-
-	/**
-	 * @internal
-	 * @return \SplFixedArray
-	 */
-	public static function getBlockStatesArray() : \SplFixedArray{
-		return self::$fullList;
-	}
-
-	/**
-	 * Returns whether a specified block ID is already registered in the block factory.
-	 *
-	 * @param int $id
-	 * @return bool
-	 */
-	public static function isRegistered(int $id) : bool{
-		$b = self::$list[$id];
-		return $b !== null and !($b instanceof UnknownBlock);
 	}
 }

@@ -76,38 +76,21 @@ class Item implements ItemIds, \JsonSerializable{
 		return self::$cachedParser->write();
 	}
 
-	/**
-	 * Returns a new Item instance with the specified ID, damage, count and NBT.
-	 *
-	 * This function redirects to {@link ItemFactory#get}.
-	 *
-	 * @param int                $id
-	 * @param int                $meta
-	 * @param int                $count
-	 * @param CompoundTag|string $tags
-	 *
-	 * @return Item
-	 */
-	public static function get(int $id, int $meta = 0, int $count = 1, $tags = "") : Item{
-		return ItemFactory::get($id, $meta, $count, $tags);
-	}
+	/** @var Block|null */
+	protected $block;
+	/** @var int */
+	protected $id;
+	/** @var int */
+	protected $meta;
+	/** @var string */
+	private $tags = "";
+	/** @var CompoundTag|null */
+	private $cachedNBT = null;
+	/** @var int */
+	public $count;
+	/** @var string */
+	protected $name;
 
-	/**
-	 * Tries to parse the specified string into Item ID/meta identifiers, and returns Item instances it created.
-	 *
-	 * This function redirects to {@link ItemFactory#fromString}.
-	 *
-	 * @param string $str
-	 * @param bool   $multiple
-	 *
-	 * @return Item[]|Item
-	 */
-	public static function fromString(string $str, bool $multiple = false){
-		return ItemFactory::fromString($str, $multiple);
-	}
-
-
-	/** @var Item[] */
 	private static $creative = [];
 
 	public static function initCreativeItems(){
@@ -172,37 +155,49 @@ class Item implements ItemIds, \JsonSerializable{
 		return -1;
 	}
 
-	/** @var Block|null */
-	protected $block;
-	/** @var int */
-	protected $id;
-	/** @var int */
-	protected $meta;
-	/** @var string */
-	private $tags = "";
-	/** @var CompoundTag|null */
-	private $cachedNBT = null;
-	/** @var int */
-	public $count = 1;
-	/** @var string */
-	protected $name;
 
 	/**
-	 * Constructs a new Item type. This constructor should ONLY be used when constructing a new item TYPE to register
-	 * into the index.
+	 * Returns a new Item instance with the specified ID, damage, count and NBT.
 	 *
-	 * NOTE: This should NOT BE USED for creating items to set into an inventory. Use {@link ItemFactory#get} for that
-	 * purpose.
+	 * This function redirects to {@link ItemFactory#get}.
 	 *
-	 * @param int    $id
-	 * @param int    $meta
+	 * @param int                $id
+	 * @param int                $meta
+	 * @param int                $count
+	 * @param CompoundTag|string $tags
+	 *
+	 * @return Item
+	 */
+	public static function get(int $id, int $meta = 0, int $count = 1, $tags = "") : Item{
+		return ItemFactory::get($id, $meta, $count, $tags);
+	}
+
+	/**
+	 * Tries to parse the specified string into Item ID/meta identifiers, and returns Item instances it created.
+	 *
+	 * This function redirects to {@link ItemFactory#fromString}.
+	 *
+	 * @param string $str
+	 * @param bool   $multiple
+	 *
+	 * @return Item[]|Item
+	 */
+	public static function fromString(string $str, bool $multiple = false){
+		return ItemFactory::fromString($str, $multiple);
+	}
+
+	/**
+	 * @param int $id
+	 * @param int $meta
+	 * @param int $count
 	 * @param string $name
 	 */
-	public function __construct(int $id, int $meta = 0, string $name = "Unknown"){
+	public function __construct(int $id, int $meta = 0, int $count = 1, string $name = "Unknown"){
 		$this->id = $id & 0xffff;
-		$this->setDamage($meta);
+		$this->meta = $meta !== -1 ? $meta & 0xffff : -1;
+		$this->count = $count;
 		$this->name = $name;
-		if(!isset($this->block) and $this->id <= 0xff){
+		if(!isset($this->block) and $this->id <= 0xff and isset(BlockFactory::$list[$this->id])){
 			$this->block = BlockFactory::get($this->id, $this->meta);
 			$this->name = $this->block->getName();
 		}
@@ -395,6 +390,8 @@ class Item implements ItemIds, \JsonSerializable{
 
 	/**
 	 * @param Enchantment $ench
+	 *
+	 * @return $this
 	 */
 	public function addEnchantment(Enchantment $ench){
 		if(!$this->hasCompoundTag()){
@@ -429,6 +426,7 @@ class Item implements ItemIds, \JsonSerializable{
 		}
 
 		$this->setNamedTag($tag);
+		return $this;
 	}
 
 	/**
@@ -448,6 +446,73 @@ class Item implements ItemIds, \JsonSerializable{
 		}
 
 		return $enchantments;
+	}
+
+	public function hasRepairCost() : bool{
+		if(!$this->hasCompoundTag()){
+			return false;
+		}
+
+		$tag = $this->getNamedTag();
+		if(isset($tag->RepairCost)){
+			$tag = $tag->RepairCost;
+			if($tag instanceof IntTag){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function getRepairCost() : int{
+		if(!$this->hasCompoundTag()){
+			return 1;
+		}
+
+		$tag = $this->getNamedTag();
+		if(isset($tag->display)){
+			$tag = $tag->RepairCost;
+			if($tag instanceof IntTag){
+				return $tag->getValue();
+			}
+		}
+
+		return 1;
+	}
+
+
+	public function setRepairCost(int $cost){
+		if($cost === 1){
+			$this->clearRepairCost();
+		}
+
+		if(!($hadCompoundTag = $this->hasCompoundTag())){
+			$tag = new CompoundTag("", []);
+		}else{
+			$tag = $this->getNamedTag();
+		}
+
+		$tag->RepairCost = new IntTag("RepairCost", $cost);
+
+		if(!$hadCompoundTag){
+			$this->setCompoundTag($tag);
+		}
+
+		return $this;
+	}
+
+	public function clearRepairCost(){
+		if(!$this->hasCompoundTag()){
+			return $this;
+		}
+		$tag = $this->getNamedTag();
+
+		if(isset($tag->RepairCost) and $tag->RepairCost instanceof IntTag){
+			unset($tag->RepairCost);
+			$this->setNamedTag($tag);
+		}
+
+		return $this;
 	}
 
 	/**
@@ -542,7 +607,6 @@ class Item implements ItemIds, \JsonSerializable{
 		$tag = $this->getNamedTagEntry("display");
 		if($tag instanceof CompoundTag and isset($tag->Lore) and $tag->Lore instanceof ListTag){
 			$lines = [];
-			/** @var StringTag $line */
 			foreach($tag->Lore->getValue() as $line){
 				$lines[] = $line->getValue();
 			}
@@ -635,31 +699,9 @@ class Item implements ItemIds, \JsonSerializable{
 
 	/**
 	 * @param int $count
-	 * @return $this
 	 */
 	public function setCount(int $count){
 		$this->count = $count;
-
-		return $this;
-	}
-
-	/**
-	 * Pops an item from the stack and returns it, decreasing the stack count of this item stack by one.
-	 * @return Item
-	 *
-	 * @throws \InvalidStateException if the count is less than or equal to zero, or if the stack is air.
-	 */
-	public function pop() : Item{
-		if($this->isNull()){
-			throw new \InvalidStateException("Cannot pop an item from a null stack");
-		}
-
-		$item = clone $this;
-		$item->setCount(1);
-
-		$this->count--;
-
-		return $item;
 	}
 
 	public function isNull() : bool{
@@ -735,12 +777,9 @@ class Item implements ItemIds, \JsonSerializable{
 
 	/**
 	 * @param int $meta
-	 * @return $this
 	 */
 	public function setDamage(int $meta){
-		$this->meta = $meta !== -1 ? $meta & 0x7FFF : -1;
-
-		return $this;
+		$this->meta = $meta !== -1 ? $meta & 0xFFFF : -1;
 	}
 
 	/**
@@ -757,7 +796,7 @@ class Item implements ItemIds, \JsonSerializable{
 	 * Returns the highest amount of this item which will fit into one inventory slot.
 	 * @return int
 	 */
-	public function getMaxStackSize() : int{
+	public function getMaxStackSize(){
 		return 64;
 	}
 
@@ -766,22 +805,6 @@ class Item implements ItemIds, \JsonSerializable{
 	 * @return int
 	 */
 	public function getFuelTime() : int{
-		return 0;
-	}
-
-	/**
-	 * Returns how many points of damage this item will deal to an entity when used as a weapon.
-	 * @return int
-	 */
-	public function getAttackPoints() : int{
-		return 1;
-	}
-
-	/**
-	 * Returns how many armor points can be gained by wearing this item.
-	 * @return int
-	 */
-	public function getDefensePoints() : int{
 		return 0;
 	}
 
@@ -853,30 +876,6 @@ class Item implements ItemIds, \JsonSerializable{
 	}
 
 	/**
-	 * Called when a player uses the item on air, for example throwing a projectile.
-	 * Returns whether the item was changed, for example count decrease or durability change.
-	 *
-	 * @param Player  $player
-	 * @param Vector3 $directionVector
-	 *
-	 * @return bool
-	 */
-	public function onClickAir(Player $player, Vector3 $directionVector) : bool{
-		return false;
-	}
-
-	/**
-	 * Called when a player is using this item and releases it. Used to handle bow shoot actions.
-	 * Returns whether the item was changed, for example count decrease or durability change.
-	 *
-	 * @param Player $player
-	 * @return bool
-	 */
-	public function onReleaseUsing(Player $player) : bool{
-		return false;
-	}
-
-	/**
 	 * Compares an Item to this Item and check if they match.
 	 *
 	 * @param Item $item
@@ -900,16 +899,6 @@ class Item implements ItemIds, \JsonSerializable{
 		}
 
 		return false;
-	}
-
-	/**
-	 * Returns whether the specified item stack has the same ID, damage, NBT and count as this item stack.
-	 * @param Item $other
-	 *
-	 * @return bool
-	 */
-	final public function equalsExact(Item $other) : bool{
-		return $this->equals($other, true, true) and $this->count === $other->count;
 	}
 
 	/**
@@ -937,25 +926,25 @@ class Item implements ItemIds, \JsonSerializable{
 	 *
 	 * @return array
 	 */
-	final public function jsonSerialize(){
-		$data = [
-			"id" => $this->getId()
-		];
-
-		if($this->getDamage() !== 0){
-			$data["damage"] = $this->getDamage();
-		}
-
-		if($this->getCount() !== 1){
-			$data["count"] = $this->getCount();
-		}
-
-		if($this->hasCompoundTag()){
-			$data["nbt_hex"] = bin2hex($this->getCompoundTag());
-		}
-
-		return $data;
-	}
+ 	final public function jsonSerialize(){
+ 		$data = [
+ 			"id" => $this->getId()
+ 		];
+ 
+ 		if($this->getDamage() !== 0){
+ 			$data["damage"] = $this->getDamage();
+ 		}
+ 
+ 		if($this->getCount() !== 1){
+ 			$data["count"] = $this->getCount();
+ 		}
+ 
+ 		if($this->hasCompoundTag()){
+ 			$data["nbt_hex"] = bin2hex($this->getCompoundTag());
+ 		}
+ 
+ 		return $data;
+  	}
 
 	/**
 	 * Returns an Item from properties created in an array by {@link Item#jsonSerialize}
@@ -982,7 +971,7 @@ class Item implements ItemIds, \JsonSerializable{
 	 */
 	public function nbtSerialize(int $slot = -1, string $tagName = "") : CompoundTag{
 		$tag = new CompoundTag($tagName, [
-			new ShortTag("id", Binary::signShort($this->id)),
+			new ShortTag("id", $this->id),
 			new ByteTag("Count", Binary::signByte($this->count)),
 			new ShortTag("Damage", $this->meta),
 		]);
@@ -1008,16 +997,16 @@ class Item implements ItemIds, \JsonSerializable{
 	 */
 	public static function nbtDeserialize(CompoundTag $tag) : Item{
 		if(!isset($tag->id) or !isset($tag->Count)){
-			return ItemFactory::get(0);
+			return Item::get(0);
 		}
 
 		$count = Binary::unsignByte($tag->Count->getValue());
 		$meta = isset($tag->Damage) ? $tag->Damage->getValue() : 0;
 
 		if($tag->id instanceof ShortTag){
-			$item = ItemFactory::get(Binary::unsignShort($tag->id->getValue()), $meta, $count);
+			$item = Item::get($tag->id->getValue(), $meta, $count);
 		}elseif($tag->id instanceof StringTag){ //PC item save format
-			$item = ItemFactory::fromString($tag->id->getValue());
+			$item = Item::fromString($tag->id->getValue());
 			$item->setDamage($meta);
 			$item->setCount($count);
 		}else{
@@ -1025,7 +1014,6 @@ class Item implements ItemIds, \JsonSerializable{
 		}
 
 		if(isset($tag->tag) and $tag->tag instanceof CompoundTag){
-			/** @var CompoundTag $t */
 			$t = clone $tag->tag;
 			$t->setName("");
 			$item->setNamedTag($t);

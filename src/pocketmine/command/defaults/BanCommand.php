@@ -31,7 +31,7 @@ use pocketmine\Player;
 
 class BanCommand extends VanillaCommand{
 
-	public function __construct(string $name){
+	public function __construct($name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.ban.player.description",

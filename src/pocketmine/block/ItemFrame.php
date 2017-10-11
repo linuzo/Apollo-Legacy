@@ -62,14 +62,22 @@ class ItemFrame extends Flowable{
 
 		if($tile->hasItem()){
 			$tile->setItemRotation(($tile->getItemRotation() + 1) % 8);
-		}elseif(!$item->isNull()){
-			$tile->setItem($item->pop());
+		}else{
+			if($item->getCount() > 0){
+				$frameItem = clone $item;
+				$frameItem->setCount(1);
+				$item->setCount($item->getCount() - 1);
+				$tile->setItem($frameItem);
+				if($player instanceof Player and $player->isSurvival()){
+					$player->getInventory()->setItemInHand($item->getCount() <= 0 ? Item::get(Item::AIR) : $item);
+				}
+			}
 		}
 
 		return true;
 	}
 
-	public function onBreak(Item $item, Player $player = null) : bool{
+	public function onBreak(Item $item) : bool{
 		$tile = $this->level->getTile($this);
 		if($tile instanceof TileItemFrame){
 			//TODO: add events
@@ -77,7 +85,7 @@ class ItemFrame extends Flowable{
 				$this->level->dropItem($tile->getBlock(), $tile->getItem());
 			}
 		}
-		return parent::onBreak($item, $player);
+		return parent::onBreak($item);
 	}
 
 	public function onUpdate(int $type){
@@ -96,7 +104,7 @@ class ItemFrame extends Flowable{
 		return false;
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		if($face === Vector3::SIDE_DOWN or $face === Vector3::SIDE_UP){
 			return false;
 		}
@@ -109,13 +117,13 @@ class ItemFrame extends Flowable{
 		];
 
 		$this->meta = $faces[$face];
-		$this->level->setBlock($blockReplace, $this, true, true);
+		$this->level->setBlock($block, $this, true, true);
 
 		$nbt = new CompoundTag("", [
 			new StringTag("id", Tile::ITEM_FRAME),
-			new IntTag("x", $blockReplace->x),
-			new IntTag("y", $blockReplace->y),
-			new IntTag("z", $blockReplace->z),
+			new IntTag("x", $block->x),
+			new IntTag("y", $block->y),
+			new IntTag("z", $block->z),
 			new FloatTag("ItemDropChance", 1.0),
 			new ByteTag("ItemRotation", 0)
 		]);

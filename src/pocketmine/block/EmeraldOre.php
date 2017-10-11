@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 
 class EmeraldOre extends Solid{
@@ -50,7 +49,7 @@ class EmeraldOre extends Solid{
 	public function getDrops(Item $item) : array{
 		if($item->isPickaxe() >= Tool::TIER_IRON){
 			return [
-				ItemFactory::get(Item::EMERALD, 0, 1)
+				Item::get(Item::EMERALD, 0, 1),
 			];
 		}
 

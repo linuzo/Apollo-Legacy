@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 
 class DoubleStoneSlab extends Solid{
@@ -52,7 +51,7 @@ class DoubleStoneSlab extends Solid{
 			4 => "Brick",
 			5 => "Stone Brick",
 			6 => "Quartz",
-			7 => "Nether Brick"
+			7 => "Nether Brick",
 		];
 		return "Double " . $names[$this->meta & 0x07] . " Slab";
 	}
@@ -60,7 +59,7 @@ class DoubleStoneSlab extends Solid{
 	public function getDrops(Item $item) : array{
 		if($item->isPickaxe() >= Tool::TIER_WOODEN){
 			return [
-				ItemFactory::get(Item::STONE_SLAB, $this->getDamage() & 0x07, 2)
+				Item::get(Item::STONE_SLAB, $this->getDamage() & 0x07, 2),
 			];
 		}
 

@@ -634,7 +634,7 @@ class Chunk{
 	 * @param Tile $tile
 	 */
 	public function addTile(Tile $tile){
-		if($tile->isClosed()){
+		if($tile->closed){
 			throw new \InvalidArgumentException("Attempted to add a garbage closed Tile to a chunk");
 		}
 		$this->tiles[$tile->getId()] = $tile;

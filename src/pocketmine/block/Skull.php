@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\ByteTag;
@@ -64,7 +63,7 @@ class Skull extends Flowable{
 		);
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		if($face !== Vector3::SIDE_DOWN){
 			$this->meta = $face;
 			if($face === Vector3::SIDE_UP){
@@ -72,7 +71,7 @@ class Skull extends Flowable{
 			}else{
 				$rot = $face;
 			}
-			$this->getLevel()->setBlock($blockReplace, $this, true);
+			$this->getLevel()->setBlock($block, $this, true);
 			$nbt = new CompoundTag("", [
 				new StringTag("id", Tile::SKULL),
 				new ByteTag("SkullType", $item->getDamage()),
@@ -95,7 +94,7 @@ class Skull extends Flowable{
 		$tile = $this->level->getTile($this);
 		if($tile instanceof SkullTile){
 			return [
-				ItemFactory::get(Item::SKULL, $tile->getType(), 1)
+				Item::get(Item::SKULL, $tile->getType(), 1)
 			];
 		}
 

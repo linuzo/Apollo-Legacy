@@ -62,12 +62,6 @@ memory:
   #Trigger on low memory
   low-memory-trigger: true
 
- #Settings controlling memory dump handling.
- memory-dump:
-  #Dump memory from async workers as well as the main thread. If you have issues with segfaults when dumping memory, disable this setting.
-  dump-async-worker: true
-
-
  max-chunks:
   #Maximum render distance per player when low memory is triggered
   chunk-radius: 4
@@ -132,7 +126,7 @@ chunk-sending:
  spawn-radius: 4
  #Save a serialized copy of the chunk in memory for faster sending
  #Useful in mostly-static worlds where lots of players join at the same time
- cache-chunks: true
+ cache-chunks: false
 
 chunk-ticking:
  #Max amount of chunks processed each tick

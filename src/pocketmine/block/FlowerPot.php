@@ -62,20 +62,20 @@ class FlowerPot extends Flowable{
 		);
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		if($this->getSide(Vector3::SIDE_DOWN)->isTransparent()){
 			return false;
 		}
 
-		$this->getLevel()->setBlock($blockReplace, $this, true, true);
+		$this->getLevel()->setBlock($block, $this, true, true);
 
 		$nbt = new CompoundTag("", [
 			new StringTag("id", Tile::FLOWER_POT),
-			new IntTag("x", $blockReplace->x),
-			new IntTag("y", $blockReplace->y),
-			new IntTag("z", $blockReplace->z),
+			new IntTag("x", $block->x),
+			new IntTag("y", $block->y),
+			new IntTag("z", $block->z),
 			new ShortTag("item", 0),
-			new IntTag("mData", 0)
+			new IntTag("mData", 0),
 		]);
 
 		if($item->hasCustomBlockData()){
@@ -111,8 +111,14 @@ class FlowerPot extends Flowable{
 
 		$this->setDamage(self::STATE_FULL); //specific damage value is unnecessary, it just needs to be non-zero to show an item.
 		$this->getLevel()->setBlock($this, $this, true, false);
-		$pot->setItem($item->pop());
+		$pot->setItem($item);
 
+		if($player instanceof Player){
+			if($player->isSurvival()){
+				$item->setCount($item->getCount() - 1);
+				$player->getInventory()->setItemInHand($item->getCount() > 0 ? $item : Item::get(Item::AIR));
+			}
+		}
 		return true;
 	}
 

@@ -26,7 +26,6 @@ namespace pocketmine\block;
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
 use pocketmine\level\Level;
-use pocketmine\Player;
 
 class Ice extends Transparent{
 
@@ -48,19 +47,13 @@ class Ice extends Transparent{
 		return 2;
 	}
 
-	public function getFrictionFactor() : float{
-		return 0.98;
-	}
-
 	public function getToolType() : int{
 		return Tool::TYPE_PICKAXE;
 	}
 
-	public function onBreak(Item $item, Player $player = null) : bool{
-		return $this->getLevel()->setBlock($this, BlockFactory::get(Block::WATER), true);
-	}
+	public function onBreak(Item $item) : bool{
+		$this->getLevel()->setBlock($this, BlockFactory::get(Block::WATER), true);
 
-	public function ticksRandomly() : bool{
 		return true;
 	}
 

@@ -25,7 +25,6 @@ namespace pocketmine\block;
 
 use pocketmine\event\block\BlockSpreadEvent;
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 use pocketmine\level\generator\object\TallGrass as TallGrassObject;
 use pocketmine\level\Level;
@@ -55,12 +54,8 @@ class Grass extends Solid{
 
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get(Item::DIRT, 0, 1)
+			Item::get(Item::DIRT, 0, 1),
 		];
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onUpdate(int $type){
@@ -83,7 +78,6 @@ class Grass extends Solid{
 					$vector->z = mt_rand($this->z - 1, $this->z + 1);
 					if(
 						$this->level->getBlockIdAt($vector->x, $vector->y, $vector->z) !== Block::DIRT or
-						$this->level->getBlockDataAt($vector->x, $vector->y, $vector->z) === 1 or
 						$this->level->getFullLightAt($vector->x, $vector->y + 1, $vector->z) < 4 or
 						BlockFactory::$lightFilter[$this->level->getBlockIdAt($vector->x, $vector->y + 1, $vector->z)] >= 3
 					){

@@ -19,33 +19,26 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\level\generator\biome;
 
 use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
-use pocketmine\level\generator\normal\biome\SwampBiome;
-use pocketmine\level\generator\normal\biome\BeachBiome;
 use pocketmine\level\generator\normal\biome\DesertBiome;
 use pocketmine\level\generator\normal\biome\ForestBiome;
-use pocketmine\level\generator\normal\biome\RoofedForestBiome;
-use pocketmine\level\generator\normal\biome\SavannaBiome;
 use pocketmine\level\generator\normal\biome\IcePlainsBiome;
-use pocketmine\level\generator\normal\biome\MushroomIslandBiome;
 use pocketmine\level\generator\normal\biome\MountainsBiome;
 use pocketmine\level\generator\normal\biome\OceanBiome;
 use pocketmine\level\generator\normal\biome\PlainBiome;
 use pocketmine\level\generator\normal\biome\RiverBiome;
-use pocketmine\level\generator\normal\biome\FrozenRiverBiome;
 use pocketmine\level\generator\normal\biome\SmallMountainsBiome;
-use pocketmine\level\generator\normal\biome\JungleBiome;
-use pocketmine\level\generator\normal\biome\MesaBiome;
+use pocketmine\level\generator\normal\biome\SwampBiome;
 use pocketmine\level\generator\normal\biome\TaigaBiome;
-use pocketmine\level\generator\hell\HellBiome;
 use pocketmine\level\generator\populator\Populator;
 use pocketmine\utils\Random;
-use pocketmine\level\generator\populator\Flower;
 
-abstract class Biome {
+abstract class Biome{
 
 	const OCEAN = 0;
 	const PLAINS = 1;
@@ -55,138 +48,91 @@ abstract class Biome {
 	const TAIGA = 5;
 	const SWAMP = 6;
 	const RIVER = 7;
+
 	const HELL = 8;
-	const END = 9;
-	const FROZEN_RIVER = 11;
+
 	const ICE_PLAINS = 12;
-	const ICE_MOUNTAINS = 13;
-	const MUSHROOM_ISLAND = 14;
-	const MUSHROOM_ISLAND_SHORE = 15;
-	const BEACH = 16;
-	const DESERT_HILLS = 17;
-	const FOREST_HILLS = 18;
-	const TAIGA_HILLS = 19;
+
+
 	const SMALL_MOUNTAINS = 20;
-	const JUNGLE = 21;
-	const JUNGLE_HILLS = 22;
-	const JUNGLE_EDGE = 23;
-	const DEEP_OCEAN = 24;
-	const STONE_BEACH = 25;
-	const COLD_BEACH = 26;
+
+
 	const BIRCH_FOREST = 27;
-	const BIRCH_FOREST_HILLS = 28;
-	const ROOFED_FOREST = 29;
-	const COLD_TAIGA = 30;
-	const COLD_TAIGA_HILLS = 31;
-	const MEGA_TAIGA = 32;
-	const MEGA_TAIGA_HILLS = 33;
-	const EXTREME_HILLS_PLUS = 34;
-	const SAVANNA = 35;
-	const SAVANNA_PLATEAU = 36;
-	const MESA = 37;
-	const MESA_PLATEAU_F = 38;
-	const MESA_PLATEAU = 39;
-	const VOID = 127;
+
 
 	const MAX_BIOMES = 256;
 
 	/** @var Biome[] */
 	private static $biomes = [];
 
+	/** @var int */
 	private $id;
+	/** @var bool */
 	private $registered = false;
+
 	/** @var Populator[] */
 	private $populators = [];
 
+	/** @var int */
 	private $minElevation;
+	/** @var int */
 	private $maxElevation;
 
+	/** @var Block[] */
 	private $groundCover = [];
 
+	/** @var float */
 	protected $rainfall = 0.5;
+	/** @var float */
 	protected $temperature = 0.5;
 
-	/**
-	 * @param       $id
-	 * @param Biome $biome
-	 */
-	protected static function register($id, Biome $biome){
-		self::$biomes[(int) $id] = $biome;
-		$biome->setId((int) $id);
-
-		$flowerPopFound = false;
-
-		foreach($biome->getPopulators() as $populator){
-			if($populator instanceof Flower){
-				$flowerPopFound = true;
-				break;
-			}
-		}
-
-		if($flowerPopFound === false){
-			$flower = new Flower();
-			$biome->addPopulator($flower);
-		}
+	protected static function register(int $id, Biome $biome){
+		self::$biomes[$id] = $biome;
+		$biome->setId($id);
 	}
 
 	public static function init(){
 		self::register(self::OCEAN, new OceanBiome());
 		self::register(self::PLAINS, new PlainBiome());
 		self::register(self::DESERT, new DesertBiome());
-		self::register(self::MOUNTAINS, new MountainsBiome()); 
+		self::register(self::MOUNTAINS, new MountainsBiome());
 		self::register(self::FOREST, new ForestBiome());
-		self::register(self::ROOFED_FOREST, new RoofedForestBiome());
-		self::register(self::SAVANNA, new SavannaBiome());
 		self::register(self::TAIGA, new TaigaBiome());
 		self::register(self::SWAMP, new SwampBiome());
 		self::register(self::RIVER, new RiverBiome());
-		self::register(self::FROZEN_RIVER, new FrozenRiverBiome());
+
 		self::register(self::ICE_PLAINS, new IcePlainsBiome());
-		self::register(self::MUSHROOM_ISLAND, new MushroomIslandBiome());
-		self::register(self::BEACH, new BeachBiome());
-		self::register(self::SMALL_MOUNTAINS, new SmallMountainsBiome()); 
-		self::register(self::JUNGLE, new JungleBiome());
-		self::register(self::MESA, new MesaBiome());
-		self::register(self::HELL, new HellBiome());
+
+
+		self::register(self::SMALL_MOUNTAINS, new SmallMountainsBiome());
+
 		self::register(self::BIRCH_FOREST, new ForestBiome(ForestBiome::TYPE_BIRCH));
 	}
 
 	/**
-	 * @param $id
+	 * @param int $id
 	 *
 	 * @return Biome
 	 */
-	public static function getBiome($id){
-		return isset(self::$biomes[$id]) ? self::$biomes[$id] : self::$biomes[self::OCEAN];
+	public static function getBiome(int $id) : Biome{
+		return self::$biomes[$id] ?? self::$biomes[self::OCEAN];
 	}
 
 	public function clearPopulators(){
 		$this->populators = [];
 	}
 
-	/**
-	 * @param Populator $populator
-	 */
 	public function addPopulator(Populator $populator){
-		$this->populators[get_class($populator)] = $populator;
-	}
-
-	/**
-	 * @param $class
-	 */
-	public function removePopulator($class){
-		if(isset($this->populators[$class])){
-			unset($this->populators[$class]);
-		}
+		$this->populators[] = $populator;
 	}
 
 	/**
 	 * @param ChunkManager $level
-	 * @param              $chunkX
-	 * @param              $chunkZ
+	 * @param int          $chunkX
+	 * @param int          $chunkZ
 	 * @param Random       $random
 	 */
-	public function populateChunk(ChunkManager $level, $chunkX, $chunkZ, Random $random){
+	public function populateChunk(ChunkManager $level, int $chunkX, int $chunkZ, Random $random){
 		foreach($this->populators as $populator){
 			$populator->populate($level, $chunkX, $chunkZ, $random);
 		}
@@ -195,39 +141,32 @@ abstract class Biome {
 	/**
 	 * @return Populator[]
 	 */
-	public function getPopulators(){
+	public function getPopulators() : array{
 		return $this->populators;
 	}
 
-	/**
-	 * @param $id
-	 */
-	public function setId($id){
+	public function setId(int $id){
 		if(!$this->registered){
 			$this->registered = true;
 			$this->id = $id;
 		}
 	}
 
-	public function getId(){
+	public function getId() : int{
 		return $this->id;
 	}
 
-	public abstract function getName();
+	abstract public function getName() : string;
 
-	public function getMinElevation(){
+	public function getMinElevation() : int{
 		return $this->minElevation;
 	}
 
-	public function getMaxElevation(){
+	public function getMaxElevation() : int{
 		return $this->maxElevation;
 	}
 
-	/**
-	 * @param $min
-	 * @param $max
-	 */
-	public function setElevation($min, $max){
+	public function setElevation(int $min, int $max){
 		$this->minElevation = $min;
 		$this->maxElevation = $max;
 	}
@@ -235,7 +174,7 @@ abstract class Biome {
 	/**
 	 * @return Block[]
 	 */
-	public function getGroundCover(){
+	public function getGroundCover() : array{
 		return $this->groundCover;
 	}
 
@@ -246,17 +185,11 @@ abstract class Biome {
 		$this->groundCover = $covers;
 	}
 
-	/**
-	 * @return float
-	 */
-	public function getTemperature(){
+	public function getTemperature() : float{
 		return $this->temperature;
 	}
 
-	/**
-	 * @return float
-	 */
-	public function getRainfall(){
+	public function getRainfall() : float{
 		return $this->rainfall;
 	}
 }

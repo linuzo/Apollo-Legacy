@@ -41,8 +41,8 @@ class EnchantingTable extends Transparent{
 		$this->meta = $meta;
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
-		$this->getLevel()->setBlock($blockReplace, $this, true, true);
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
+		$this->getLevel()->setBlock($block, $this, true, true);
 		$nbt = new CompoundTag("", [
 			new StringTag("id", Tile::ENCHANT_TABLE),
 			new IntTag("x", $this->x),
@@ -86,6 +86,7 @@ class EnchantingTable extends Transparent{
 			//TODO lock
 
 			$player->addWindow(new EnchantInventory($this));
+			$player->craftingType = Player::CRAFTING_ENCHANT;
 		}
 
 		return true;

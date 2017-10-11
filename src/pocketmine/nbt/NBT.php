@@ -308,19 +308,12 @@ class NBT{
 		}
 	}
 
-	public function getLong(bool $network = false) : int{
-		if($network){
-			return Binary::readVarLong($this->buffer, $this->offset);
-		}
+	public function getLong() : int{
 		return $this->endianness === self::BIG_ENDIAN ? Binary::readLong($this->get(8)) : Binary::readLLong($this->get(8));
 	}
 
-	public function putLong($v, bool $network = false){
-		if($network){
-			$this->buffer .= Binary::writeVarLong($v);
-		}else{
-			$this->buffer .= $this->endianness === self::BIG_ENDIAN ? Binary::writeLong($v) : Binary::writeLLong($v);
-		}
+	public function putLong($v){
+		$this->buffer .= $this->endianness === self::BIG_ENDIAN ? Binary::writeLong($v) : Binary::writeLLong($v);
 	}
 
 	public function getFloat() : float{

@@ -25,7 +25,6 @@ namespace pocketmine\block;
 
 use pocketmine\inventory\AnvilInventory;
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
@@ -70,21 +69,22 @@ class Anvil extends Fallable{
 	public function onActivate(Item $item, Player $player = null) : bool{
 		if($player instanceof Player){
 			$player->addWindow(new AnvilInventory($this));
+			$player->craftingType = Player::CRAFTING_ANVIL;
 		}
 
 		return true;
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		$direction = ($player !== null ? $player->getDirection() : 0) & 0x03;
 		$this->meta = ($this->meta & 0x0c) | $direction;
-		return $this->getLevel()->setBlock($blockReplace, $this, true, true);
+		return $this->getLevel()->setBlock($block, $this, true, true);
 	}
 
 	public function getDrops(Item $item) : array{
 		if($item->isPickaxe() >= Tool::TIER_WOODEN){
 			return [
-				ItemFactory::get($this->getItemId(), $this->getDamage() & 0x0c, 1)
+				Item::get($this->getItemId(), $this->getDamage() & 0x0c, 1),
 			];
 		}
 

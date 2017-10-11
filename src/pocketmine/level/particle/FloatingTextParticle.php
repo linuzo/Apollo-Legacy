@@ -24,14 +24,11 @@ declare(strict_types=1);
 namespace pocketmine\level\particle;
 
 use pocketmine\entity\Entity;
-use pocketmine\entity\Skin;
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\protocol\AddPlayerPacket;
-use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
-use pocketmine\network\mcpe\protocol\RemoveEntityPacket;
 use pocketmine\utils\UUID;
+use pocketmine\network\mcpe\protocol\AddPlayerPacket;
+use pocketmine\network\mcpe\protocol\RemoveEntityPacket;
 
 class FloatingTextParticle extends Particle{
 	//TODO: HACK!
@@ -43,37 +40,29 @@ class FloatingTextParticle extends Particle{
 
 	/**
 	 * @param Vector3 $pos
-	 * @param string  $text
+	 * @param int     $text
 	 * @param string  $title
 	 */
-	public function __construct(Vector3 $pos, string $text, string $title = ""){
+	public function __construct(Vector3 $pos, $text, $title = ""){
 		parent::__construct($pos->x, $pos->y, $pos->z);
 		$this->text = $text;
 		$this->title = $title;
 	}
 
-	public function getText() : string{
-		return $this->text;
-	}
-
-	public function setText(string $text) : void{
+	public function setText($text){
 		$this->text = $text;
 	}
 
-	public function getTitle() : string{
-		return $this->title;
-	}
-
-	public function setTitle(string $title) : void{
+	public function setTitle($title){
 		$this->title = $title;
 	}
 
-	public function isInvisible() : bool{
+	public function isInvisible(){
 		return $this->invisible;
 	}
 
-	public function setInvisible(bool $value = true){
-		$this->invisible = $value;
+	public function setInvisible($value = true){
+		$this->invisible = (bool) $value;
 	}
 
 	public function encode(){
@@ -89,30 +78,25 @@ class FloatingTextParticle extends Particle{
 		}
 
 		if(!$this->invisible){
-			$pk = new AddPlayerPacket();
-			$pk->uuid = $uuid = UUID::fromRandom();
-			$pk->username = "";
-			$pk->entityRuntimeId = $this->entityId;
-			$pk->position = $this->asVector3(); //TODO: check offset
-			$pk->item = ItemFactory::get(Item::AIR, 0, 0);
 
+			$pk = new AddPlayerPacket();
+			$pk->uuid = UUID::fromRandom();
+			$pk->username = $this->title;
+			$pk->entityRuntimeId = $this->entityId;
+			$pk->position = new Vector3($this->x, $this->y - 0.50, $this->z);
+			$pk->item = Item::get(Item::AIR);
 			$flags = (
 				(1 << Entity::DATA_FLAG_CAN_SHOW_NAMETAG) |
 				(1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG) |
 				(1 << Entity::DATA_FLAG_IMMOBILE)
 			);
 			$pk->metadata = [
-				Entity::DATA_FLAGS =>   [Entity::DATA_TYPE_LONG,   $flags],
+				Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, $flags],
 				Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $this->title . ($this->text !== "" ? "\n" . $this->text : "")],
-				Entity::DATA_SCALE =>   [Entity::DATA_TYPE_FLOAT,  0.01] //zero causes problems on debug builds
+				Entity::DATA_SCALE => [Entity::DATA_TYPE_FLOAT, 0],
 			];
 
 			$p[] = $pk;
-
-			$skinPk = new PlayerSkinPacket();
-			$skinPk->uuid = $uuid;
-			$skinPk->skin = new Skin("Standard_Custom", str_repeat("\x00", 8192));
-			$p[] = $skinPk;
 		}
 
 		return $p;

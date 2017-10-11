@@ -67,12 +67,12 @@ class Chest extends Transparent{
 		);
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		$faces = [
 			0 => 4,
 			1 => 2,
 			2 => 5,
-			3 => 3
+			3 => 3,
 		];
 
 		$chest = null;
@@ -94,7 +94,7 @@ class Chest extends Transparent{
 			}
 		}
 
-		$this->getLevel()->setBlock($blockReplace, $this, true, true);
+		$this->getLevel()->setBlock($block, $this, true, true);
 		$nbt = new CompoundTag("", [
 			new ListTag("Items", []),
 			new StringTag("id", Tile::CHEST),
@@ -124,7 +124,7 @@ class Chest extends Transparent{
 		return true;
 	}
 
-	public function onBreak(Item $item, Player $player = null) : bool{
+	public function onBreak(Item $item) : bool{
 		$t = $this->getLevel()->getTile($this);
 		if($t instanceof TileChest){
 			$t->unpair();
@@ -136,6 +136,10 @@ class Chest extends Transparent{
 
 	public function onActivate(Item $item, Player $player = null) : bool{
 		if($player instanceof Player){
+			$top = $this->getSide(Vector3::SIDE_UP);
+			if($top->isTransparent() !== true){
+				return true;
+			}
 
 			$t = $this->getLevel()->getTile($this);
 			$chest = null;
@@ -153,12 +157,10 @@ class Chest extends Transparent{
 				$chest = Tile::createTile("Chest", $this->getLevel(), $nbt);
 			}
 
-			if(
-				!$this->getSide(Vector3::SIDE_UP)->isTransparent() or
-				($chest->isPaired() and !$chest->getPair()->getBlock()->getSide(Vector3::SIDE_UP)->isTransparent()) or
-				(isset($chest->namedtag->Lock) and $chest->namedtag->Lock instanceof StringTag and $chest->namedtag->Lock->getValue() !== $item->getCustomName())
-			){
-				return true;
+			if(isset($chest->namedtag->Lock) and $chest->namedtag->Lock instanceof StringTag){
+				if($chest->namedtag->Lock->getValue() !== $item->getCustomName()){
+					return true;
+				}
 			}
 
 			$player->addWindow($chest->getInventory());

@@ -74,11 +74,11 @@ class CreativeInventoryAction extends InventoryAction{
 		return true;
 	}
 
-	public function onExecuteSuccess(Player $source) : void{
+	public function onExecuteSuccess(Player $source){
 
 	}
 
-	public function onExecuteFail(Player $source) : void{
+	public function onExecuteFail(Player $source){
 
 	}
 

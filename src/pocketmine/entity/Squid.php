@@ -26,7 +26,6 @@ namespace pocketmine\entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item as ItemItem;
-use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\network\mcpe\protocol\EntityEventPacket;
@@ -36,6 +35,7 @@ class Squid extends WaterAnimal{
 	const NETWORK_ID = 17;
 
 	public $width = 0.95;
+	public $length = 0.95;
 	public $height = 0.95;
 
 	/** @var Vector3 */
@@ -53,8 +53,8 @@ class Squid extends WaterAnimal{
 		return "Squid";
 	}
 
-	public function attack(EntityDamageEvent $source){
-		parent::attack($source);
+	public function attack($damage, EntityDamageEvent $source){
+		parent::attack($damage, $source);
 		if($source->isCancelled()){
 			return;
 		}
@@ -143,7 +143,7 @@ class Squid extends WaterAnimal{
 
 	public function getDrops() : array{
 		return [
-			ItemFactory::get(ItemItem::DYE, 0, mt_rand(1, 3))
+			ItemItem::get(ItemItem::DYE, 0, mt_rand(1, 3))
 		];
 	}
 }

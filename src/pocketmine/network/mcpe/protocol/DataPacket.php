@@ -27,7 +27,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Entity;
-use pocketmine\item\ItemFactory;
+use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\utils\BinaryStream;
@@ -59,14 +59,6 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	public function canBeSentBeforeLogin() : bool{
-		return false;
-	}
-
-	/**
-	 * Returns whether the packet may legally have unread bytes left in the buffer.
-	 * @return bool
-	 */
-	public function mayHaveUnreadBytes() : bool{
 		return false;
 	}
 
@@ -237,7 +229,7 @@ abstract class DataPacket extends BinaryStream{
 					break;
 				case Entity::DATA_TYPE_SLOT:
 					//TODO: change this implementation (use objects)
-					$this->putSlot(ItemFactory::get($d[1][0], $d[1][2], $d[1][1])); //ID, damage, count
+					$this->putSlot(Item::get($d[1][0], $d[1][2], $d[1][1])); //ID, damage, count
 					break;
 				case Entity::DATA_TYPE_POS:
 					//TODO: change this implementation (use objects)

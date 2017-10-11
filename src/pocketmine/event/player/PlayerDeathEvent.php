@@ -31,9 +31,6 @@ use pocketmine\Player;
 class PlayerDeathEvent extends EntityDeathEvent{
 	public static $handlerList = null;
 
-	/** @var Player */
-	protected $entity;
-
 	/** @var TextContainer|string */
 	private $deathMessage;
 	private $keepInventory = false;
@@ -51,7 +48,7 @@ class PlayerDeathEvent extends EntityDeathEvent{
 	/**
 	 * @return Player
 	 */
-	public function getEntity(){
+	public function getEntity() : Player{
 		return $this->entity;
 	}
 

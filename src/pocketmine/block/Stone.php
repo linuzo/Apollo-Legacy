@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 
 class Stone extends Solid{
@@ -67,7 +66,7 @@ class Stone extends Solid{
 		if($item->isPickaxe() >= Tool::TIER_WOODEN){
 			if($this->getDamage() === self::NORMAL){
 				return [
-					ItemFactory::get(Item::COBBLESTONE, $this->getDamage(), 1)
+					Item::get(Item::COBBLESTONE, $this->getDamage(), 1)
 				];
 			}
 
