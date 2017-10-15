@@ -33,7 +33,7 @@ NO support whatsoever will be provided for forks or spoons of ApolloPE. Issues r
 If the issue is **not** reproducible without plugins:
 - Have you asked for help on our forums before creating an issue?
 - Can you provide sample, *minimal* reproducing code for the issue? If so, paste it in the bottom section
-- Paste your list of plugins here (use the 'plugins' command in SpigotPE)
+- Paste your list of plugins here (use the 'plugins' command in ApolloPE)
 
 ### Crashdump, backtrace or other files
 <!--- please use gist or anything else and add links here -->
