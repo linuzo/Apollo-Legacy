@@ -3,7 +3,7 @@
  - **make sure that you are using the latest supported version** before opening an issue.
  - **test it on a clean test server, WITHOUT PLUGINS**, to see if the issue still occurs. If not then it may be a plugin issue. Please also indicate the result of such tests.
 
-- [Search the issue tracker](https://github.com/SpigotPE-Team/SpigotPSpigotPE/issues?utf8=%E2%9C%93&q=is%3Aissue) to check if anyone has already reported it, to avoid needlessly creating duplicate issues. Make sure you also check closed issues, as an issue you think is valid may already have been resolved.
+- [Search the issue tracker](https://github.com/Apollo-SoftwareTean/Apolo-Legacy/issues?utf8=%E2%9C%93&q=is%3Aissue) to check if anyone has already reported it, to avoid needlessly creating duplicate issues. Make sure you also check closed issues, as an issue you think is valid may already have been resolved.
 
 - If your issue is related to a plugin, **do not report here, contact the plugin's original author** instead.
 
@@ -23,7 +23,7 @@
 
 
 ## Contributing Code
-- To contribute code to the repository, [fork it on GitHub](https://github.com/SpigotPE-Team/SpigotPE/fork), create a branch on your fork, and make your changes on your fork. You can then make a [pull request](https://github.com/SpigotPE-Team/SpigotPE-MP/pull/new) to the project to compare your branch to ours and propose your changes to our repository. We use the Pull Request system to allow members of the team to review changes before they are merged.
+- To contribute code to the repository, [fork it on GitHub](https://github.com/Apollo-SoftwareTeam/Apollo-Legacy/fork), create a branch on your fork, and make your changes on your fork. You can then make a [pull request](https://github.com/Apollo-SoftwareTeam/Apollo-Legacy/pull/new) to the project to compare your branch to ours and propose your changes to our repository. We use the Pull Request system to allow members of the team to review changes before they are merged.
 
 - By proposing a pull request to the project, you agree to your code being distributed within PocketMine-MP under the [LGPL license](LICENSE).
 
