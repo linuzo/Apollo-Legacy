@@ -20,7 +20,6 @@ Apollo is more abandonate, but have epic generator in creations :)
 
 - Worlds: Generator has been improved and more biomes!
 - Little to no lag at all!
-- /tpall, /clclearchat, and /customui
 Apollo is a perfect software for your server
 
 ## Upcoming Update
