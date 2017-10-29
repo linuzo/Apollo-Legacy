@@ -51,8 +51,8 @@ abstract class Thread extends \Thread{
 	 * (unless you are using a custom autoloader).
 	 */
 	public function registerClassLoader(){
-		require(\pocketmine\PATH . "vendor/autoload.php");
-		if(!interface_exists("ClassLoader", false)){
+	//	require(\pocketmine\PATH . "vendor/autoload.php");
+		if(!interface_exists("ClassLoader", true)){
 			require(\pocketmine\PATH . "src/spl/ClassLoader.php");
 			require(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
 		}

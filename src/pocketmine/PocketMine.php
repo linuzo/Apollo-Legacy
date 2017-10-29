@@ -79,10 +79,11 @@ namespace pocketmine {
 	use pocketmine\wizard\SetupWizard;
 	use raklib\RakLib;
 
-	const NAME = "Apolllo";
-	const VERSION = "1.0dev";
-	const API_VERSION = "3.0.0-ALPHA9";
-	const CODENAME = "Shine Like a Diamond";
+	const NAME = "Apollo";
+	const VERSION = "1.0beta";
+	const API_VERSION = "3.0.0-ALPHA8";
+	const CODENAME = "Legacy";
+	const GENISYS_API_VERSION = '2.0.0';
 
 	const MIN_PHP_VERSION = "7.2.0RC3";
 
@@ -139,7 +140,7 @@ namespace pocketmine {
 		echo "[CRITICAL] Please update your submodules or use provided builds." . PHP_EOL;
 		exit(1);
 	}
-
+/*
 	if(is_file(\pocketmine\PATH . "vendor/autoload.php")){
 		require_once(\pocketmine\PATH . "vendor/autoload.php");
 	}else{
@@ -147,7 +148,7 @@ namespace pocketmine {
 		echo "[CRITICAL] Please initialize composer dependencies before running." . PHP_EOL;
 		exit(1);
 	}
-
+*/
 	if(!class_exists("ClassLoader", false)){
 		require_once(\pocketmine\PATH . "src/spl/ClassLoader.php");
 		require_once(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
@@ -161,6 +162,7 @@ namespace pocketmine {
 	$autoloader->addPath(\pocketmine\PATH . "src" . DIRECTORY_SEPARATOR . "spl");
 	$autoloader->register(false);
 
+	
 	if(!class_exists(RakLib::class)){
 		echo "[CRITICAL] Unable to find the RakLib library." . PHP_EOL;
 		echo "[CRITICAL] Please use provided builds or clone the repository recursively." . PHP_EOL;
@@ -515,7 +517,6 @@ namespace pocketmine {
 				++$errors;
 			}
 		}
-
 		if($errors > 0){
 			$logger->critical("Please use the installer provided on the homepage, or recompile PHP again.");
 			$exitCode = 1;
