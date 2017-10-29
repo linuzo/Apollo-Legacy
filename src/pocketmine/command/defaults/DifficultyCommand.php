@@ -27,12 +27,11 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\event\TranslationContainer;
-use pocketmine\network\mcpe\protocol\SetDifficultyPacket;
-use pocketmine\Server;
+use pocketmine\level\Level;
 
 class DifficultyCommand extends VanillaCommand{
 
-	public function __construct($name){
+	public function __construct(string $name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.difficulty.description",
@@ -50,18 +49,19 @@ class DifficultyCommand extends VanillaCommand{
 			throw new InvalidCommandSyntaxException();
 		}
 
-		$difficulty = Server::getDifficultyFromString($args[0]);
+		$difficulty = Level::getDifficultyFromString($args[0]);
 
 		if($sender->getServer()->isHardcore()){
-			$difficulty = 3;
+			$difficulty = Level::DIFFICULTY_HARD;
 		}
 
 		if($difficulty !== -1){
 			$sender->getServer()->setConfigInt("difficulty", $difficulty);
 
-			$pk = new SetDifficultyPacket();
-			$pk->difficulty = $sender->getServer()->getDifficulty();
-			$sender->getServer()->broadcastPacket($sender->getServer()->getOnlinePlayers(), $pk);
+			//TODO: add per-world support
+			foreach($sender->getServer()->getLevels() as $level){
+				$level->setDifficulty($difficulty);
+			}
 
 			Command::broadcastCommandMessage($sender, new TranslationContainer("commands.difficulty.success", [$difficulty]));
 		}else{

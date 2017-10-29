@@ -31,9 +31,10 @@ use pocketmine\level\Position;
  */
 class BlockFactory{
 	/** @var \SplFixedArray<Block> */
-	public static $list = null;
+	private static $list = null;
 	/** @var \SplFixedArray<Block> */
-	public static $fullList = null;
+	private static $fullList = null;
+
 	/** @var \SplFixedArray<bool> */
 	public static $solid = null;
 	/** @var \SplFixedArray<bool> */
@@ -55,16 +56,18 @@ class BlockFactory{
 	 *
 	 * @param bool $force
 	 */
-	public static function init(bool $force = false){
+	public static function init(bool $force = false) : void{
 		if(self::$list === null or $force){
 			self::$list = new \SplFixedArray(256);
 			self::$fullList = new \SplFixedArray(4096);
+
 			self::$light = new \SplFixedArray(256);
 			self::$lightFilter = new \SplFixedArray(256);
 			self::$solid = new \SplFixedArray(256);
 			self::$hardness = new \SplFixedArray(256);
 			self::$transparent = new \SplFixedArray(256);
 			self::$diffusesSkyLight = new \SplFixedArray(256);
+			self::$blastResistance = new \SplFixedArray(256);
 
 			self::registerBlock(new Air());
 			self::registerBlock(new Stone());
@@ -130,7 +133,7 @@ class BlockFactory{
 			self::registerBlock(new Furnace());
 			self::registerBlock(new BurningFurnace());
 			self::registerBlock(new SignPost());
-			self::registerBlock(new WoodenDoor(Block::OAK_DOOR_BLOCK, 0, "Oak Door Block", Item::OAK_DOOR));
+			self::registerBlock(new WoodenDoor(Block::OAK_DOOR_BLOCK, 0, "Oak Door", Item::OAK_DOOR));
 			self::registerBlock(new Ladder());
 			self::registerBlock(new Rail());
 			self::registerBlock(new CobblestoneStairs());
@@ -150,8 +153,8 @@ class BlockFactory{
 			self::registerBlock(new Cactus());
 			self::registerBlock(new Clay());
 			self::registerBlock(new Sugarcane());
-
-			self::registerBlock(new Fence());
+			//TODO: JUKEBOX
+			self::registerBlock(new WoodenFence());
 			self::registerBlock(new Pumpkin());
 			self::registerBlock(new Netherrack());
 			self::registerBlock(new SoulSand());
@@ -165,8 +168,8 @@ class BlockFactory{
 			self::registerBlock(new Trapdoor());
 			//TODO: MONSTER_EGG
 			self::registerBlock(new StoneBricks());
-			//TODO: BROWN_MUSHROOM_BLOCK
-			//TODO: RED_MUSHROOM_BLOCK
+			self::registerBlock(new BrownMushroomBlock());
+			self::registerBlock(new RedMushroomBlock());
 			self::registerBlock(new IronBars());
 			self::registerBlock(new GlassPane());
 			self::registerBlock(new Melon());
@@ -242,12 +245,13 @@ class BlockFactory{
 			self::registerBlock(new Coal());
 			self::registerBlock(new PackedIce());
 			self::registerBlock(new DoublePlant());
-
+			//TODO: STANDING_BANNER
+			//TODO: WALL_BANNER
 			//TODO: DAYLIGHT_DETECTOR_INVERTED
-			//TODO: RED_SANDSTONE
-			//TODO: RED_SANDSTONE_STAIRS
-			//TODO: DOUBLE_STONE_SLAB2
-			//TODO: STONE_SLAB2
+			self::registerBlock(new RedSandstone());
+			self::registerBlock(new RedSandstoneStairs());
+			self::registerBlock(new DoubleStoneSlab2());
+			self::registerBlock(new StoneSlab2());
 			self::registerBlock(new FenceGate(Block::SPRUCE_FENCE_GATE, 0, "Spruce Fence Gate"));
 			self::registerBlock(new FenceGate(Block::BIRCH_FENCE_GATE, 0, "Birch Fence Gate"));
 			self::registerBlock(new FenceGate(Block::JUNGLE_FENCE_GATE, 0, "Jungle Fence Gate"));
@@ -256,19 +260,20 @@ class BlockFactory{
 			//TODO: REPEATING_COMMAND_BLOCK
 			//TODO: CHAIN_COMMAND_BLOCK
 
-			self::registerBlock(new WoodenDoor(Block::SPRUCE_DOOR_BLOCK, 0, "Spruce Door Block", Item::SPRUCE_DOOR));
-			self::registerBlock(new WoodenDoor(Block::BIRCH_DOOR_BLOCK, 0, "Birch Door Block", Item::BIRCH_DOOR));
-			self::registerBlock(new WoodenDoor(Block::JUNGLE_DOOR_BLOCK, 0, "Jungle Door Block", Item::JUNGLE_DOOR));
-			self::registerBlock(new WoodenDoor(Block::ACACIA_DOOR_BLOCK, 0, "Acacia Door Block", Item::ACACIA_DOOR));
-			self::registerBlock(new WoodenDoor(Block::DARK_OAK_DOOR_BLOCK, 0, "Dark Oak Door Block", Item::DARK_OAK_DOOR));
+			self::registerBlock(new WoodenDoor(Block::SPRUCE_DOOR_BLOCK, 0, "Spruce Door", Item::SPRUCE_DOOR));
+			self::registerBlock(new WoodenDoor(Block::BIRCH_DOOR_BLOCK, 0, "Birch Door", Item::BIRCH_DOOR));
+			self::registerBlock(new WoodenDoor(Block::JUNGLE_DOOR_BLOCK, 0, "Jungle Door", Item::JUNGLE_DOOR));
+			self::registerBlock(new WoodenDoor(Block::ACACIA_DOOR_BLOCK, 0, "Acacia Door", Item::ACACIA_DOOR));
+			self::registerBlock(new WoodenDoor(Block::DARK_OAK_DOOR_BLOCK, 0, "Dark Oak Door", Item::DARK_OAK_DOOR));
 			self::registerBlock(new GrassPath());
 			self::registerBlock(new ItemFrame());
 			//TODO: CHORUS_FLOWER
-			//TODO: PURPUR_BLOCK
+			self::registerBlock(new Purpur());
 
-			//TODO: PURPUR_STAIRS
+			self::registerBlock(new PurpurStairs());
 
-			//TODO: END_BRICKS
+			//TODO: UNDYED_SHULKER_BOX
+			self::registerBlock(new EndStoneBricks());
 			//TODO: FROSTED_ICE
 			self::registerBlock(new EndRod());
 			//TODO: END_GATEWAY
@@ -276,7 +281,7 @@ class BlockFactory{
 			self::registerBlock(new Magma());
 			self::registerBlock(new NetherWartBlock());
 			self::registerBlock(new NetherBrick(Block::RED_NETHER_BRICK, 0, "Red Nether Bricks"));
-			//TODO: BONE_BLOCK
+			self::registerBlock(new BoneBlock());
 
 			//TODO: SHULKER_BOX
 			self::registerBlock(new GlazedTerracotta(Block::PURPLE_GLAZED_TERRACOTTA, 0, "Purple Glazed Terracotta"));
@@ -296,8 +301,8 @@ class BlockFactory{
 			self::registerBlock(new GlazedTerracotta(Block::GREEN_GLAZED_TERRACOTTA, 0, "Green Glazed Terracotta"));
 			self::registerBlock(new GlazedTerracotta(Block::RED_GLAZED_TERRACOTTA, 0, "Red Glazed Terracotta"));
 			self::registerBlock(new GlazedTerracotta(Block::BLACK_GLAZED_TERRACOTTA, 0, "Black Glazed Terracotta"));
-			//TODO: CONCRETE
-			//TODO: CONCRETEPOWDER
+			self::registerBlock(new Concrete());
+			self::registerBlock(new ConcretePowder());
 
 			//TODO: CHORUS_PLANT
 			self::registerBlock(new StainedGlass());
@@ -311,6 +316,7 @@ class BlockFactory{
 			//TODO: INFO_UPDATE2
 			//TODO: MOVINGBLOCK
 			//TODO: OBSERVER
+			//TODO: STRUCTURE_BLOCK
 
 			//TODO: RESERVED6
 
@@ -335,10 +341,10 @@ class BlockFactory{
 	 * @throws \RuntimeException if something attempted to override an already-registered block without specifying the
 	 * $override parameter.
 	 */
-	public static function registerBlock(Block $block, bool $override = false){
+	public static function registerBlock(Block $block, bool $override = false) : void{
 		$id = $block->getId();
 
-		if(self::$list[$id] !== null and !(self::$list[$id] instanceof UnknownBlock) and !$override){
+		if(!$override and self::isRegistered($id)){
 			throw new \RuntimeException("Trying to overwrite an already registered block");
 		}
 
@@ -360,6 +366,8 @@ class BlockFactory{
 	}
 
 	/**
+	 * Returns a new Block instance with the specified ID, meta and position.
+	 *
 	 * @param int      $id
 	 * @param int      $meta
 	 * @param Position $pos
@@ -367,16 +375,18 @@ class BlockFactory{
 	 * @return Block
 	 */
 	public static function get(int $id, int $meta = 0, Position $pos = null) : Block{
+		if($meta < 0 or $meta > 0xf){
+			throw new \InvalidArgumentException("Block meta value $meta is out of bounds");
+		}
+
 		try{
-			$block = self::$fullList[($id << 4) | $meta];
-			if($block !== null){
-				$block = clone $block;
+			if(self::$fullList !== null){
+				$block = clone self::$fullList[($id << 4) | $meta];
 			}else{
 				$block = new UnknownBlock($id, $meta);
 			}
 		}catch(\RuntimeException $e){
-			//TODO: this probably should return null (out of bounds IDs may cause unexpected behaviour)
-			$block = new UnknownBlock($id, $meta);
+			throw new \InvalidArgumentException("Block ID $id is out of bounds");
 		}
 
 		if($pos !== null){
@@ -387,5 +397,24 @@ class BlockFactory{
 		}
 
 		return $block;
+	}
+
+	/**
+	 * @internal
+	 * @return \SplFixedArray
+	 */
+	public static function getBlockStatesArray() : \SplFixedArray{
+		return self::$fullList;
+	}
+
+	/**
+	 * Returns whether a specified block ID is already registered in the block factory.
+	 *
+	 * @param int $id
+	 * @return bool
+	 */
+	public static function isRegistered(int $id) : bool{
+		$b = self::$list[$id];
+		return $b !== null and !($b instanceof UnknownBlock);
 	}
 }

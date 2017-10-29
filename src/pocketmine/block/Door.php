@@ -54,7 +54,7 @@ abstract class Door extends Transparent{
 		return $down & 0x07 | ($isUp ? 8 : 0) | ($isRight ? 0x10 : 0);
 	}
 
-	protected function recalculateBoundingBox(){
+	protected function recalculateBoundingBox() : ?AxisAlignedBB{
 
 		$f = 0.1875;
 		$damage = $this->getFullDamage();
@@ -216,7 +216,7 @@ abstract class Door extends Transparent{
 		return false;
 	}
 
-	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
 		if($face === Vector3::SIDE_UP){
 			$blockUp = $this->getSide(Vector3::SIDE_UP);
 			$blockDown = $this->getSide(Vector3::SIDE_DOWN);
@@ -228,7 +228,7 @@ abstract class Door extends Transparent{
 				0 => 3,
 				1 => 4,
 				2 => 2,
-				3 => 5,
+				3 => 5
 			];
 			$next = $this->getSide($faces[($direction + 2) % 4]);
 			$next2 = $this->getSide($faces[$direction]);
@@ -238,7 +238,7 @@ abstract class Door extends Transparent{
 			}
 
 			$this->setDamage($player->getDirection() & 0x03);
-			$this->getLevel()->setBlock($block, $this, true, true); //Bottom
+			$this->getLevel()->setBlock($blockReplace, $this, true, true); //Bottom
 			$this->getLevel()->setBlock($blockUp, $b = BlockFactory::get($this->getId(), $metaUp), true); //Top
 			return true;
 		}
@@ -246,7 +246,7 @@ abstract class Door extends Transparent{
 		return false;
 	}
 
-	public function onBreak(Item $item) : bool{
+	public function onBreak(Item $item, Player $player = null) : bool{
 		if(($this->getDamage() & 0x08) === 0x08){
 			$down = $this->getSide(Vector3::SIDE_DOWN);
 			if($down->getId() === $this->getId()){

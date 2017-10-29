@@ -79,11 +79,12 @@ namespace pocketmine {
 	use pocketmine\wizard\SetupWizard;
 	use raklib\RakLib;
 
-	const NAME = "Apollo";
-	const VERSION = "1.0beta";
-	const API_VERSION = "3.0.0-ALPHA8";
-	const CODENAME = "Legacy";
-	const GENISYS_API_VERSION = '2.0.0';
+	const NAME = "Apolllo";
+	const VERSION = "1.0dev";
+	const API_VERSION = "3.0.0-ALPHA9";
+	const CODENAME = "Shine Like a Diamond";
+
+	const MIN_PHP_VERSION = "7.2.0RC3";
 
 	/*
 	 * Startup code. Do not look at it, it may harm you.
@@ -92,9 +93,9 @@ namespace pocketmine {
 	 * Enjoy it as much as I did writing it. I don't want to do it again.
 	 */
 
-	if(version_compare("7.2", PHP_VERSION) > 0){
-		echo "[CRITICAL] You must use PHP >= 7.2" . PHP_EOL;
-		echo "[CRITICAL] Please use the installer provided on the homepage." . PHP_EOL;
+	if(version_compare(MIN_PHP_VERSION, PHP_VERSION) > 0){
+		echo "[CRITICAL] " . \pocketmine\NAME . " requires PHP >= " . MIN_PHP_VERSION . ", but you have PHP " . PHP_VERSION . "." . PHP_EOL;
+		echo "[CRITICAL] Please use the installer provided on the homepage, or update to a newer PHP version." . PHP_EOL;
 		exit(1);
 	}
 
@@ -136,6 +137,14 @@ namespace pocketmine {
 	}elseif(version_compare($requiredSplVer, require(\pocketmine\PATH . "src/spl/version.php")) > 0){
 		echo "[CRITICAL] Incompatible PocketMine-SPL submodule version ($requiredSplVer is required)." . PHP_EOL;
 		echo "[CRITICAL] Please update your submodules or use provided builds." . PHP_EOL;
+		exit(1);
+	}
+
+	if(is_file(\pocketmine\PATH . "vendor/autoload.php")){
+		require_once(\pocketmine\PATH . "vendor/autoload.php");
+	}else{
+		echo "[CRITICAL] Composer autoloader not found" . PHP_EOL;
+		echo "[CRITICAL] Please initialize composer dependencies before running." . PHP_EOL;
 		exit(1);
 	}
 
@@ -401,6 +410,12 @@ namespace pocketmine {
 		return -1;
 	}
 
+	/**
+	 * @param int        $start
+	 * @param array|null $trace
+	 *
+	 * @return array
+	 */
 	function getTrace($start = 0, $trace = null){
 		if($trace === null){
 			if(function_exists("xdebug_get_function_stack")){
@@ -426,7 +441,7 @@ namespace pocketmine {
 					return (is_object($value) ? get_class($value) . " object" : gettype($value) . " " . (is_array($value) ? "Array()" : Utils::printable(@strval($value))));
 				}, $args));
 			}
-			$messages[] = "#$j " . (isset($trace[$i]["file"]) ? cleanPath($trace[$i]["file"]) : "") . "(" . ($trace[$i]["line"] ?? "") . "): " . (isset($trace[$i]["class"]) ? $trace[$i]["class"] . (($trace[$i]["type"] === "dynamic" or $trace[$i]["type"] === "->") ? "->" : "::") : "") . $trace[$i]["function"] . "(" . Utils::printable($params) . ")";
+			$messages[] = "#$j " . (isset($trace[$i]["file"]) ? cleanPath($trace[$i]["file"]) : "") . "(" . (isset($trace[$i]["line"]) ? $trace[$i]["line"] : "") . "): " . (isset($trace[$i]["class"]) ? $trace[$i]["class"] . (($trace[$i]["type"] === "dynamic" or $trace[$i]["type"] === "->") ? "->" : "::") : "") . $trace[$i]["function"] . "(" . Utils::printable($params) . ")";
 		}
 
 		return $messages;

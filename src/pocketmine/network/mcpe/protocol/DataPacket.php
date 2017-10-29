@@ -27,9 +27,10 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Entity;
-use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\network\mcpe\protocol\types\EntityLink;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
 
@@ -59,6 +60,14 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	public function canBeSentBeforeLogin() : bool{
+		return false;
+	}
+
+	/**
+	 * Returns whether the packet may legally have unread bytes left in the buffer.
+	 * @return bool
+	 */
+	public function mayHaveUnreadBytes() : bool{
 		return false;
 	}
 
@@ -229,7 +238,7 @@ abstract class DataPacket extends BinaryStream{
 					break;
 				case Entity::DATA_TYPE_SLOT:
 					//TODO: change this implementation (use objects)
-					$this->putSlot(Item::get($d[1][0], $d[1][2], $d[1][1])); //ID, damage, count
+					$this->putSlot(ItemFactory::get($d[1][0], $d[1][2], $d[1][1])); //ID, damage, count
 					break;
 				case Entity::DATA_TYPE_POS:
 					//TODO: change this implementation (use objects)
@@ -506,20 +515,26 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	/**
-	 * @return array
+	 * @return EntityLink
 	 */
-	protected function getEntityLink() : array{
-		return [$this->getEntityUniqueId(), $this->getEntityUniqueId(), $this->getByte(), $this->getByte()];
+	protected function getEntityLink() : EntityLink{
+		$link = new EntityLink();
+
+		$link->fromEntityUniqueId = $this->getEntityUniqueId();
+		$link->toEntityUniqueId = $this->getEntityUniqueId();
+		$link->type = $this->getByte();
+		$link->bool1 = $this->getBool();
+
+		return $link;
 	}
 
 	/**
-	 * @param array $link
+	 * @param EntityLink $link
 	 */
-	protected function putEntityLink(array $link){
-		$this->putEntityUniqueId($link[0]);
-		$this->putEntityUniqueId($link[1]);
-		$this->putByte($link[2]);
-		$this->putByte($link[3]);
-
+	protected function putEntityLink(EntityLink $link){
+		$this->putEntityUniqueId($link->fromEntityUniqueId);
+		$this->putEntityUniqueId($link->toEntityUniqueId);
+		$this->putByte($link->type);
+		$this->putBool($link->bool1);
 	}
 }

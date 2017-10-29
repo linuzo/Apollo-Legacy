@@ -37,7 +37,7 @@ class PlayerListEntry{
 	/** @var Skin */
 	public $skin;
 	/** @var string */
-	public $xboxUserId = "";
+	public $xboxUserId; //TODO
 
 	public static function createRemovalEntry(UUID $uuid) : PlayerListEntry{
 		$entry = new PlayerListEntry();

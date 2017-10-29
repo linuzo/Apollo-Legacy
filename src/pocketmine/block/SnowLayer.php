@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
@@ -41,7 +42,7 @@ class SnowLayer extends Flowable{
 		return "Snow Layer";
 	}
 
-	public function canBeReplaced(Block $with = null) : bool{
+	public function canBeReplaced() : bool{
 		return true;
 	}
 
@@ -53,11 +54,14 @@ class SnowLayer extends Flowable{
 		return Tool::TYPE_SHOVEL;
 	}
 
+	public function ticksRandomly() : bool{
+		return true;
+	}
 
-	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
-		if($block->getSide(Vector3::SIDE_DOWN)->isSolid()){
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+		if($blockReplace->getSide(Vector3::SIDE_DOWN)->isSolid()){
 			//TODO: fix placement
-			$this->getLevel()->setBlock($block, $this, true);
+			$this->getLevel()->setBlock($blockReplace, $this, true);
 
 			return true;
 		}
@@ -86,7 +90,7 @@ class SnowLayer extends Flowable{
 	public function getDrops(Item $item) : array{
 		if($item->isShovel() !== false){
 			return [
-				Item::get(Item::SNOWBALL, 0, 1) //TODO: check layer count
+				ItemFactory::get(Item::SNOWBALL, 0, 1) //TODO: check layer count
 			];
 		}
 

@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\event\block\LeavesDecayEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
@@ -58,12 +59,16 @@ class Leaves extends Transparent{
 			self::OAK => "Oak Leaves",
 			self::SPRUCE => "Spruce Leaves",
 			self::BIRCH => "Birch Leaves",
-			self::JUNGLE => "Jungle Leaves",
+			self::JUNGLE => "Jungle Leaves"
 		];
-		return $names[$this->meta & 0x03];
+		return $names[$this->getVariant()];
 	}
 
 	public function diffusesSkyLight() : bool{
+		return true;
+	}
+
+	public function ticksRandomly() : bool{
 		return true;
 	}
 
@@ -159,24 +164,28 @@ class Leaves extends Transparent{
 		return false;
 	}
 
-	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
 		$this->meta |= 0x04;
 		return $this->getLevel()->setBlock($this, $this, true);
+	}
+
+	public function getVariantBitmask() : int{
+		return 0x03;
 	}
 
 	public function getDrops(Item $item) : array{
 		$drops = [];
 
-		$variantMeta = $this->getDamage() & 0x03;
+		$variantMeta = $this->getVariant();
 
 		if($item->isShears()){
-			$drops[] = Item::get($this->getItemId(), $variantMeta, 1);
+			$drops[] = ItemFactory::get($this->getItemId(), $variantMeta, 1);
 		}else{
 			if(mt_rand(1, 20) === 1){ //Saplings
-				$drops[] = Item::get(Item::SAPLING, $variantMeta, 1);
+				$drops[] = ItemFactory::get(Item::SAPLING, $variantMeta, 1);
 			}
 			if($variantMeta === self::OAK and mt_rand(1, 200) === 1){ //Apples
-				$drops[] = Item::get(Item::APPLE, 0, 1);
+				$drops[] = ItemFactory::get(Item::APPLE, 0, 1);
 			}
 		}
 

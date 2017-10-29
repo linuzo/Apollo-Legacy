@@ -39,17 +39,34 @@ class LongTag extends NamedTag{
 		parent::__construct($name, $value);
 	}
 
-	public function getType(){
+	public function getType() : int{
 		return NBT::TAG_Long;
 	}
 
-	//TODO: check if this also changed to varint
-
-	public function read(NBT $nbt, bool $network = false){
-		$this->value = $nbt->getLong();
+	public function read(NBT $nbt, bool $network = false) : void{
+		$this->value = $nbt->getLong($network);
 	}
 
-	public function write(NBT $nbt, bool $network = false){
-		$nbt->putLong($this->value);
+	public function write(NBT $nbt, bool $network = false) : void{
+		$nbt->putLong($this->value, $network);
+	}
+
+	/**
+	 * @return int
+	 */
+	public function &getValue() : int{
+		return parent::getValue();
+	}
+
+	/**
+	 * @param int $value
+	 *
+	 * @throws \TypeError
+	 */
+	public function setValue($value) : void{
+		if(!is_int($value)){
+			throw new \TypeError("LongTag value must be of type int, " . gettype($value) . " given");
+		}
+		parent::setValue($value);
 	}
 }

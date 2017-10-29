@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\event\block\BlockSpreadEvent;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
@@ -52,8 +53,12 @@ class Mycelium extends Solid{
 
 	public function getDrops(Item $item) : array{
 		return [
-			Item::get(Item::DIRT, 0, 1)
+			ItemFactory::get(Item::DIRT, 0, 1)
 		];
+	}
+
+	public function ticksRandomly() : bool{
+		return true;
 	}
 
 	public function onUpdate(int $type){
@@ -62,7 +67,7 @@ class Mycelium extends Solid{
 			$x = mt_rand($this->x - 1, $this->x + 1);
 			$y = mt_rand($this->y - 2, $this->y + 2);
 			$z = mt_rand($this->z - 1, $this->z + 1);
-			$block = $this->getLevel()->getBlock(new Vector3($x, $y, $z));
+			$block = $this->getLevel()->getBlockAt($x, $y, $z);
 			if($block->getId() === Block::DIRT){
 				if($block->getSide(Vector3::SIDE_UP) instanceof Transparent){
 					Server::getInstance()->getPluginManager()->callEvent($ev = new BlockSpreadEvent($block, $this, BlockFactory::get(Block::MYCELIUM)));

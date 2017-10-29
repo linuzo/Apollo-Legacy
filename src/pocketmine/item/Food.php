@@ -26,9 +26,6 @@ namespace pocketmine\item;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\event\entity\EntityEatItemEvent;
-use pocketmine\network\mcpe\protocol\EntityEventPacket;
-use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
-use pocketmine\Player;
 
 abstract class Food extends Item implements FoodSource{
 	public function canBeConsumed() : bool{
@@ -41,7 +38,7 @@ abstract class Food extends Item implements FoodSource{
 
 	public function getResidue(){
 		if($this->getCount() === 1){
-			return Item::get(0);
+			return ItemFactory::get(0);
 		}else{
 			$new = clone $this;
 			$new->count--;
@@ -54,14 +51,6 @@ abstract class Food extends Item implements FoodSource{
 	}
 
 	public function onConsume(Entity $human){
-		$pk = new EntityEventPacket();
-		$pk->entityRuntimeId = $human->getId();
-		$pk->event = EntityEventPacket::USE_ITEM;
-		if($human instanceof Player){
-			$human->dataPacket($pk);
-		}
-		$human->getLevel()->getServer()->broadcastPacket($human->getViewers(), $pk);
-
 		$ev = new EntityEatItemEvent($human, $this);
 
 		$human->addSaturation($ev->getSaturationRestore());
@@ -71,6 +60,5 @@ abstract class Food extends Item implements FoodSource{
 		}
 
 		$human->getInventory()->setItemInHand($ev->getResidue());
-		$human->getLevel()->broadcastLevelSoundEvent($human->add(0, 2, 0), LevelSoundEventPacket::SOUND_BURP);
 	}
 }

@@ -48,12 +48,12 @@ class Cake extends Transparent implements FoodSource{
 		return "Cake Block";
 	}
 
-	protected function recalculateBoundingBox(){
+	protected function recalculateBoundingBox() : ?AxisAlignedBB{
 
-		$f = (1 + $this->getDamage() * 2) / 16;
+		$f = $this->getDamage() * 0.125; //1 slice width
 
 		return new AxisAlignedBB(
-			$this->x + $f,
+			$this->x + 0.0625 + $f,
 			$this->y,
 			$this->z + 0.0625,
 			$this->x + 1 - 0.0625,
@@ -62,10 +62,10 @@ class Cake extends Transparent implements FoodSource{
 		);
 	}
 
-	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
 		$down = $this->getSide(Vector3::SIDE_DOWN);
 		if($down->getId() !== self::AIR){
-			$this->getLevel()->setBlock($block, $this, true, true);
+			$this->getLevel()->setBlock($blockReplace, $this, true, true);
 
 			return true;
 		}
@@ -90,10 +90,17 @@ class Cake extends Transparent implements FoodSource{
 	}
 
 	public function onActivate(Item $item, Player $player = null) : bool{
-		if($player instanceof Player and $player->getHealth() < $player->getMaxHealth()){
-			$ev = new EntityEatBlockEvent($player, $this);
+		//TODO: refactor this into generic food handling
+		if($player instanceof Player and $player->getFood() < $player->getMaxFood()){
+			$player->getServer()->getPluginManager()->callEvent($ev = new EntityEatBlockEvent($player, $this));
 
 			if(!$ev->isCancelled()){
+				$player->addFood($ev->getFoodRestore());
+				$player->addSaturation($ev->getSaturationRestore());
+				foreach($ev->getAdditionalEffects() as $effect){
+					$player->addEffect($effect);
+				}
+
 				$this->getLevel()->setBlock($this, $ev->getResidue());
 				return true;
 			}
@@ -113,7 +120,7 @@ class Cake extends Transparent implements FoodSource{
 	public function getResidue(){
 		$clone = clone $this;
 		$clone->meta++;
-		if($clone->meta >= 0x06){
+		if($clone->meta > 0x06){
 			$clone = BlockFactory::get(Block::AIR);
 		}
 		return $clone;

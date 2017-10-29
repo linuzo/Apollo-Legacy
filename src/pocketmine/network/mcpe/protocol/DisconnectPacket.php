@@ -35,8 +35,6 @@ class DisconnectPacket extends DataPacket{
 	public $hideDisconnectionScreen = false;
 	/** @var string */
 	public $message;
-	/** @var int */
-	public $protocol;
 
 	public function canBeSentBeforeLogin() : bool{
 		return true;
@@ -51,14 +49,6 @@ class DisconnectPacket extends DataPacket{
 		$this->putBool($this->hideDisconnectionScreen);
 		if(!$this->hideDisconnectionScreen){
 			$this->putString($this->message);
-		}
-	}
-
-	protected function encodeHeader(){
-		if($this->protocol < 130){
-			$this->putByte(static::NETWORK_ID);
-		}else{
-			parent::encodeHeader();
 		}
 	}
 

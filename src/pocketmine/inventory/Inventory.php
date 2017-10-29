@@ -45,7 +45,7 @@ interface Inventory{
 	/**
 	 * @param int $size
 	 */
-	public function setMaxStackSize(int $size);
+	public function setMaxStackSize(int $size) : void;
 
 	/**
 	 * @return string
@@ -114,19 +114,20 @@ interface Inventory{
 
 	/**
 	 * @param Item[] $items
+	 * @param bool   $send
 	 */
-	public function setContents(array $items);
+	public function setContents(array $items, bool $send = true) : void;
 
 	/**
 	 * @param Player|Player[] $target
 	 */
-	public function sendContents($target);
+	public function sendContents($target) : void;
 
 	/**
 	 * @param int             $index
 	 * @param Player|Player[] $target
 	 */
-	public function sendSlot(int $index, $target);
+	public function sendSlot(int $index, $target) : void;
 
 	/**
 	 * Checks if the inventory contains any Item with the same material data.
@@ -149,14 +150,17 @@ interface Inventory{
 	public function all(Item $item) : array;
 
 	/**
-	 * Will return the first slot has the same id and metadata (if not null) as the Item.
-	 * -1 if not found, will check amount
+	 * Returns the first slot number containing an item with the same ID, damage (if not any-damage), NBT (if not empty)
+	 * and count >= to the count of the specified item stack.
+	 *
+	 * If $exact is true, only items with equal ID, damage, NBT and count will match.
 	 *
 	 * @param Item $item
+	 * @param bool $exact
 	 *
 	 * @return int
 	 */
-	public function first(Item $item) : int;
+	public function first(Item $item, bool $exact = false) : int;
 
 	/**
 	 * Returns the first empty slot, or -1 if not found
@@ -170,7 +174,7 @@ interface Inventory{
 	 *
 	 * @param Item $item
 	 */
-	public function remove(Item $item);
+	public function remove(Item $item) : void;
 
 	/**
 	 * Will clear a specific slot
@@ -185,7 +189,7 @@ interface Inventory{
 	/**
 	 * Clears all the slots
 	 */
-	public function clearAll();
+	public function clearAll() : void;
 
 	/**
 	 * Gets all the Players viewing the inventory
@@ -203,7 +207,7 @@ interface Inventory{
 	/**
 	 * @param Player $who
 	 */
-	public function onOpen(Player $who);
+	public function onOpen(Player $who) : void;
 
 	/**
 	 * Tries to open the inventory to a player
@@ -214,17 +218,17 @@ interface Inventory{
 	 */
 	public function open(Player $who) : bool;
 
-	public function close(Player $who);
+	public function close(Player $who) : void;
 
 	/**
 	 * @param Player $who
 	 */
-	public function onClose(Player $who);
+	public function onClose(Player $who) : void;
 
 	/**
 	 * @param int  $index
 	 * @param Item $before
 	 * @param bool $send
 	 */
-	public function onSlotChange(int $index, Item $before, bool $send);
+	public function onSlotChange(int $index, Item $before, bool $send) : void;
 }

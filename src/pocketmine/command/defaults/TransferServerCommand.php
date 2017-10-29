@@ -31,7 +31,7 @@ use pocketmine\Player;
 
 class TransferServerCommand extends VanillaCommand{
 
-	public function __construct($name){
+	public function __construct(string $name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.transferserver.description",
@@ -43,22 +43,13 @@ class TransferServerCommand extends VanillaCommand{
 	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(count($args) < 1){
 			throw new InvalidCommandSyntaxException();
-		}elseif(!($sender instanceof Player) and !isset($args[2])){
+		}elseif(!($sender instanceof Player)){
 			$sender->sendMessage("This command must be executed as a player");
 
 			return false;
 		}
 
-		if(!(($player = $sender->getServer()->getPlayerExact($args[2])) instanceof Player)){
-			$sender->sendMessage("Invalid player name given.");
-
-			return false;
-		}
-
-		if(!($sender instanceof Player))
-			$player->transfer($args[0], (int) ($args[1] ?? 19132));
-		else
-			$sender->transfer($args[0], (int) ($args[1] ?? 19132));
+		$sender->transfer($args[0], (int) ($args[1] ?? 19132));
 
 		return true;
 	}

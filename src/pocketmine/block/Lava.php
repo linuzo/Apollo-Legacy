@@ -48,11 +48,11 @@ class Lava extends Liquid{
 		return "Lava";
 	}
 
-	public function onEntityCollide(Entity $entity){
+	public function onEntityCollide(Entity $entity) : void{
 		$entity->fallDistance *= 0.5;
 
 		$ev = new EntityDamageByBlockEvent($this, $entity, EntityDamageEvent::CAUSE_LAVA, 4);
-		$entity->attack($ev->getFinalDamage(), $ev);
+		$entity->attack($ev);
 
 		$ev = new EntityCombustByBlockEvent($this, $entity, 15);
 		Server::getInstance()->getPluginManager()->callEvent($ev);
@@ -63,7 +63,7 @@ class Lava extends Liquid{
 		$entity->resetFallDistance();
 	}
 
-	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
 		$ret = $this->getLevel()->setBlock($this, $this, true, false);
 		$this->getLevel()->scheduleDelayedBlockUpdate($this, $this->tickRate());
 

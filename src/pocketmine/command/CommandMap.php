@@ -50,13 +50,6 @@ interface CommandMap{
 	public function dispatch(CommandSender $sender, string $cmdLine) : bool;
 
 	/**
-	 * @param Command     $command
-	 *
-	 * @return bool
-	 */
-	public function unregister(Command $command) : bool;
-
-	/**
 	 * @return void
 	 */
 	public function clearCommands();

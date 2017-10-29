@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
@@ -36,7 +37,7 @@ class TallGrass extends Flowable{
 		$this->meta = $meta;
 	}
 
-	public function canBeReplaced(Block $with = null) : bool{
+	public function canBeReplaced() : bool{
 		return true;
 	}
 
@@ -46,13 +47,13 @@ class TallGrass extends Flowable{
 			1 => "Tall Grass",
 			2 => "Fern"
 		];
-		return $names[$this->meta & 0x03] ?? "Unknown";
+		return $names[$this->getVariant()] ?? "Unknown";
 	}
 
-	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
 		$down = $this->getSide(Vector3::SIDE_DOWN);
 		if($down->getId() === self::GRASS){
-			$this->getLevel()->setBlock($block, $this, true);
+			$this->getLevel()->setBlock($blockReplace, $this, true);
 
 			return true;
 		}
@@ -76,7 +77,7 @@ class TallGrass extends Flowable{
 	public function getDrops(Item $item) : array{
 		if(mt_rand(0, 15) === 0){
 			return [
-				Item::get(Item::WHEAT_SEEDS, 0, 1)
+				ItemFactory::get(Item::WHEAT_SEEDS, 0, 1)
 			];
 		}
 
