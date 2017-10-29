@@ -21,7 +21,7 @@
 
 namespace pocketmine\level\generator\populator;
 
-use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
 use pocketmine\level\generator\populator\VariableAmountPopulator;
@@ -38,7 +38,7 @@ class TallSugarcane extends VariableAmountPopulator{
 			$y = $this->getHighestWorkableBlock($x, $z);
 
 			if($y !== -1 and $this->canTallSugarcaneStay($x, $y, $z)){
-				$this->level->setBlockIdAt($x, $y, $z, Block::SUGARCANE_BLOCK);
+				$this->level->setBlockIdAt($x, $y, $z, BlockFactory::SUGARCANE_BLOCK);
 				$this->level->setBlockDataAt($x, $y, $z, 1);
 			}
 		}
@@ -46,13 +46,13 @@ class TallSugarcane extends VariableAmountPopulator{
 
 	private function canTallSugarcaneStay($x, $y, $z){
 		$b = $this->level->getBlockIdAt($x, $y, $z);
-		return ($b === Block::AIR) and $this->level->getBlockIdAt($x, $y - 1, $z) === Block::SUGARCANE_BLOCK;
+		return ($b === BlockFactory::AIR) and $this->level->getBlockIdAt($x, $y - 1, $z) === BlockFactory::SUGARCANE_BLOCK;
 	}
 
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
-			if($b !== Block::AIR and $b !== Block::LEAVES and $b !== Block::LEAVES2){
+			if($b !== BlockFactory::AIR and $b !== BlockFactory::LEAVES and $b !== BlockFactory::LEAVES2){
 				break;
 			}
 		}

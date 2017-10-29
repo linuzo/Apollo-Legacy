@@ -21,7 +21,6 @@
 
 namespace pocketmine\level\generator\populator;
 
-use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\level\ChunkManager;
 use pocketmine\level\SimpleChunkManager;
@@ -40,7 +39,7 @@ class GroundFire extends VariableAmountPopulator{
 			$z = $random->nextRange($chunkZ * 16, $chunkZ * 16 + 15);
 			$y = $this->getHighestWorkableBlock($x, $z);
 			if($y !== -1 and $this->canGroundFireStay($x, $y, $z)){
-				$this->level->setBlockIdAt($x, $y, $z, Block::FIRE);
+				$this->level->setBlockIdAt($x, $y, $z, BlockFactory::FIRE);
 				$this->level->updateBlockLight($x, $y, $z);
 			}
 		}
@@ -48,13 +47,13 @@ class GroundFire extends VariableAmountPopulator{
 
 	private function canGroundFireStay($x, $y, $z){
 		$b = $this->level->getBlockIdAt($x, $y, $z);
-		return ($b === Block::AIR or $b === Block::SNOW_LAYER) and $this->level->getBlockIdAt($x, $y - 1, $z) === 87;
+		return ($b === BlockFactory::AIR or $b === BlockFactory::SNOW_LAYER) and $this->level->getBlockIdAt($x, $y - 1, $z) === 87;
 	}
 
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 0; $y <= 127; ++$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
-			if($b == Block::AIR){
+			if($b == BlockFactory::AIR){
 				break;
 			}
 		}

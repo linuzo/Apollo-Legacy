@@ -6,7 +6,6 @@ namespace pocketmine\level\generator\populator;
 use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
-use pocketmine\block\BlockFactory;
 class Melon extends VariableAmountPopulator{
 	/** @var ChunkManager */
 	private $level;
@@ -35,12 +34,12 @@ class Melon extends VariableAmountPopulator{
 	private function canMelonStay($x, $y, $z){
 		$c = $this->level->getBlockIdAt($x, $y, $z);
 		$b = $this->level->getBlockIdAt($x, $y - 1, $z);
-		return ($c === Block::AIR or $c === Block::SNOW_LAYER) and ($b === Block::MYCELIUM or (!BlockFactory::$transparent[$b]));
+		return ($c === BlockFactory::AIR or $c === BlockFactory::SNOW_LAYER) and ($b === BlockFactory::MYCELIUM or (!BlockFactory::$transparent[$b]));
 	}
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
-			if($b !== Block::AIR and $b !== Block::LEAVES and $b !== Block::LEAVES2 and $b !== Block::SNOW_LAYER){
+			if($b !== BlockFactory::AIR and $b !== BlockFactory::LEAVES and $b !== BlockFactory::LEAVES2 and $b !== BlockFactory::SNOW_LAYER){
 				break;
 			}
 		}

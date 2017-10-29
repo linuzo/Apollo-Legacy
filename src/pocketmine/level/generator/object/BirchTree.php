@@ -19,11 +19,10 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\level\generator\object;
 
 use pocketmine\block\Block;
+use pocketmine\block\Leaves;
 use pocketmine\block\Wood;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
@@ -32,14 +31,15 @@ class BirchTree extends Tree{
 
 	protected $superBirch = false;
 
-	public function __construct(bool $superBirch = false){
+	public function __construct($superBirch = false){
 		$this->trunkBlock = Block::LOG;
 		$this->leafBlock = Block::LEAVES;
+		$this->leafType = Leaves::BIRCH;
 		$this->type = Wood::BIRCH;
-		$this->superBirch = $superBirch;
+		$this->superBirch = (bool) $superBirch;
 	}
 
-	public function placeObject(ChunkManager $level, int $x, int $y, int $z, Random $random){
+	public function placeObject(ChunkManager $level, $x, $y, $z, Random $random){
 		$this->treeHeight = $random->nextBoundedInt(3) + 5;
 		if($this->superBirch){
 			$this->treeHeight += 5;

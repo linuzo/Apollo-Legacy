@@ -21,7 +21,7 @@
 
 namespace pocketmine\level\generator\populator;
 
-use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
 use pocketmine\block\DoublePlant;
@@ -42,9 +42,9 @@ class PopulatorTallGrass extends VariableAmountPopulator{
 			$y = $this->getHighestWorkableBlock($x, $z);
 			
 			if($y !== -1 and $this->canTallGrassStay($x, $y, $z)){
-				$this->level->setBlockIdAt($x, $y, $z, Block::DOUBLE_PLANT, 2);
+				$this->level->setBlockIdAt($x, $y, $z, BlockFactory::DOUBLE_PLANT, 2);
 				//$this->level->setBlockIdAt($x, $y, $z, 2);
-				$this->level->setBlockDataAt($x, $y, $z, Block::DOUBLE_PLANT, 2);
+				$this->level->setBlockDataAt($x, $y, $z, BlockFactory::DOUBLE_PLANT, 2);
 				//$this->level->setBlockDataAt($x, $y, $z, 10);
 			}
 		}
@@ -52,13 +52,13 @@ class PopulatorTallGrass extends VariableAmountPopulator{
 
 	private function canTallGrassStay($x, $y, $z){
 		$b = $this->level->getBlockIdAt($x, $y, $z);
-		return ($b === Block::AIR or $b === Block::SNOW_LAYER) and $this->level->getBlockIdAt($x, $y - 1, $z) === Block::GRASS;
+		return ($b === BlockFactory::AIR or $b === BlockFactory::SNOW_LAYER) and $this->level->getBlockIdAt($x, $y - 1, $z) === BlockFactory::GRASS;
 	}
 
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
-			if($b !== Block::AIR and $b !== Block::LEAVES and $b !== Block::LEAVES2 and $b !== Block::SNOW_LAYER){
+			if($b !== BlockFactory::AIR and $b !== BlockFactory::LEAVES and $b !== BlockFactory::LEAVES2 and $b !== BlockFactory::SNOW_LAYER){
 				break;
 			}
 		}
