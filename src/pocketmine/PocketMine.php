@@ -79,10 +79,11 @@ namespace pocketmine {
 	use pocketmine\wizard\SetupWizard;
 	use raklib\RakLib;
 
-	const NAME = "Apolllo";
-	const VERSION = "1.0dev";
-	const API_VERSION = "3.0.0-ALPHA9";
-	const CODENAME = "Shine Like a Diamond";
+	const NAME = "Apollo";
+	const VERSION = "1.0beta";
+	const API_VERSION = "3.0.0-ALPHA8";
+	const CODENAME = "Legacy";
+	const GENISYS_API_VERSION = '2.0.0';
 
 	const MIN_PHP_VERSION = "7.2.0RC3";
 
