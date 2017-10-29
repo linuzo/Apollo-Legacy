@@ -1671,7 +1671,7 @@ class Server{
 			Generator::addGenerator(Normal2::class, "default");
 			Generator::addGenerator(Nether::class, "hell");
 			Generator::addGenerator(Nether::class, "nether");
-			Generator::addGenerator(Normal2::class, "normal2"):
+			Generator::addGenerator(Normal2::class, "normal2");
 
 			foreach((array) $this->getProperty("worlds", []) as $name => $options){
 				if(!is_array($options)){
