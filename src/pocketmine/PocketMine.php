@@ -80,8 +80,8 @@ namespace pocketmine {
 	use raklib\RakLib;
 
 	const NAME = "Apollo";
-	const VERSION = "1.0beta";
-	const API_VERSION = "3.0.0-ALPHA8";
+	const VERSION = "1.0dev";
+	const API_VERSION = "3.0.0-ALPHA9";
 	const CODENAME = "Legacy";
 	const GENISYS_API_VERSION = '2.0.0';
 
