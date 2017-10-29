@@ -6,9 +6,16 @@ Apollo is a Minecraft: PE Server Software with an improved Generator and a lot m
 Note: 
 
 Apollo is for all. Anyone can copy-paste generator and other features. 
-Apollo is more abandonate, but have epic generator in creations :)
 
 **CircleCI Build Status** [![CircleCI](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy.svg?style=svg)](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
+
+## Download link(s)
+
+[jenkins](https://jenkins.zxda.net/job/Apollo-Legacy/)
+
+
+[circleci](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
+
 
 ## Information
 
