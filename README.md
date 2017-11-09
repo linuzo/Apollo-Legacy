@@ -26,18 +26,7 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 - Worlds: Generator has been improved and more biomes!
 - Little to no lag at all!
-Apollo is a perfect software for your server
-
-## Upcoming Update
-
-1.0dev - Add more biomes is added ( NOT ALL )
-
-1.0beta - Finish all biomes is added ( NOT ALL )
-
-1.0 - More performance
- ...
-
-Attention! All version have new biomes added and more changes in biomes and more performances :)
+- all pmmp features and some other tweaks
  
 ## TODO :
 
