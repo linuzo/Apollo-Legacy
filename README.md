@@ -41,6 +41,16 @@ Attention! All version have new biomes added and more changes in biomes and more
  
 ## TODO :
 
+- [ ] update generator
+
+- [ ] add enchanting
+
+- [ ] more blocks and items off latest version of mcpe
+
+- [ ] more fetures with items block
+
+- [ ] enderchest and more inventory tingies
+
  If you have epic ideas, create an issue and tell us the idea!
 
 ## Licensing information
