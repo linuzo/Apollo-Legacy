@@ -10,11 +10,10 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 **CircleCI Build Status** [![CircleCI](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy.svg?style=svg)](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
 
 ## Download link(s)
+**Jenkins** [![Jenkins](https://img.shields.io/jenkins/s/https/jenkins.qa.ubuntu.com/view/Precise/view/All%20Precise/job/precise-desktop-amd64_default.svg?style=plastic)](https://jenkins.zxda.net/job/Apollo-Legacy)
 
-[jenkins](https://jenkins.zxda.net/job/Apollo-Legacy/)
 
-
-[circleci](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
+**CircleCI** [![CircleCI](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy.svg?style=svg)](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
 
 
 ## Information
@@ -27,20 +26,21 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 - Worlds: Generator has been improved and more biomes!
 - Little to no lag at all!
-Apollo is a perfect software for your server
-
-## Upcoming Update
-
-1.0dev - Add more biomes is added ( NOT ALL )
-
-1.0beta - Finish all biomes is added ( NOT ALL )
-
-1.0 - More performance
- ...
-
-Attention! All version have new biomes added and more changes in biomes and more performances :)
+- all pmmp features and some other tweaks
  
 ## TODO :
+
+- [ ] update generator
+
+- [ ] add enchanting
+
+- [ ] more blocks and items off latest version of mcpe
+
+- [ ] more fetures with items block
+
+- [ ] enderchest and more inventory tingies
+
+- [ ] php 7.0 32bit support
 
  If you have epic ideas, create an issue and tell us the idea!
 
