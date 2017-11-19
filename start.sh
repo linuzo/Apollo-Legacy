@@ -32,7 +32,12 @@ if [ "$PHP_BINARY" == "" ]; then
 		exit 1
 	fi
 fi
-
+if [ "$PHP_BINARY" == "" ]; then
+	if [ -f ./bin/php/bin/php ]; then
+		
+		echo "Couldn't find a PHP 7 binary you curently have php5 PLEASE UPGRADE!"
+		exit 1
+	fi
 if [ "$POCKETMINE_FILE" == "" ]; then
 	if [ -f ./Apollo.phar ]; then
 		POCKETMINE_FILE="./Apollo.phar"
