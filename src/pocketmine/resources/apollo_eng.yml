@@ -37,7 +37,7 @@ nether:
 
 ender:
  allow-ender: true
- level-name: "ender"
+ level-name: "end"
  
 updater:
  #Branch which will be used by the updater of /updateserver
