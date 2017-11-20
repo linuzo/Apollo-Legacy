@@ -25,6 +25,7 @@
 
 namespace pocketmine\level;
 
+use pocketmine\block\BlockFactory;
 use pocketmine\block\Air;
 use pocketmine\block\Beetroot;
 use pocketmine\block\Block;
@@ -371,7 +372,7 @@ class Level implements ChunkManager, Metadatable
      * @throws \Throwable
      */
     public function __construct(Server $server, string $name, string $path, string $provider) {
-        $this->blockStates = Block::$fullList;
+        $this->blockStates = BlockFactory::$fullList;
         $this->levelId = static::$levelIdCounter++;
         $this->blockMetadata = new BlockMetadataStore($this);
         $this->server = $server;
