@@ -110,7 +110,6 @@ use pocketmine\utils\TextFormat;
 use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
-use pocketmine\level\generator\normal\Normal2;
 
 /**
  * apollo stuff here
