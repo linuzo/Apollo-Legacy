@@ -42,6 +42,8 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 - [ ] php 7.0 32bit support
 
+- [ ] take some great features of genisyspro (because there dead now so we can take some stuff)
+
  If you have epic ideas, create an issue and tell us the idea!
 
 ## Licensing information
