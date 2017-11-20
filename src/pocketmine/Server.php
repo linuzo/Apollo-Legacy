@@ -1478,15 +1478,15 @@ class Server{
 		}, $microseconds);
 	}
 	
-public function about(){
-		$string = "	
-Â§3Apollo Â§fis a fork of PocketMine-MP, made by Â§5Apollo-SoftwareTeamÂ§f.
-Version: Â§6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')Â§f
-Client Version: Â§b' . ProtocolInfo::MINECRAFT_VERSION . 'Â§f
-PHP Version: Â§e' . PHP_VERSION . 'Â§f
-OS: Â§6' . PHP_OS .'Â§f
+	public function about(){
+	 $version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
+		$string = "		
+§3Apollo §fis a fork of PocketMine-MP, made by §5Apollo-SoftwareTeam§f.
+Version: §6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')§f
+Client Version: §b' . $version . '§f
+PHP Version: Â§e' . PHP_VERSION . '§f
+OS: §6' . PHP_OS .'§f
 	';
-		
 		$this->getLogger()->info($string);
 	}
 	
