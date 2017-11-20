@@ -1497,12 +1497,15 @@ OS: §6' . PHP_OS .'§f
 	
 	public function loadAdvancedConfig(){
 		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
+		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", true);
 		$this->netherEnabled = $this->getAdvancedProperty("nether.allow-nether", false);
 		$this->netherName = $this->getAdvancedProperty("nether.level-name", "nether");
 		$this->enderEnabled = $this->getAdvancedProperty("ender.allow-ender", false);
 		$this->enderName = $this->getAdvancedProperty("ender.level-name", "ender");
-		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", true);
-		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
+		$this->weatherRandomDurationMin = $this->getAdvancedProperty("level.weather-random-duration-min", 6000);
+		$this->weatherRandomDurationMax = $this->getAdvancedProperty("level.weather-random-duration-max", 12000);
+		$this->lightningTime = $this->getAdvancedProperty("level.lightning-time", 200);
+		$this->lightningFire = $this->getAdvancedProperty("level.lightning-fire", false);
 	}
 
 	/**
