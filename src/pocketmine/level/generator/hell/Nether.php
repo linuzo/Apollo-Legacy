@@ -147,7 +147,7 @@ class Nether extends Generator{
 				$color[1] += ((($bColor >> 8) & 0xff) ** 2);
 				$color[2] += (($bColor & 0xff) ** 2);
 
-				$chunk->setBiomeColor($x, $z, $color[0], $color[1], $color[2]);
+				//$chunk->setBiomeColor($x, $z, $color[0], $color[1], $color[2]);
 
 				for($y = 0; $y < 128; ++$y){
 					if($y === 0 or $y === 127){
