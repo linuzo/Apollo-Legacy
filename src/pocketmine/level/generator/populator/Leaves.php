@@ -7,7 +7,6 @@ use pocketmine\block\BlockFactory;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
 use pocketmine\level\generator\populator\VariableAmountPopulator;
-use pocketmine\block\Block;
 class Leaves extends VariableAmountPopulator{
 	/** @var ChunkManager */
 	private $level;
@@ -26,12 +25,12 @@ class Leaves extends VariableAmountPopulator{
 	}
 	private function canLeavesStay($x, $y, $z){
 		$b = $this->level->getBlockIdAt($x, $y, $z);
-		return ($b === BlockFactory::AIR or $b === Block::SNOW_LAYER) and $this->level->getBlockIdAt($x, $y - 1, $z) === Block::GRASS;
+		return ($b === BlockFactory::AIR or $b === BlockFactory::SNOW_LAYER) and $this->level->getBlockIdAt($x, $y - 1, $z) === BlockFactory::GRASS;
 	}
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
-			if($b !== Block::AIR and $b !== Block::LEAVES and $b !== Block::LEAVES2 and $b !== Block::SNOW_LAYER){
+			if($b !== BlockFactory::AIR and $b !== BlockFactory::LEAVES and $b !== BlockFactory::LEAVES2 and $b !== BlockFactory::SNOW_LAYER){
 				break;
 			}
 		}
