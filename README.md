@@ -36,7 +36,7 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 - [ ] more blocks and items off the latest version of mcpe
 
-- [ ] more futures with items and block
+- [ ] more features with items and block
 
 - [ ] improve the generrator
 
