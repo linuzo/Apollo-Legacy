@@ -30,7 +30,7 @@ Apollo is for all. Anyone can copy-paste generator and other features.
  
 ## TODO :
 
-- [ ] update generator
+- [ X ] update generator
 
 - [ ] add enchanting
 
