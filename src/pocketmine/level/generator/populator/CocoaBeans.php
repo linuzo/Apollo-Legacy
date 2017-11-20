@@ -1,19 +1,13 @@
 <?php
-
 /*
 CocoaBeans populator
 */
-
 namespace pocketmine\level\generator\populator;
-
 use pocketmine\block\Block;
-use pocketmine\block\BlockFactory;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
 use pocketmine\level\generator\populator\VariableAmountPopulator;
-
 class CocoaBeans extends VariableAmountPopulator{
-
 	/** @var ChunkManager */
 	private $level;
 
@@ -30,12 +24,10 @@ class CocoaBeans extends VariableAmountPopulator{
 			}
 		}
 	}
-
 	private function canCocoaBeansStay($x, $y, $z){
 		$b = $this->level->getBlockIdAt($x, $y, $z);
 		return $this->level->getBlockIdAt($x, $y, $z) === Block::WOOD;
 	}
-
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);

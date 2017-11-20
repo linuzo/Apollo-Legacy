@@ -110,7 +110,12 @@ use pocketmine\utils\TextFormat;
 use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
-use pocketmine\level\generator\normal\Normal2;
+
+/**
+ * apollo stuff here
+ */
+ 
+ use pocketmine\level\generator\normal\Normal2;
 
 /**
  * The class that manages everything
@@ -1786,9 +1791,8 @@ OS: §6' . PHP_OS .'§f
 			Generator::addGenerator(Normal::class, "default");
 			Generator::addGenerator(Nether::class, "hell");
 			Generator::addGenerator(Nether::class, "nether");
-			Generator::addGenerator(VoidGenerator::class, "void");
-			//Generator::addGenerator(Normal2::class, "normal2");
 			Generator::addGenerator(Ender::class, "ender");
+
 
 			foreach((array) $this->getProperty("worlds", []) as $name => $options){
 				if($this->loadLevel($name) === false){

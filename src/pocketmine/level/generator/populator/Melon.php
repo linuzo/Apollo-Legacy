@@ -4,9 +4,9 @@ Melon populator
  */
 namespace pocketmine\level\generator\populator;
 use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
-use pocketmine\block\BlockFactory;
 class Melon extends VariableAmountPopulator{
 	/** @var ChunkManager */
 	private $level;
@@ -27,7 +27,7 @@ class Melon extends VariableAmountPopulator{
 				$zz = $z - 7 + $random->nextRange(0, 15);
 				$yy = $this->getHighestWorkableBlock($xx, $zz);
 				if($yy !== -1 and $this->canMelonStay($xx, $yy, $zz)){
-					$this->level->setBlockIdAt($xx, $yy, $zz, (($random->nextRange(0, 4)) == 0 ? BlockFactory::MELON_BLOCK : BlockFactory::LOG));
+					$this->level->setBlockIdAt($xx, $yy, $zz, (($random->nextRange(0, 4)) == 0 ? Block::MELON_BLOCK : BlockFactory::LOG));
 				}
 			}
 		}

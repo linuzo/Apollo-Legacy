@@ -4,6 +4,7 @@
 config:
  version: 1
  
+ #todo fix nether genration
  nether:
  #Choose if the nether is allowed. The level of nether will generate automatically
  allow-nether: true
@@ -14,7 +15,7 @@ ender:
  allow-ender: true
  level-name: "ender"
  
- #DISCLAIMER: WE DO NOT SUPPORT ALL OPTIONS UNDER 'incompatible-plugins'.
+ #DISCLAIMER: WE DO NOT SUPPORT ALL OPTIONS UNDER 'load-incompatible-api'.
  #DO NOT REPORT ANY BUGS BEFORE MAKING SURE IT DOESN'T RESULT OUT OF THIS OPTION!
  #Most old plugins crash the server (maybe even segfaults), and can corrupt your savefiles.
  developer:
@@ -29,6 +30,7 @@ updater:
  #Branch which will be used by the updater of /updateserver
  branch: "master"
  
+#ToDo add mob ai
 #mob ai coming soon for now not working
 ai:
  #AI switch
