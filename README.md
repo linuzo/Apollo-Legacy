@@ -34,13 +34,13 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 - [ ] add enchanting
 
-- [ ] more blocks and items off latest version of mcpe
+- [ ] more blocks and items off the latest version of mcpe
 
-- [ ] more fetures with items block
+- [ ] more features with items and block
 
-- [ ] enderchest and more inventory tingies
+- [ ] improve the generrator
 
-- [ ] php 7.0 32bit support
+- [ ] fix any bugs that are left
 
 - [ ] take some great features of genisyspro (because there dead now so we can take some stuff)
 
