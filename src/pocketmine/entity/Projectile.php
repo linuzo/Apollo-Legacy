@@ -42,29 +42,16 @@ abstract class Projectile extends Entity{
 
 	public $hadCollision = false;
 
-	protected $shootingEntity;
-
 	public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null){
 		if($shootingEntity !== null){
 			$this->setOwningEntity($shootingEntity);
 		}
-		$this->shootingEntity = $shootingEntity;
-  		parent::__construct($level, $nbt);
-  	}
-  
-	public function getShootingEntity(){
-		return $this->shootingEntity;
+		parent::__construct($level, $nbt);
 	}
 
-	public function setShootingEntity(Entity $entity){
-		$this->setOwningEntity($entity);
-		$this->shootingEntity = $entity;
-	}
-
-
-	public function attack($damage, EntityDamageEvent $source){
+	public function attack(EntityDamageEvent $source){
 		if($source->getCause() === EntityDamageEvent::CAUSE_VOID){
-			parent::attack($damage, $source);
+			parent::attack($source);
 		}
 	}
 
@@ -101,7 +88,7 @@ abstract class Projectile extends Entity{
 			$ev = new EntityDamageByChildEntityEvent($this->getOwningEntity(), $this, $entity, EntityDamageEvent::CAUSE_PROJECTILE, $damage);
 		}
 
-		$entity->attack($ev->getFinalDamage(), $ev);
+		$entity->attack($ev);
 
 		$this->hadCollision = true;
 
@@ -121,19 +108,27 @@ abstract class Projectile extends Entity{
 		$this->namedtag->Age = new ShortTag("Age", $this->age);
 	}
 
-	protected function applyDragBeforeGravity() : bool{
-		return true;
-	}
-
-	public function entityBaseTick(int $tickDiff = 1) : bool{
+	public function onUpdate(int $currentTick) : bool{
 		if($this->closed){
 			return false;
 		}
 
-		$hasUpdate = parent::entityBaseTick($tickDiff);
+
+		$tickDiff = $currentTick - $this->lastUpdate;
+		if($tickDiff <= 0 and !$this->justCreated){
+			return true;
+		}
+		$this->lastUpdate = $currentTick;
+
+		$hasUpdate = $this->entityBaseTick($tickDiff);
 
 		if($this->isAlive()){
+
 			$movingObjectPosition = null;
+
+			if(!$this->isCollided){
+				$this->motionY -= $this->gravity;
+			}
 
 			$moveVector = new Vector3($this->x + $this->motionX, $this->y + $this->motionY, $this->z + $this->motionZ);
 
@@ -175,6 +170,8 @@ abstract class Projectile extends Entity{
 				}
 			}
 
+			$this->move($this->motionX, $this->motionY, $this->motionZ);
+
 			if($this->isCollided and !$this->hadCollision){ //Collided with a block
 				$this->hadCollision = true;
 
@@ -184,16 +181,20 @@ abstract class Projectile extends Entity{
 
 				$this->server->getPluginManager()->callEvent(new ProjectileHitEvent($this));
 				return false;
-			}elseif(!$this->isCollided and $this->hadCollision){ //Previously collided with block, but block later removed
+			}elseif(!$this->isCollided and $this->hadCollision){ //Collided with block, but block later removed
+				//This currently doesn't work because the arrow's motion is all zeros when it's hit a block, so move() doesn't do any collision checks.
+				//TODO: fix this
 				$this->hadCollision = false;
 			}
 
-			if(!$this->hadCollision or abs($this->motionX) > self::MOTION_THRESHOLD or abs($this->motionY) > self::MOTION_THRESHOLD or abs($this->motionZ) > self::MOTION_THRESHOLD){
+			if(!$this->hadCollision or abs($this->motionX) > 0.00001 or abs($this->motionY) > 0.00001 or abs($this->motionZ) > 0.00001){
 				$f = sqrt(($this->motionX ** 2) + ($this->motionZ ** 2));
 				$this->yaw = (atan2($this->motionX, $this->motionZ) * 180 / M_PI);
 				$this->pitch = (atan2($this->motionY, $f) * 180 / M_PI);
 				$hasUpdate = true;
 			}
+
+			$this->updateMovement();
 		}
 
 		return $hasUpdate;

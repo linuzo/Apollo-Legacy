@@ -319,6 +319,12 @@ class Server{
 	public $enderName = "ender";
 	public $enderLevel = null;
 	public $absorbWater = false;
+    public $cleanEntity;
+	public $keepInventory = false;
+	public $mapEnabled = false;
+	public $limitedCreative = true;
+	public $entityAIEnabled = true;
+	public $rideableEntity = true;
 
 	/**
 	 * @return string
@@ -1506,6 +1512,12 @@ OS: §6' . PHP_OS .'§f
 		$this->weatherRandomDurationMax = $this->getAdvancedProperty("level.weather-random-duration-max", 12000);
 		$this->lightningTime = $this->getAdvancedProperty("level.lightning-time", 200);
 		$this->lightningFire = $this->getAdvancedProperty("level.lightning-fire", false);
+		$this->cleanEntity = $this->getProperty("CleanEntity", false);
+		$this->keepInventory = $this->getProperty("KeepInventory", false);
+		$this->mapEnabled = $this->getProperty("MapEnabled", false);
+		$this->limitedCreative = $this->getProperty("LimitedCreative", true);
+		$this->entityAIEnabled = $this->getProperty("EntityAIEnabled", true);
+		$this->rideableEntity = $this->getProperty("RideableEntity", true);
 	}
 
 	/**
