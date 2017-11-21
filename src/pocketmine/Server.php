@@ -320,7 +320,6 @@ class Server{
 	public $enderLevel = null;
 	public $absorbWater = false;
     public $cleanEntity;
-	public $keepInventory = false;
 	public $mapEnabled = false;
 	public $limitedCreative = true;
 	public $entityAIEnabled = true;
@@ -1512,12 +1511,12 @@ OS: §6' . PHP_OS .'§f
 		$this->weatherRandomDurationMax = $this->getAdvancedProperty("level.weather-random-duration-max", 12000);
 		$this->lightningTime = $this->getAdvancedProperty("level.lightning-time", 200);
 		$this->lightningFire = $this->getAdvancedProperty("level.lightning-fire", false);
-		$this->cleanEntity = $this->getProperty("CleanEntity", false);
-		$this->keepInventory = $this->getProperty("KeepInventory", false);
-		$this->mapEnabled = $this->getProperty("MapEnabled", false);
-		$this->limitedCreative = $this->getProperty("LimitedCreative", true);
-		$this->entityAIEnabled = $this->getProperty("EntityAIEnabled", true);
-		$this->rideableEntity = $this->getProperty("RideableEntity", true);
+		$this->cleanEntity = $this->getAdvancedProperty("CleanEntity", false);
+		$this->keepInventory = $this->getAdvancedProperty("KeepInventory", false);
+		$this->mapEnabled = $this->getAdvancedProperty("MapEnabled", false);
+		$this->limitedCreative = $this->getAdvancedProperty("LimitedCreative", true);
+		$this->entityAIEnabled = $this->getAdvancedProperty("EntityAIEnabled", true);
+		$this->rideableEntity = $this->getAdvancedProperty("RideableEntity", true);
 	}
 
 	/**
