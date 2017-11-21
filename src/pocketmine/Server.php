@@ -319,9 +319,8 @@ class Server{
 	public $enderName = "ender";
 	public $enderLevel = null;
 	public $absorbWater = false;
-    public $cleanEntity;
+    public $cleanEntity; = true;
 	public $mapEnabled = false;
-	public $limitedCreative = true;
 	public $entityAIEnabled = true;
 	public $rideableEntity = true;
 
