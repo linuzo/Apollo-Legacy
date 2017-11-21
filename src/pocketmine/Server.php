@@ -319,7 +319,7 @@ class Server{
 	public $enderName = "ender";
 	public $enderLevel = null;
 	public $absorbWater = false;
-    public $cleanEntity; = true;
+    public $cleanEntity;
 	public $mapEnabled = false;
 	public $entityAIEnabled = true;
 	public $rideableEntity = true;
