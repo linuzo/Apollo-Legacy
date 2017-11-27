@@ -1788,10 +1788,11 @@ OS: Â§6' . PHP_OS .'Â§f
 
 			Generator::addGenerator(Flat::class, "flat");
 			Generator::addGenerator(Normal::class, "normal");
-			Generator::addGenerator(Normal::class, "default");
+			Generator::addGenerator(Normal2::class, "default");
 			Generator::addGenerator(Nether::class, "hell");
 			Generator::addGenerator(Nether::class, "nether");
 			Generator::addGenerator(Ender::class, "ender");
+			Generator::addGenerator(Normal2::class, "normal2");
 
 
 			foreach((array) $this->getProperty("worlds", []) as $name => $options){
