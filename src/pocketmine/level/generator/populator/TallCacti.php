@@ -24,7 +24,6 @@ namespace pocketmine\level\generator\populator;
 use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
-use pocketmine\level\generator\populator\VariableAmountPopulator;
 
 class TallCacti extends VariableAmountPopulator{
 	/** @var ChunkManager */
@@ -39,7 +38,7 @@ class TallCacti extends VariableAmountPopulator{
 			$y = $this->getHighestWorkableBlock($x, $z);
 
 			if($y !== -1 and $this->canTallCactiStay($x, $y, $z)){
-				$this->level->setBlockIdAt($x, $y, $z, BlockFactory::CACTUS);
+				$this->level->setBlockIdAt($x, $y, $z, Block::CACTUS);
 				$this->level->setBlockDataAt($x, $y, $z, 1);
 			}
 		}

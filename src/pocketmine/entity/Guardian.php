@@ -22,7 +22,9 @@
 namespace pocketmine\entity;
 
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
+use pocketmine\block\Block;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item as ItemItem;
 use pocketmine\Player;
 
@@ -66,9 +68,9 @@ class Guardian extends Monster{
 		if ($elder){
 			$this->width = 1.9975;
 			$this->length = 1.9975;
-			//$this->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->setValue(0.30000001192092896);
+			$this->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->setValue(0.30000001192092896);
 			$this->setMaxHelth(80);//AttackDamage => 8.0
-			//$this->wander->setExecutionChance(400);
+			$this->wander->setExecutionChance(400);
 	        }
 	}
 
