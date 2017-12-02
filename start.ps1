@@ -1,30 +1,31 @@
+﻿[CmdletBinding(PositionalBinding=$false)]
 param (
-	[switch]$Loop = $false
+	[string]$php = "",
+	[switch]$Loop = $false,
+	[string][Parameter(ValueFromRemainingArguments)]$extraPocketMineArgs
 )
 
-if(Test-Path "bin\php\php.exe"){
+if($php -ne ""){
+	$binary = $php
+}elseif(Test-Path "bin\php\php.exe"){
 	$env:PHPRC = ""
 	$binary = "bin\php\php.exe"
 }else{
 	$binary = "php"
 }
 
-if(Test-Path "Apollo.phar"){
-	$file = "Apollo.phar"
+if(Test-Path "PocketMine-MP.phar"){
+	$file = "PocketMine-MP.phar"
 }elseif(Test-Path "src\pocketmine\PocketMine.php"){
 	$file = "src\pocketmine\PocketMine.php"
-}elseif(Test-Path "SpigotPE.phar"){
-	echo "hey you are using a old version we are now Apollo!"
-	pause
-	exit 1
 }else{
-	echo "Couldn't find a valid Apollo installation"
+	echo "Couldn't find a valid PocketMine-MP installation"
 	pause
 	exit 1
 }
 
 function StartServer{
-	$command = "powershell " + $binary + " " + $file + " --enable-ansi"
+	$command = "powershell " + $binary + " " + $file + " " + $extraPocketMineArgs
 	iex $command
 }
 
