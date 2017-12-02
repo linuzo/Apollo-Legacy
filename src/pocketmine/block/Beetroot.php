@@ -50,8 +50,4 @@ class Beetroot extends Crops{
 			ItemFactory::get(Item::BEETROOT_SEEDS, 0, 1)
 		];
 	}
-
-	public function getPickedItem() : Item{
-		return ItemFactory::get(Item::BEETROOT_SEEDS);
-	}
 }
