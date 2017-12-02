@@ -36,13 +36,13 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 - [ ] more blocks and items off the latest version of mcpe
 
-- [ ] more features with items and block
+- [X] more features with items and block
 
 - [ ] improve the generrator
 
 - [ ] fix any bugs that are left
 
-- [ ] take some great features of genisyspro (because there dead now so we can take some stuff)
+- [X] take some great features of genisyspro (because there dead now so we can take some stuff)
 
  If you have epic ideas, create an issue and tell us the idea!
 
