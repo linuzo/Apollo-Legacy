@@ -14,34 +14,29 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
+ */
 
-declare(strict_types=1);
+namespace pocketmine\event\player;
 
-namespace pocketmine\network\mcpe\protocol;
+use pocketmine\event\Cancellable;
+use pocketmine\Player;
 
-#include <rules/DataPacket.h>
+class PlayerToggleGlideEvent extends PlayerEvent implements Cancellable{
+	public static $handlerList = null;
 
-use pocketmine\network\mcpe\NetworkSession;
+	/** @var bool */
+	protected $isGliding;
 
-class ShowProfilePacket extends DataPacket{
-	const NETWORK_ID = ProtocolInfo::SHOW_PROFILE_PACKET;
-
-	/** @var string */
-	public $string1;
-
-	protected function decodePayload(){
-		$this->string1 = $this->getString();
+	public function __construct(Player $player, $isGliding){
+		$this->player = $player;
+		$this->isGliding = (bool) $isGliding;
 	}
 
-	protected function encodePayload(){
-		$this->putString($this->string1);
+	public function isGliding(){
+		return $this->isGliding;
 	}
 
-	public function handle(NetworkSession $session) : bool{
-		return $session->handleShowProfile($this);
-	}
 }

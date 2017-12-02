@@ -32,19 +32,14 @@ if [ "$PHP_BINARY" == "" ]; then
 		exit 1
 	fi
 fi
-if [ "$PHP_BINARY" == "" ]; then
-	if [ -f ./bin/php/bin/php ]; then
-		
-		echo "Couldn't find a PHP 7 binary you curently have php5 PLEASE UPGRADE!"
-		exit 1
-	fi
+
 if [ "$POCKETMINE_FILE" == "" ]; then
-	if [ -f ./Apollo.phar ]; then
-		POCKETMINE_FILE="./Apollo.phar"
+	if [ -f ./PocketMine-MP.phar ]; then
+		POCKETMINE_FILE="./PocketMine-MP.phar"
 	elif [ -f ./src/pocketmine/PocketMine.php ]; then
 		POCKETMINE_FILE="./src/pocketmine/PocketMine.php"
 	else
-		echo "Couldn't find a valid Apollo installation"
+		echo "Couldn't find a valid PocketMine-MP installation"
 		exit 1
 	fi
 fi

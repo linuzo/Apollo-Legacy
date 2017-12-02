@@ -280,6 +280,7 @@ class Server{
 	private $levelDefault = null;
 	
 		/** Advanced Config */
+		/** Advanced Config */
 	public $advancedConfig = null;
 	public $weatherEnabled = true;
 	public $foodEnabled = true;
@@ -319,11 +320,11 @@ class Server{
 	public $enderName = "ender";
 	public $enderLevel = null;
 	public $absorbWater = false;
-    public $cleanEntity;
+    public $cleanEntity = true;
 	public $mapEnabled = false;
 	public $entityAIEnabled = true;
 	public $rideableEntity = true;
-
+	
 	/**
 	 * @return string
 	 */
@@ -1487,15 +1488,15 @@ class Server{
 		}, $microseconds);
 	}
 	
-	public function about(){
-	 $version = implode(",",ProtocolInfo::MINECRAFT_VERSION);
-		$string = "		
-§3Apollo §fis a fork of PocketMine-MP, made by §5Apollo-SoftwareTeam§f.
-Version: §6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')§f
-Client Version: §b' . $version . '§f
-PHP Version: Â§e' . PHP_VERSION . '§f
-OS: §6' . PHP_OS .'§f
+public function about(){
+		$string = "	
+Â§3Apollo Â§fis a fork of PocketMine-MP, made by Â§5Apollo-SoftwareTeamÂ§f.
+Version: Â§6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')Â§f
+Client Version: Â§b' . ProtocolInfo::MINECRAFT_VERSION . 'Â§f
+PHP Version: Â§e' . PHP_VERSION . 'Â§f
+OS: Â§6' . PHP_OS .'Â§f
 	';
+		
 		$this->getLogger()->info($string);
 	}
 	
@@ -1801,10 +1802,11 @@ OS: §6' . PHP_OS .'§f
 
 			Generator::addGenerator(Flat::class, "flat");
 			Generator::addGenerator(Normal::class, "normal");
-			Generator::addGenerator(Normal::class, "default");
+			Generator::addGenerator(Normal2::class, "default");
 			Generator::addGenerator(Nether::class, "hell");
 			Generator::addGenerator(Nether::class, "nether");
 			Generator::addGenerator(Ender::class, "ender");
+			Generator::addGenerator(Normal2::class, "normal2");
 
 
 			foreach((array) $this->getProperty("worlds", []) as $name => $options){
@@ -2445,7 +2447,7 @@ OS: §6' . PHP_OS .'§f
 		//$dump .= "Memory Usage Tracking: \r\n" . chunk_split(base64_encode(gzdeflate(implode(";", $this->memoryStats), 9))) . "\r\n";
 
 		$this->forceShutdown();
-		$this->isRunning = false;
+		$this->isRunning = false; //getskin
 		@kill(getmypid());
 		exit(1);
 	}
@@ -2492,7 +2494,7 @@ OS: §6' . PHP_OS .'§f
 	}
 
 	public function addOnlinePlayer(Player $player){
-		$this->updatePlayerListData($player->getUniqueId(), $player->getId(), $player->getDisplayName(), $player->getSkin());
+		$this->updatePlayerListData($player->getUniqueId(), $player->getId(), $player->getDisplayName());
 
 		$this->playerList[$player->getRawUniqueId()] = $player;
 	}
@@ -2510,7 +2512,7 @@ OS: §6' . PHP_OS .'§f
 	 * @param int           $entityId
 	 * @param string        $name
 	 * @param Skin          $skin
-	 * @param Player[]|null $players
+	 * @param Player[]|null $players //getsin
 	 */
 	public function updatePlayerListData(UUID $uuid, int $entityId, string $name, Skin $skin, array $players = null){
 		$pk = new PlayerListPacket();
@@ -2522,7 +2524,7 @@ OS: §6' . PHP_OS .'§f
 
 	/**
 	 * @param UUID          $uuid
-	 * @param Player[]|null $players
+	 * @param Player[]|null $players getskin
 	 */
 	public function removePlayerListData(UUID $uuid, array $players = null){
 		$pk = new PlayerListPacket();
@@ -2538,7 +2540,7 @@ OS: §6' . PHP_OS .'§f
 		$pk = new PlayerListPacket();
 		$pk->type = PlayerListPacket::TYPE_ADD;
 		foreach($this->playerList as $player){
-			$pk->entries[] = PlayerListEntry::createAdditionEntry($player->getUniqueId(), $player->getId(), $player->getDisplayName(), $player->getSkin());
+			$pk->entries[] = PlayerListEntry::createAdditionEntry($player->getUniqueId(), $player->getId(), $player->getDisplayName());
 		}
 
 		$p->dataPacket($pk);
