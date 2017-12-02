@@ -18,13 +18,16 @@
  *
  */
 namespace pocketmine\level\generator\populator;
+
 use pocketmine\block\BlockFactory;
 use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
 use pocketmine\level\generator\object\SugarCaneStack;
 use pocketmine\level\generator\populator\VariableAmountPopulator;
 use pocketmine\utils\Random;
+
 class SugarCane extends VariableAmountPopulator{
+	
 	/** @var ChunkManager */
 	private $level;
 	protected $randomAmount = 10;
@@ -33,6 +36,7 @@ class SugarCane extends VariableAmountPopulator{
 		$this->level = $level;
 		$canes = new SugarCaneStack($random);
 		$successfulClusterCount = 0;
+		
 		for($count = 0; $count < $this->randomAmount; $count++){
 			$x = $random->nextRange($chunkX * 16, $chunkX * 16 + 15);
 			$z = $random->nextRange($chunkZ * 16, $chunkZ * 16 + 15);
@@ -40,6 +44,7 @@ class SugarCane extends VariableAmountPopulator{
 			if($y == -1 or !$canes->canPlaceObject($level, $x, $y, $z)){
 				continue;
 			}
+			
 			$successfulClusterCount++;
 			$canes->randomize();
 			$canes->placeObject($level, $x, $y, $z);
@@ -51,11 +56,13 @@ class SugarCane extends VariableAmountPopulator{
 					$canes->placeObject($level, $xx, $y, $zz);
 				}
 			}
+			
 			if($successfulClusterCount >= $this->baseAmount){
 				return;
 			}
 		}
 	}
+	
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
