@@ -42,6 +42,7 @@ ender:
 updater:
  #Branch which will be used by the updater of /updateserver
  branch: "master"
+ 
 
 #in vev stuff you can always try 
 #but expect bugs and report them to us
