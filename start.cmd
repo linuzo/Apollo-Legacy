@@ -1,5 +1,5 @@
 @echo off
-TITLE PocketMine-MP server software for Minecraft: Pocket Edition
+TITLE Apollo server software for Minecraft: Pocket Edition
 cd /d %~dp0
 
 if exist bin\php\php.exe (
@@ -10,7 +10,7 @@ if exist bin\php\php.exe (
 )
 
 if exist PocketMine-MP.phar (
-	set POCKETMINE_FILE=PocketMine-MP.phar
+	set POCKETMINE_FILE=Apollo.phar
 ) else (
 	if exist src\pocketmine\PocketMine.php (
 		set POCKETMINE_FILE=src\pocketmine\PocketMine.php

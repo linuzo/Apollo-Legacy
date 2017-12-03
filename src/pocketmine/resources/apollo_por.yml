@@ -1,0 +1,61 @@
+#Apollo arquivo de configuração avançado
+
+#Version deste arquivo
+config:
+ versão: 1
+ 
+ #todo corrigir Genration Nether
+ Nether:
+ #Choose se o Nether é permitido. O nível de Nether irá gerar automaticamente
+ permitir-Nether: true
+ #The nome do nível inferior
+ nome de nível:  "Nether "
+
+ender:
+ Allow-Ender: true
+ nome de nível:  "Ender "
+ 
+ #DISCLAIMER: nós não suportamos todas as opções em ' Load-incompatível-API '.
+ #DO não relatar quaisquer bugs antes de certificar-se de que não resulta desta opção!
+ #Most plugins antigos bater o servidor (talvez até mesmo segfaults), e pode corromper o seu savefiles.
+ desenvolvedor:
+  #This configuração permite que o servidor para carregar plugins através do diretório de origem sobre um arquivo. ­
+  #Recommended que permanece  "false "
+  Folder-plugin-Loader: false
+  #This configuração permite que o servidor para carregar plugins com API incompatível
+  #Recommanded que permanece  "false "
+  incompatível com a carga-API: false
+ 
+Updater:
+ #Branch que será usado pelo atualizador de/updateserver
+ ramificação:  "mestre "
+ 
+#ToDo adicionar Mob ai
+#mob ai vindo em breve por agora não funciona
+Ai:
+ #AI switch
+ habilitar: true
+ #Zombie ' ai, 0 = desativado, 1 = ai 1.0 ver, 2 = novo ai (defeito)
+ Zombie: 1
+ AI #PigZombie
+ pigzombie: true
+ #the ai da vaca da vaca e do cogumelo
+ vaca: verdadeiro
+ AI #Chicken
+ galinha: verdadeiro
+ AI #Sheep
+ carneiros: verdadeiro
+ #Pigs ' ai
+ porco: verdadeiro
+ AI #Skeleton
+ esqueleto: verdadeiro
+ AI #Creeper
+ Creeper: verdadeiro
+ AI #Iron Golem
+ Iron-Golem: verdadeiro
+ AI #Snow Golem
+ Snow-Golem: true
+ #Destory blocos se Creeper explodiu
+ Creeper-explodir-destruir-bloco: falso
+ #Choose se permitir Mob auto gerar
+ mobgenerate: false

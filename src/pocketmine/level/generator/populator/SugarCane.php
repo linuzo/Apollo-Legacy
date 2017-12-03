@@ -21,11 +21,13 @@
 
 namespace pocketmine\level\generator\populator;
 
+use pocketmine\block\BlockFactory;
 use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
 
 class Sugarcane extends Populator {
+  
 	/** @var ChunkManager */
 	private $level;
 	private $randomAmount;
@@ -55,12 +57,36 @@ class Sugarcane extends Populator {
 	 */
 	public function populate(ChunkManager $level, $chunkX, $chunkZ, Random $random){
 		$this->level = $level;
+
+		$canes = new SugarCaneStack($random);
+		$successfulClusterCount = 0;
+	
 		$amount = $random->nextRange(0, $this->randomAmount + 1) + $this->baseAmount;
 		for($i = 0; $i < $amount; ++$i){
 			$x = $random->nextRange($chunkX * 16, $chunkX * 16 + 15);
 			$z = $random->nextRange($chunkZ * 16, $chunkZ * 16 + 15);
 
 			$y = $this->getHighestWorkableBlock($x, $z);
+
+			if($y == -1 or !$canes->canPlaceObject($level, $x, $y, $z)){
+				continue;
+			}
+			
+			$successfulClusterCount++;
+			$canes->randomize();
+			$canes->placeObject($level, $x, $y, $z);
+			for($placed = 1; $placed < 4; $placed++){
+				$xx = $x - 3 + $random->nextBoundedInt(7);
+				$zz = $z - 3 + $random->nextBoundedInt(7);
+				$canes->randomize();
+				if($canes->canPlaceObject($level, $xx, $y, $zz)){
+					$canes->placeObject($level, $xx, $y, $zz);
+				}
+			}
+			
+			if($successfulClusterCount >= $this->baseAmount){
+				return;
+        
 			$tallRand = $random->nextRange(0, 17);
 			$yMax = $y + 2 + (int) ($tallRand > 10) + (int) ($tallRand > 15);
 			if($y !== -1){
@@ -92,14 +118,7 @@ class Sugarcane extends Populator {
 			}
 		}
 		return ($b === Block::AIR) and ((($below === Block::SAND or $below === Block::GRASS) and $water) or ($below === Block::SUGARCANE_BLOCK));
-	}
-
-	/**
-	 * @param $x
-	 * @param $z
-	 *
-	 * @return int
-	 */
+}
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
