@@ -28,18 +28,18 @@ if [ "$PHP_BINARY" == "" ]; then
 	elif [[ ! -z $(type php) ]]; then
 		PHP_BINARY=$(type -p php)
 	else
-		echo "Couldn't find a working PHP 7 binary, please use the installer."
+		echo "Couldn't find a working PHP 7 binary, please make sure you have it installed."
 		exit 1
 	fi
 fi
 
 if [ "$POCKETMINE_FILE" == "" ]; then
 	if [ -f ./PocketMine-MP.phar ]; then
-		POCKETMINE_FILE="./PocketMine-MP.phar"
+		POCKETMINE_FILE="./Apollo.phar"
 	elif [ -f ./src/pocketmine/PocketMine.php ]; then
 		POCKETMINE_FILE="./src/pocketmine/PocketMine.php"
 	else
-		echo "Couldn't find a valid PocketMine-MP installation"
+		echo "Couldn't find a valid Apollo installation"
 		exit 1
 	fi
 fi
