@@ -42,17 +42,21 @@ class Snowball extends Projectile{
 		parent::__construct($level, $nbt, $shootingEntity);
 	}
 
-	public function entityBaseTick(int $tickDiff = 1) : bool{
+	public function onUpdate(int $currentTick) : bool{
 		if($this->closed){
 			return false;
 		}
 
-		$hasUpdate = parent::entityBaseTick($tickDiff);
+		$this->timings->startTiming();
+
+		$hasUpdate = parent::onUpdate($currentTick);
 
 		if($this->age > 1200 or $this->isCollided){
 			$this->kill();
 			$hasUpdate = true;
 		}
+
+		$this->timings->stopTiming();
 
 		return $hasUpdate;
 	}
@@ -61,8 +65,12 @@ class Snowball extends Projectile{
 		$pk = new AddEntityPacket();
 		$pk->type = Snowball::NETWORK_ID;
 		$pk->entityRuntimeId = $this->getId();
+	
 		$pk->position = $this->asVector3();
-		$pk->motion = $this->getMotion();
+
+		$pk->speedX = $this->motionX;
+		$pk->speedY = $this->motionY;
+		$pk->speedZ = $this->motionZ;
 		$pk->metadata = $this->dataProperties;
 		$player->dataPacket($pk);
 

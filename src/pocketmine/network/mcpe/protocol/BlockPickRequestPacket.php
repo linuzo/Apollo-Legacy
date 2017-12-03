@@ -33,24 +33,24 @@ class BlockPickRequestPacket extends DataPacket{
 	const NETWORK_ID = ProtocolInfo::BLOCK_PICK_REQUEST_PACKET;
 
 	/** @var int */
-	public $blockX;
+	public $tileX;
 	/** @var int */
-	public $blockY;
+	public $tileY;
 	/** @var int */
-	public $blockZ;
+	public $tileZ;
 	/** @var bool */
 	public $addUserData = false;
 	/** @var int */
 	public $hotbarSlot;
 
 	protected function decodePayload(){
-		$this->getSignedBlockPosition($this->blockX, $this->blockY, $this->blockZ);
+		$this->getSignedBlockPosition($this->tileX, $this->tileY, $this->tileZ);
 		$this->addUserData = $this->getBool();
 		$this->hotbarSlot = $this->getByte();
 	}
 
 	protected function encodePayload(){
-		$this->putSignedBlockPosition($this->blockX, $this->blockY, $this->blockZ);
+		$this->putSignedBlockPosition($this->tileX, $this->tileY, $this->tileZ);
 		$this->putBool($this->addUserData);
 		$this->putByte($this->hotbarSlot);
 	}

@@ -31,14 +31,14 @@ class ShowProfilePacket extends DataPacket{
 	const NETWORK_ID = ProtocolInfo::SHOW_PROFILE_PACKET;
 
 	/** @var string */
-	public $xuid;
+	public $string1;
 
 	protected function decodePayload(){
-		$this->xuid = $this->getString();
+		$this->string1 = $this->getString();
 	}
 
 	protected function encodePayload(){
-		$this->putString($this->xuid);
+		$this->putString($this->string1);
 	}
 
 	public function handle(NetworkSession $session) : bool{

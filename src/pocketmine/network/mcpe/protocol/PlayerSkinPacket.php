@@ -25,7 +25,6 @@ namespace pocketmine\network\mcpe\protocol;
 
 #include <rules/DataPacket.h>
 
-use pocketmine\entity\Skin;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\utils\UUID;
 
@@ -35,37 +34,41 @@ class PlayerSkinPacket extends DataPacket{
 	/** @var UUID */
 	public $uuid;
 	/** @var string */
-	public $oldSkinName = "";
+	public $skinId;
 	/** @var string */
-	public $newSkinName = "";
-	/** @var Skin */
-	public $skin;
+	public $skinName;
+	/** @var string */
+	public $serializeName;
+	/** @var string */
+	public $skinData;
+	/** @var string */
+	public $capeData;
+	/** @var string */
+	public $geometryModel;
+	/** @var string */
+	public $geometryData;
 
 
 	protected function decodePayload(){
 		$this->uuid = $this->getUUID();
-
-		$skinId = $this->getString();
-		$this->newSkinName = $this->getString();
-		$this->oldSkinName = $this->getString();
-		$skinData = $this->getString();
-		$capeData = $this->getString();
-		$geometryModel = $this->getString();
-		$geometryData = $this->getString();
-
-		$this->skin = new Skin($skinId, $skinData, $capeData, $geometryModel, $geometryData);
+		$this->skinId = $this->getString();
+		$this->skinName = $this->getString();
+		$this->serializeName = $this->getString();
+		$this->skinData = $this->getString();
+		$this->capeData = $this->getString();
+		$this->geometryModel = $this->getString();
+		$this->geometryData = $this->getString();
 	}
 
 	protected function encodePayload(){
 		$this->putUUID($this->uuid);
-
-		$this->putString($this->skin->getSkinId());
-		$this->putString($this->newSkinName);
-		$this->putString($this->oldSkinName);
-		$this->putString($this->skin->getSkinData());
-		$this->putString($this->skin->getCapeData());
-		$this->putString($this->skin->getGeometryName());
-		$this->putString($this->skin->getGeometryData());
+		$this->putString($this->skinId);
+		$this->putString($this->skinName);
+		$this->putString($this->serializeName);
+		$this->putString($this->skinData);
+		$this->putString($this->capeData);
+		$this->putString($this->geometryModel);
+		$this->putString($this->geometryData);
 	}
 
 	public function handle(NetworkSession $session) : bool{

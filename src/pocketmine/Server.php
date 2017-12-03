@@ -280,6 +280,7 @@ class Server{
 	private $levelDefault = null;
 	
 		/** Advanced Config */
+		/** Advanced Config */
 	public $advancedConfig = null;
 	public $weatherEnabled = true;
 	public $foodEnabled = true;
@@ -319,7 +320,11 @@ class Server{
 	public $enderName = "ender";
 	public $enderLevel = null;
 	public $absorbWater = false;
-
+    public $cleanEntity = true;
+	public $mapEnabled = false;
+	public $entityAIEnabled = true;
+	public $rideableEntity = true;
+	
 	/**
 	 * @return string
 	 */
@@ -1497,12 +1502,21 @@ OS: Â§6' . PHP_OS .'Â§f
 	
 	public function loadAdvancedConfig(){
 		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
+		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", true);
 		$this->netherEnabled = $this->getAdvancedProperty("nether.allow-nether", false);
 		$this->netherName = $this->getAdvancedProperty("nether.level-name", "nether");
 		$this->enderEnabled = $this->getAdvancedProperty("ender.allow-ender", false);
 		$this->enderName = $this->getAdvancedProperty("ender.level-name", "ender");
-		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", true);
-		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
+		$this->weatherRandomDurationMin = $this->getAdvancedProperty("level.weather-random-duration-min", 6000);
+		$this->weatherRandomDurationMax = $this->getAdvancedProperty("level.weather-random-duration-max", 12000);
+		$this->lightningTime = $this->getAdvancedProperty("level.lightning-time", 200);
+		$this->lightningFire = $this->getAdvancedProperty("level.lightning-fire", false);
+		$this->cleanEntity = $this->getAdvancedProperty("CleanEntity", false);
+		$this->keepInventory = $this->getAdvancedProperty("KeepInventory", false);
+		$this->mapEnabled = $this->getAdvancedProperty("MapEnabled", false);
+		$this->limitedCreative = $this->getAdvancedProperty("LimitedCreative", true);
+		$this->entityAIEnabled = $this->getAdvancedProperty("EntityAIEnabled", true);
+		$this->rideableEntity = $this->getAdvancedProperty("RideableEntity", true);
 	}
 
 	/**
@@ -2433,7 +2447,7 @@ OS: Â§6' . PHP_OS .'Â§f
 		//$dump .= "Memory Usage Tracking: \r\n" . chunk_split(base64_encode(gzdeflate(implode(";", $this->memoryStats), 9))) . "\r\n";
 
 		$this->forceShutdown();
-		$this->isRunning = false;
+		$this->isRunning = false; //getskin
 		@kill(getmypid());
 		exit(1);
 	}
@@ -2480,7 +2494,7 @@ OS: Â§6' . PHP_OS .'Â§f
 	}
 
 	public function addOnlinePlayer(Player $player){
-		$this->updatePlayerListData($player->getUniqueId(), $player->getId(), $player->getDisplayName(), $player->getSkin());
+		$this->updatePlayerListData($player->getUniqueId(), $player->getId(), $player->getDisplayName());
 
 		$this->playerList[$player->getRawUniqueId()] = $player;
 	}
@@ -2498,7 +2512,7 @@ OS: Â§6' . PHP_OS .'Â§f
 	 * @param int           $entityId
 	 * @param string        $name
 	 * @param Skin          $skin
-	 * @param Player[]|null $players
+	 * @param Player[]|null $players //getsin
 	 */
 	public function updatePlayerListData(UUID $uuid, int $entityId, string $name, Skin $skin, array $players = null){
 		$pk = new PlayerListPacket();
@@ -2510,7 +2524,7 @@ OS: Â§6' . PHP_OS .'Â§f
 
 	/**
 	 * @param UUID          $uuid
-	 * @param Player[]|null $players
+	 * @param Player[]|null $players getskin
 	 */
 	public function removePlayerListData(UUID $uuid, array $players = null){
 		$pk = new PlayerListPacket();
@@ -2526,7 +2540,7 @@ OS: Â§6' . PHP_OS .'Â§f
 		$pk = new PlayerListPacket();
 		$pk->type = PlayerListPacket::TYPE_ADD;
 		foreach($this->playerList as $player){
-			$pk->entries[] = PlayerListEntry::createAdditionEntry($player->getUniqueId(), $player->getId(), $player->getDisplayName(), $player->getSkin());
+			$pk->entries[] = PlayerListEntry::createAdditionEntry($player->getUniqueId(), $player->getId(), $player->getDisplayName());
 		}
 
 		$p->dataPacket($pk);

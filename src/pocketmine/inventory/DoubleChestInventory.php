@@ -24,6 +24,8 @@ declare(strict_types=1);
 namespace pocketmine\inventory;
 
 use pocketmine\item\Item;
+use pocketmine\level\Level;
+use pocketmine\network\mcpe\protocol\BlockEventPacket;
 use pocketmine\Player;
 use pocketmine\tile\Chest;
 
@@ -84,7 +86,7 @@ class DoubleChestInventory extends ChestInventory implements InventoryHolder{
 	 * @param Item[] $items
 	 * @param bool   $send
 	 */
-	public function setContents(array $items, bool $send = true) : void{
+	public function setContents(array $items, bool $send = true) {
 		$size = $this->getSize();
 		if(count($items) > $size){
 			$items = array_slice($items, 0, $size, true);
@@ -107,17 +109,33 @@ class DoubleChestInventory extends ChestInventory implements InventoryHolder{
 		}
 	}
 
-	public function onOpen(Player $who) : void{
+	public function onOpen(Player $who) {
 		parent::onOpen($who);
 
 		if(count($this->getViewers()) === 1){
-			$this->broadcastBlockEventPacket($this->right->getHolder(), true);
+			$pk = new BlockEventPacket();
+			$pk->x = $this->right->getHolder()->getX();
+			$pk->y = $this->right->getHolder()->getY();
+			$pk->z = $this->right->getHolder()->getZ();
+			$pk->case1 = 1;
+			$pk->case2 = 2;
+			if(($level = $this->right->getHolder()->getLevel()) instanceof Level){
+				$level->addChunkPacket($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4, $pk);
+			}
 		}
 	}
 
-	public function onClose(Player $who) : void{
+	public function onClose(Player $who) {
 		if(count($this->getViewers()) === 1){
-			$this->broadcastBlockEventPacket($this->right->getHolder(), false);
+			$pk = new BlockEventPacket();
+			$pk->x = $this->right->getHolder()->getX();
+			$pk->y = $this->right->getHolder()->getY();
+			$pk->z = $this->right->getHolder()->getZ();
+			$pk->case1 = 1;
+			$pk->case2 = 0;
+			if(($level = $this->right->getHolder()->getLevel()) instanceof Level){
+				$level->addChunkPacket($this->right->getHolder()->getX() >> 4, $this->right->getHolder()->getZ() >> 4, $pk);
+			}
 		}
 		parent::onClose($who);
 	}

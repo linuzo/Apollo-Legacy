@@ -67,11 +67,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	protected $itemId;
 
 	/** @var AxisAlignedBB */
-	protected $boundingBox = null;
-
-
-	/** @var AxisAlignedBB[]|null */
-	protected $collisionBoxes = null;
+	public $boundingBox = null;
 
 	/**
 	 * @param int         $id     The block type's ID, 0-255
@@ -120,7 +116,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	/**
 	 * @param int $meta
 	 */
-	final public function setDamage(int $meta) : void{
+	final public function setDamage(int $meta){
 		if($meta < 0 or $meta > 0xf){
 			throw new \InvalidArgumentException("Block damage values must be 0-15, not $meta");
 		}
@@ -141,46 +137,18 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 	/**
-	 * Returns the block meta, stripped of non-variant flags.
-	 * @return int
-	 */
-	public function getVariant() : int{
-		return $this->meta & $this->getVariantBitmask();
-	}
-
-
-	/**
-	 * AKA: Block->isPlaceable
-	 * @return bool
-	 */
-	public function canBePlaced() : bool{
-		return true;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function canBeReplaced() : bool{
-		return false;
-	}
-
-	public function canBePlacedAt(Block $blockReplace, Vector3 $clickVector, int $face, bool $isClickedBlock) : bool{
-		return $blockReplace->canBeReplaced();
-	}
-
-	/**
 	 * Places the Block, using block space and block target, and side. Returns if the block has been placed.
 	 *
 	 * @param Item        $item
 	 * @param Block       $blockReplace
 	 * @param Block       $blockClicked
 	 * @param int         $face
-	 * @param Vector3     $clickVector
+	 * @param Vector3     $facePos
 	 * @param Player|null $player
 	 *
 	 * @return bool
 	 */
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $facePos, Player $player = null) : bool{
 		return $this->getLevel()->setBlock($this, $this, true, true);
 	}
 
@@ -195,10 +163,6 @@ class Block extends Position implements BlockIds, Metadatable{
 		return true;
 	}
 
-	public function canBeBrokenWith(Item $item) : bool{
-		return $this->getHardness() !== -1;
-	}
-
 	/**
 	 * Do the actions needed so the block is broken with the Item
 	 *
@@ -209,63 +173,6 @@ class Block extends Position implements BlockIds, Metadatable{
 	 */
 	public function onBreak(Item $item, Player $player = null) : bool{
 		return $this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), true, true);
-	}
-
-
-	/**
-	 * Returns the seconds that this block takes to be broken using an specific Item
-	 *
-	 * @param Item $item
-	 *
-	 * @return float
-	 */
-	public function getBreakTime(Item $item) : float{
-		$base = $this->getHardness() * 1.5;
-		if($this->canBeBrokenWith($item)){
-			if($this->getToolType() === Tool::TYPE_SHEARS and $item->isShears()){
-				$base /= 15;
-			}elseif(
-				($this->getToolType() === Tool::TYPE_PICKAXE and ($tier = $item->isPickaxe()) !== false) or
-				($this->getToolType() === Tool::TYPE_AXE and ($tier = $item->isAxe()) !== false) or
-				($this->getToolType() === Tool::TYPE_SHOVEL and ($tier = $item->isShovel()) !== false)
-			){
-				switch($tier){
-					case Tool::TIER_WOODEN:
-						$base /= 2;
-						break;
-					case Tool::TIER_STONE:
-						$base /= 4;
-						break;
-					case Tool::TIER_IRON:
-						$base /= 6;
-						break;
-					case Tool::TIER_DIAMOND:
-						$base /= 8;
-						break;
-					case Tool::TIER_GOLD:
-						$base /= 12;
-						break;
-				}
-			}
-		}else{
-			$base *= 3.33;
-		}
-
-		if($item->isSword()){
-			$base *= 0.5;
-		}
-
-		return $base;
-	}
-
-
-	/**
-	 * Returns whether random block updates will be done on this block.
-	 *
-	 * @return bool
-	 */
-	public function ticksRandomly() : bool{
-		return false;
 	}
 
 	/**
@@ -360,6 +267,30 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 	/**
+	 * Returns whether random block updates will be done on this block.
+	 *
+	 * @return bool
+	 */
+	public function ticksRandomly() : bool{
+		return false;
+	}
+
+	/**
+	 * AKA: Block->isPlaceable
+	 * @return bool
+	 */
+	public function canBePlaced() : bool{
+		return true;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function canBeReplaced() : bool{
+		return false;
+	}
+
+	/**
 	 * @return bool
 	 */
 	public function isTransparent() : bool{
@@ -395,7 +326,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 
-	public function addVelocityToEntity(Entity $entity, Vector3 $vector) : void{
+	public function addVelocityToEntity(Entity $entity, Vector3 $vector){
 
 	}
 
@@ -404,7 +335,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	 *
 	 * @param Position $v
 	 */
-	final public function position(Position $v) : void{
+	final public function position(Position $v){
 		$this->x = (int) $v->x;
 		$this->y = (int) $v->y;
 		$this->z = (int) $v->z;
@@ -421,16 +352,58 @@ class Block extends Position implements BlockIds, Metadatable{
 	 */
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get($this->getItemId(), $this->getVariant(), 1)
+			ItemFactory::get($this->getItemId(), $this->getDamage() & $this->getVariantBitmask(), 1)
 		];
 	}
 
 	/**
-	 * Returns the item that players will equip when middle-clicking on this block.
-	 * @return Item
+	 * Returns the seconds that this block takes to be broken using an specific Item
+	 *
+	 * @param Item $item
+	 *
+	 * @return float
 	 */
-	public function getPickedItem() : Item{
-		return ItemFactory::get($this->getItemId(), $this->getVariant());
+	public function getBreakTime(Item $item) : float{
+		$base = $this->getHardness() * 1.5;
+		if($this->canBeBrokenWith($item)){
+			if($this->getToolType() === Tool::TYPE_SHEARS and $item->isShears()){
+				$base /= 15;
+			}elseif(
+				($this->getToolType() === Tool::TYPE_PICKAXE and ($tier = $item->isPickaxe()) !== false) or
+				($this->getToolType() === Tool::TYPE_AXE and ($tier = $item->isAxe()) !== false) or
+				($this->getToolType() === Tool::TYPE_SHOVEL and ($tier = $item->isShovel()) !== false)
+			){
+				switch($tier){
+					case Tool::TIER_WOODEN:
+						$base /= 2;
+						break;
+					case Tool::TIER_STONE:
+						$base /= 4;
+						break;
+					case Tool::TIER_IRON:
+						$base /= 6;
+						break;
+					case Tool::TIER_DIAMOND:
+						$base /= 8;
+						break;
+					case Tool::TIER_GOLD:
+						$base /= 12;
+						break;
+				}
+			}
+		}else{
+			$base *= 3.33;
+		}
+
+		if($item->isSword()){
+			$base *= 0.5;
+		}
+
+		return $base;
+	}
+
+	public function canBeBrokenWith(Item $item) : bool{
+		return $this->getHardness() !== -1;
 	}
 
 	/**
@@ -458,35 +431,6 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 	/**
-	 * Returns the 4 blocks on the horizontal axes around the block (north, south, east, west)
-	 *
-	 * @return Block[]
-	 */
-	public function getHorizontalSides() : array{
-		return [
-			$this->getSide(Vector3::SIDE_NORTH),
-			$this->getSide(Vector3::SIDE_SOUTH),
-			$this->getSide(Vector3::SIDE_WEST),
-			$this->getSide(Vector3::SIDE_EAST)
-		];
-	}
-
-	/**
-	 * Returns the six blocks around this block.
-	 *
-	 * @return Block[]
-	 */
-	public function getAllSides() : array{
-		return array_merge(
-			[
-				$this->getSide(Vector3::SIDE_DOWN),
-				$this->getSide(Vector3::SIDE_UP)
-			],
-			$this->getHorizontalSides()
-		);
-	}
-
-	/**
 	 * @return string
 	 */
 	public function __toString(){
@@ -501,50 +445,22 @@ class Block extends Position implements BlockIds, Metadatable{
 	 * @return bool
 	 */
 	public function collidesWithBB(AxisAlignedBB $bb) : bool{
-		$bbs = $this->getCollisionBoxes();
+		$bb2 = $this->getBoundingBox();
 
-		foreach($bbs as $bb2){
-			if($bb->intersectsWith($bb2)){
-				return true;
-			}
-		}
-
-		return false;
+		return $bb2 !== null and $bb->intersectsWith($bb2);
 	}
 
 	/**
 	 * @param Entity $entity
 	 */
-	public function onEntityCollide(Entity $entity) : void{
+	public function onEntityCollide(Entity $entity){
 
-	}
-
-	/**
-	 * @return AxisAlignedBB[]
-	 */
-	public function getCollisionBoxes() : array{
-		if($this->collisionBoxes === null){
-			$this->collisionBoxes = $this->recalculateCollisionBoxes();
-		}
-
-		return $this->collisionBoxes;
-	}
-
-	/**
-	 * @return AxisAlignedBB[]
-	 */
-	protected function recalculateCollisionBoxes() : array{
-		if($bb = $this->recalculateBoundingBox()){
-			return [$bb];
-		}
-
-		return [];
 	}
 
 	/**
 	 * @return AxisAlignedBB|null
 	 */
-	public function getBoundingBox() : ?AxisAlignedBB{
+	public function getBoundingBox(){
 		if($this->boundingBox === null){
 			$this->boundingBox = $this->recalculateBoundingBox();
 		}
@@ -554,7 +470,7 @@ class Block extends Position implements BlockIds, Metadatable{
 	/**
 	 * @return AxisAlignedBB|null
 	 */
-	protected function recalculateBoundingBox() : ?AxisAlignedBB{
+	protected function recalculateBoundingBox(){
 		return new AxisAlignedBB(
 			$this->x,
 			$this->y,
@@ -566,51 +482,91 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 	/**
-	 * Clears any cached precomputed bounding boxes. This is called on block neighbour update and when the block is set
-	 * into the world to remove any outdated precomputed AABBs and force recalculation.
-	 */
-	public function clearBoundingBoxes() : void{
-		$this->boundingBox = null;
-		$this->collisionBoxes = null;
-	}
-
-	/**
 	 * @param Vector3 $pos1
 	 * @param Vector3 $pos2
 	 *
 	 * @return MovingObjectPosition|null
 	 */
-	public function calculateIntercept(Vector3 $pos1, Vector3 $pos2) : ?MovingObjectPosition{
-		$bbs = $this->getCollisionBoxes();
-		if(empty($bbs)){
+	public function calculateIntercept(Vector3 $pos1, Vector3 $pos2){
+		$bb = $this->getBoundingBox();
+		if($bb === null){
 			return null;
 		}
 
-		/** @var MovingObjectPosition|null $currentHit */
-		$currentHit = null;
-		/** @var int|float $currentDistance */
-		$currentDistance = PHP_INT_MAX;
+		$v1 = $pos1->getIntermediateWithXValue($pos2, $bb->minX);
+		$v2 = $pos1->getIntermediateWithXValue($pos2, $bb->maxX);
+		$v3 = $pos1->getIntermediateWithYValue($pos2, $bb->minY);
+		$v4 = $pos1->getIntermediateWithYValue($pos2, $bb->maxY);
+		$v5 = $pos1->getIntermediateWithZValue($pos2, $bb->minZ);
+		$v6 = $pos1->getIntermediateWithZValue($pos2, $bb->maxZ);
 
-		foreach($bbs as $bb){
-			$nextHit = $bb->calculateIntercept($pos1, $pos2);
-			if($nextHit === null){
-				continue;
-			}
-
-			$nextDistance = $nextHit->hitVector->distanceSquared($pos1);
-			if($nextDistance < $currentDistance){
-				$currentHit = $nextHit;
-				$currentDistance = $nextDistance;
-			}
+		if($v1 !== null and !$bb->isVectorInYZ($v1)){
+			$v1 = null;
 		}
 
-		if($currentHit !== null){
-			$currentHit->blockX = $this->x;
-			$currentHit->blockY = $this->y;
-			$currentHit->blockZ = $this->z;
+		if($v2 !== null and !$bb->isVectorInYZ($v2)){
+			$v2 = null;
 		}
 
-		return $currentHit;
+		if($v3 !== null and !$bb->isVectorInXZ($v3)){
+			$v3 = null;
+		}
+
+		if($v4 !== null and !$bb->isVectorInXZ($v4)){
+			$v4 = null;
+		}
+
+		if($v5 !== null and !$bb->isVectorInXY($v5)){
+			$v5 = null;
+		}
+
+		if($v6 !== null and !$bb->isVectorInXY($v6)){
+			$v6 = null;
+		}
+
+		$vector = $v1;
+
+		if($v2 !== null and ($vector === null or $pos1->distanceSquared($v2) < $pos1->distanceSquared($vector))){
+			$vector = $v2;
+		}
+
+		if($v3 !== null and ($vector === null or $pos1->distanceSquared($v3) < $pos1->distanceSquared($vector))){
+			$vector = $v3;
+		}
+
+		if($v4 !== null and ($vector === null or $pos1->distanceSquared($v4) < $pos1->distanceSquared($vector))){
+			$vector = $v4;
+		}
+
+		if($v5 !== null and ($vector === null or $pos1->distanceSquared($v5) < $pos1->distanceSquared($vector))){
+			$vector = $v5;
+		}
+
+		if($v6 !== null and ($vector === null or $pos1->distanceSquared($v6) < $pos1->distanceSquared($vector))){
+			$vector = $v6;
+		}
+
+		if($vector === null){
+			return null;
+		}
+
+		$f = -1;
+
+		if($vector === $v1){
+			$f = 4;
+		}elseif($vector === $v2){
+			$f = 5;
+		}elseif($vector === $v3){
+			$f = 0;
+		}elseif($vector === $v4){
+			$f = 1;
+		}elseif($vector === $v5){
+			$f = 2;
+		}elseif($vector === $v6){
+			$f = 3;
+		}
+
+		return MovingObjectPosition::fromBlock($this->x, $this->y, $this->z, $f, $vector->add($this->x, $this->y, $this->z));
 	}
 
 	public function setMetadata(string $metadataKey, MetadataValue $newMetadataValue){
