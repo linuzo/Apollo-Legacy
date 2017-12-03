@@ -23,9 +23,11 @@ declare(strict_types=1);
 
 namespace pocketmine\entity;
 
+use pocketmine\item\Bow;
 use pocketmine\level\Level;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\Player;
 
 class Arrow extends Projectile{
@@ -40,17 +42,30 @@ class Arrow extends Projectile{
 
 	protected $damage = 2;
 
-	public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null, bool $critical = false){
+	protected $sound = true;
+
+	protected $bow;
+
+	public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null, bool $critical = false, Bow $bow = null){
 		parent::__construct($level, $nbt, $shootingEntity);
 		$this->setCritical($critical);
+		$this->bow = $bow;
+	}
+
+	public function getBow() : Bow {
+		return $this->bow;
+	}
+
+	public function setBow(Bow $bow){
+		$this->bow = $bow;
 	}
 
 	public function isCritical() : bool{
-		return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CRITICAL);
+		return $this->getGenericFlag(self::DATA_FLAG_CRITICAL);
 	}
 
 	public function setCritical(bool $value = true){
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CRITICAL, $value);
+		$this->setGenericFlag(self::DATA_FLAG_CRITICAL, $value);
 	}
 
 	public function getResultDamage() : int{
@@ -62,25 +77,25 @@ class Arrow extends Projectile{
 		}
 	}
 
-	public function onUpdate(int $currentTick) : bool{
+	public function entityBaseTick(int $tickDiff = 1) : bool{
 		if($this->closed){
 			return false;
 		}
 
-		$this->timings->startTiming();
-
-		$hasUpdate = parent::onUpdate($currentTick);
+		$hasUpdate = parent::entityBaseTick($tickDiff);
 
 		if($this->onGround or $this->hadCollision){
 			$this->setCritical(false);
+			if($this->sound === true and $this->level !== null){ //Prevents error of $this->level returning null
+ 				$this->level->broadcastLevelSoundEvent($this, LevelSoundEventPacket::SOUND_BOW_HIT);
+ 				$this->sound = false;
+ 			}
 		}
 
 		if($this->age > 1200){
 			$this->close();
 			$hasUpdate = true;
 		}
-
-		$this->timings->stopTiming();
 
 		return $hasUpdate;
 	}
@@ -89,12 +104,9 @@ class Arrow extends Projectile{
 		$pk = new AddEntityPacket();
 		$pk->type = Arrow::NETWORK_ID;
 		$pk->entityRuntimeId = $this->getId();
-	
 		$pk->position = $this->asVector3();
+		$pk->motion = $this->getMotion();
 
-		$pk->speedX = $this->motionX;
-		$pk->speedY = $this->motionY;
-		$pk->speedZ = $this->motionZ;
 		$pk->yaw = $this->yaw;
 		$pk->pitch = $this->pitch;
 		$pk->metadata = $this->dataProperties;
