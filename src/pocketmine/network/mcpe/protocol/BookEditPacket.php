@@ -46,9 +46,9 @@ class BookEditPacket extends DataPacket{
 	public $secondaryPageNumber;
 
 	/** @var string */
-	public $text;
+	public $content1;
 	/** @var string */
-	public $photoName;
+	public $content2;
 
 	/** @var string */
 	public $title;
@@ -63,8 +63,8 @@ class BookEditPacket extends DataPacket{
 			case self::TYPE_REPLACE_PAGE:
 			case self::TYPE_ADD_PAGE:
 				$this->pageNumber = $this->getByte();
-				$this->text = $this->getString();
-				$this->photoName = $this->getString();
+				$this->content1 = $this->getString();
+				$this->content2 = $this->getString();
 				break;
 			case self::TYPE_DELETE_PAGE:
 				$this->pageNumber = $this->getByte();
@@ -90,8 +90,8 @@ class BookEditPacket extends DataPacket{
 			case self::TYPE_REPLACE_PAGE:
 			case self::TYPE_ADD_PAGE:
 				$this->putByte($this->pageNumber);
-				$this->putString($this->text);
-				$this->putString($this->photoName);
+				$this->putString($this->content1);
+				$this->putString($this->content2);
 				break;
 			case self::TYPE_DELETE_PAGE:
 				$this->putByte($this->pageNumber);

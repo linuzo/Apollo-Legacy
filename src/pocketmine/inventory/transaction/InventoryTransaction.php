@@ -25,7 +25,6 @@ namespace pocketmine\inventory\transaction;
 
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\inventory\Inventory;
-use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\transaction\action\InventoryAction;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Item;
@@ -41,7 +40,7 @@ class InventoryTransaction{
 	private $creationTime;
 	protected $hasExecuted = false;
 	/** @var Player */
-	protected $source;
+	protected $source = null;
 
 	/** @var Inventory[] */
 	protected $inventories = [];
@@ -53,7 +52,7 @@ class InventoryTransaction{
 	 * @param Player            $source
 	 * @param InventoryAction[] $actions
 	 */
-	public function __construct(Player $source, array $actions = []){
+	public function __construct(Player $source = null, array $actions = []){
 		$this->creationTime = microtime(true);
 		$this->source = $source;
 		foreach($actions as $action){
@@ -89,7 +88,7 @@ class InventoryTransaction{
 	/**
 	 * @param InventoryAction $action
 	 */
-	public function addAction(InventoryAction $action) : void{
+	public function addAction(InventoryAction $action){
 		if(!isset($this->actions[$hash = spl_object_hash($action)])){
 			$this->actions[spl_object_hash($action)] = $action;
 			$action->onAddToTransaction($this);
@@ -104,7 +103,7 @@ class InventoryTransaction{
 	 *
 	 * @param Inventory $inventory
 	 */
-	public function addInventory(Inventory $inventory) : void{
+	public function addInventory(Inventory $inventory){
 		if(!isset($this->inventories[$hash = spl_object_hash($inventory)])){
 			$this->inventories[$hash] = $inventory;
 		}
@@ -220,6 +219,8 @@ class InventoryTransaction{
 			}
 
 			$this->addAction(new SlotChangeAction($originalAction->getInventory(), $originalAction->getSlot(), $originalAction->getSourceItem(), $lastTargetItem));
+
+			MainLogger::getLogger()->debug("Successfully compacted " . count($originalList) . " actions for " . $this->source->getName());
 		}
 
 		return true;
@@ -236,39 +237,30 @@ class InventoryTransaction{
 		return $this->matchItems($needItems, $haveItems) and count($this->actions) > 0 and count($haveItems) === 0 and count($needItems) === 0;
 	}
 
-	protected function sendInventories() : void{
-		foreach($this->inventories as $inventory){
-			$inventory->sendContents($this->source);
-			if($inventory instanceof PlayerInventory){
-				$inventory->sendArmorContents($this->source);
-			}
+	protected function handleFailed(){
+		foreach($this->actions as $action){
+			$action->onExecuteFail($this->source);
 		}
 	}
 
-	protected function callExecuteEvent() : bool{
-		Server::getInstance()->getPluginManager()->callEvent($ev = new InventoryTransactionEvent($this));
-		return !$ev->isCancelled();
-	}
-
 	/**
-	 * Executes the group of actions, returning whether the transaction executed successfully or not.
 	 * @return bool
 	 */
 	public function execute() : bool{
 		if($this->hasExecuted() or !$this->canExecute()){
-			$this->sendInventories();
 			return false;
 		}
 
-		if(!$this->callExecuteEvent()){
-			$this->sendInventories();
-			return false;
+		Server::getInstance()->getPluginManager()->callEvent($ev = new InventoryTransactionEvent($this));
+		if($ev->isCancelled()){
+			$this->handleFailed();
+			return true;
 		}
 
 		foreach($this->actions as $action){
 			if(!$action->onPreExecute($this->source)){
-				$this->sendInventories();
-				return false;
+				$this->handleFailed();
+				return true;
 			}
 		}
 

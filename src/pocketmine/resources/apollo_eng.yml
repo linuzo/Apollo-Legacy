@@ -4,16 +4,18 @@
 config:
  version: 1
  
- #todo fix nether genration
- nether:
- #Choose if the nether is allowed. The level of nether will generate automatically
- allow-nether: true
- #The name of nether's level
- level-name: "nether"
-
-ender:
- allow-ender: true
- level-name: "ender"
+ level:
+ #Set if weather is enabled (rain may cause lag to older devices)
+ weather: true
+ #Weather random duration
+ weather-random-duration-min: 6000
+ weather-random-duration-max: 12000
+ #Random lightning interval，default as 10s, 0 = disable
+ lightning-time: 200
+ #Set if lightning strikes have fire afterwards
+ lightning-fire: false
+ #Set if fire should spread (trees, etc.)
+ fire-spread: false
  
  #DISCLAIMER: WE DO NOT SUPPORT ALL OPTIONS UNDER 'load-incompatible-api'.
  #DO NOT REPORT ANY BUGS BEFORE MAKING SURE IT DOESN'T RESULT OUT OF THIS OPTION!
@@ -25,37 +27,29 @@ ender:
   #This setting allows the server to load plugins with Incompatible API
   #Recommanded that it stays "false"
   load-incompatible-api: false
+  
+ #todo fix nether genration
+nether:
+ #Choose if the nether is allowed. The level of nether will generate automatically
+ allow-nether: true
+ #The name of nether's level
+ level-name: "nether"
+
+ender:
+ allow-ender: true
+ level-name: "end"
  
 updater:
  #Branch which will be used by the updater of /updateserver
  branch: "master"
- 
-#ToDo add mob ai
-#mob ai coming soon for now not working
-ai:
- #AI switch
- enable: true
- #Zombie'AI，0=disabled，1=AI 1.0ver，2=new AI(Faultiness)
- zombie: 1
- #PigZombie's AI
- pigzombie: true
- #the AI of cow and mushroom cow
- cow: true
- #Chicken's AI
- chicken: true
- #Sheep's AI
- sheep: true
- #Pigs' AI
- pig: true
- #Skeleton's AI
- skeleton: true
- #Creeper's AI
- creeper: true
- #Iron golem's AI
- iron-golem: true
- #Snow golem's AI
- snow-golem: true
- #Destory blocks if creeper exploded
- creeper-explode-destroy-block: false
- #Choose if allow mob auto generate
- mobgenerate: false
+
+#in vev stuff you can always try 
+#but expect bugs and report them to us
+CleanEntity: true
+CrashDump: true
+DevTools: true
+KeepInventory: true
+MapEnabled: true
+LimitedCreative: true
+EntityAIEnabled: true
+RideableEntity: true

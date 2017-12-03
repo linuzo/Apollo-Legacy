@@ -30,7 +30,6 @@ use pocketmine\entity\Entity;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\types\EntityLink;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
 
@@ -60,14 +59,6 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	public function canBeSentBeforeLogin() : bool{
-		return false;
-	}
-
-	/**
-	 * Returns whether the packet may legally have unread bytes left in the buffer.
-	 * @return bool
-	 */
-	public function mayHaveUnreadBytes() : bool{
 		return false;
 	}
 
@@ -515,26 +506,20 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	/**
-	 * @return EntityLink
+	 * @return array
 	 */
-	protected function getEntityLink() : EntityLink{
-		$link = new EntityLink();
-
-		$link->fromEntityUniqueId = $this->getEntityUniqueId();
-		$link->toEntityUniqueId = $this->getEntityUniqueId();
-		$link->type = $this->getByte();
-		$link->bool1 = $this->getBool();
-
-		return $link;
+	protected function getEntityLink() : array{
+		return [$this->getEntityUniqueId(), $this->getEntityUniqueId(), $this->getByte(), $this->getByte()];
 	}
 
 	/**
-	 * @param EntityLink $link
+	 * @param array $link
 	 */
-	protected function putEntityLink(EntityLink $link){
-		$this->putEntityUniqueId($link->fromEntityUniqueId);
-		$this->putEntityUniqueId($link->toEntityUniqueId);
-		$this->putByte($link->type);
-		$this->putBool($link->bool1);
+	protected function putEntityLink(array $link){
+		$this->putEntityUniqueId($link[0]);
+		$this->putEntityUniqueId($link[1]);
+		$this->putByte($link[2]);
+		$this->putByte($link[3]);
+
 	}
 }

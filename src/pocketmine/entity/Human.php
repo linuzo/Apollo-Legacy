@@ -23,13 +23,12 @@ declare(strict_types=1);
 
 namespace pocketmine\entity;
 
-use pocketmine\entity\projectile\ProjectileSource;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\player\PlayerExhaustEvent;
 use pocketmine\inventory\InventoryHolder;
+use pocketmine\inventory\EnderChestInventory;
 use pocketmine\inventory\PlayerInventory;
-use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item as ItemItem;
 use pocketmine\level\Level;
 use pocketmine\nbt\NBT;
@@ -39,7 +38,6 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
-use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
 use pocketmine\Player;
 use pocketmine\utils\UUID;
 
@@ -55,6 +53,9 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	/** @var PlayerInventory */
 	protected $inventory;
 
+	/** @var EnderChestInventory */
+	protected $enderChestInventory;
+
 	/** @var UUID */
 	protected $uuid;
 	protected $rawUUID;
@@ -63,8 +64,8 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	public $height = 1.8;
 	public $eyeHeight = 1.62;
 
-	/** @var Skin */
-	protected $skin;
+	protected $skinId;
+	protected $skin = "";
 
 	protected $foodTickTimer = 0;
 
@@ -74,22 +75,19 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	protected $baseOffset = 1.62;
 
 	public function __construct(Level $level, CompoundTag $nbt){
-		if($this->skin === null and (!isset($nbt->Skin) or !isset($nbt->Skin->Data) or !Player::isValidSkin($nbt->Skin->Data->getValue()))){
+		if($this->skin === "" and (!isset($nbt->Skin) or !isset($nbt->Skin->Data) or !Player::isValidSkin($nbt->Skin->Data->getValue()))){
 			throw new \InvalidStateException((new \ReflectionClass($this))->getShortName() . " must have a valid skin set");
 		}
 
 		parent::__construct($level, $nbt);
 	}
 
-	/**
-	 * Checks the length of a supplied skin bitmap and returns whether the length is valid.
-	 *
-	 * @param string $skin
-	 *
-	 * @return bool
-	 */
-	public static function isValidSkin(string $skin) : bool{
-		return strlen($skin) === 64 * 64 * 4 or strlen($skin) === 64 * 32 * 4;
+	public function getSkinData(){
+		return $this->skin;
+	}
+
+	public function getSkinId(){
+		return $this->skinId;
 	}
 
 	/**
@@ -107,39 +105,16 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 	}
 
 	/**
-	 * Returns a Skin object containing information about this human's skin.
-	 * @return Skin
+	 * @param string $str
+	 * @param string $skinId
 	 */
-	public function getSkin() : Skin{
-		return $this->skin;
-	}
-
-	/**
-	 * Sets the human's skin. This will not send any update to viewers, you need to do that manually using
-	 * {@link sendSkin}.
-	 *
-	 * @param Skin $skin
-	 */
-	public function setSkin(Skin $skin) : void{
-		if(!$skin->isValid()){
+	public function setSkin(string $str, string $skinId){
+		if(!Player::isValidSkin($str)){
 			throw new \InvalidStateException("Specified skin is not valid, must be 8KiB or 16KiB");
 		}
 
-		$this->skin = $skin;
-		$this->skin->debloatGeometryData();
-	}
-
-	/**
-	 * Sends the human's skin to the specified list of players. If null is given for targets, the skin will be sent to
-	 * all viewers.
-	 *
-	 * @param Player[]|null $targets
-	 */
-	public function sendSkin(array $targets = null) : void{
-		$pk = new PlayerSkinPacket();
-		$pk->uuid = $this->getUniqueId();
-		$pk->skin = $this->skin;
-		$this->server->broadcastPacket($targets ?? $this->hasSpawned, $pk);
+		$this->skin = $str;
+		$this->skinId = $skinId;
 	}
 
 	public function jump(){
@@ -307,6 +282,10 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		return $this->inventory;
 	}
 
+	public function getEnderChestInventory(){
+		return $this->enderChestInventory;
+	}
+
 	/**
 	 * For Human entities which are not players, sets their properties such as nametag, skin and UUID from NBT.
 	 */
@@ -316,13 +295,10 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		}
 
 		if(isset($this->namedtag->Skin) and $this->namedtag->Skin instanceof CompoundTag){
-			$this->setSkin(new Skin(
-				$this->namedtag->Skin["Name"],
-				$this->namedtag->Skin["Data"]
-			));
+			$this->setSkin($this->namedtag->Skin["Data"], $this->namedtag->Skin["Name"]);
 		}
 
-		$this->uuid = UUID::fromData((string) $this->getId(), $this->skin->getSkinData(), $this->getNameTag());
+		$this->uuid = UUID::fromData((string) $this->getId(), $this->getSkinData(), $this->getNameTag());
 	}
 
 	protected function initEntity(){
@@ -331,6 +307,8 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		$this->setDataProperty(self::DATA_PLAYER_BED_POSITION, self::DATA_TYPE_POS, [0, 0, 0], false);
 
 		$this->inventory = new PlayerInventory($this);
+		$this->enderChestInventory = new EnderChestInventory($this, ($this->namedtag->EnderChestInventory ?? null));
+
 		$this->initHumanData();
 
 		if(isset($this->namedtag->Inventory) and $this->namedtag->Inventory instanceof ListTag){
@@ -423,14 +401,14 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		if($this->isAlive()){
 			$food = $this->getFood();
 			$health = $this->getHealth();
-			$difficulty = $this->level->getDifficulty();
+			$difficulty = $this->server->getDifficulty();
 
 			$this->foodTickTimer += $tickDiff;
 			if($this->foodTickTimer >= 80){
 				$this->foodTickTimer = 0;
 			}
 
-			if($difficulty === Level::DIFFICULTY_PEACEFUL and $this->foodTickTimer % 10 === 0){
+			if($difficulty === 0 and $this->foodTickTimer % 10 === 0){ //Peaceful
 				if($food < 20){
 					$this->addFood(1.0);
 				}
@@ -460,14 +438,6 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		}
 	}
 
-	protected function doAirSupplyTick(int $tickDiff){
-		//TODO: allow this to apply to other mobs
-		if(($ench = $this->inventory->getHelmet()->getEnchantment(Enchantment::RESPIRATION)) === null or
-			lcg_value() <= (1 / ($ench->getLevel() + 1))){
-			parent::doAirSupplyTick($tickDiff);
-		}
-	}
-
 	public function getName() : string{
 		return $this->getNameTag();
 	}
@@ -484,13 +454,14 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 		$this->namedtag->foodSaturationLevel = new FloatTag("foodSaturationLevel", $this->getSaturation());
 		$this->namedtag->foodTickTimer = new IntTag("foodTickTimer", $this->foodTickTimer);
 
-		$this->namedtag->Inventory = new ListTag("Inventory", [], NBT::TAG_Compound);
+		$this->namedtag->Inventory = new ListTag("Inventory", []);
+		$this->namedtag->Inventory->setTagType(NBT::TAG_Compound);
 		if($this->inventory !== null){
 			//Normal inventory
 			$slotCount = $this->inventory->getSize() + $this->inventory->getHotbarSize();
 			for($slot = $this->inventory->getHotbarSize(); $slot < $slotCount; ++$slot){
 				$item = $this->inventory->getItem($slot - 9);
-				if(!$item->isNull()){
+				if($item->getId() !== ItemItem::AIR){
 					$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 				}
 			}
@@ -498,7 +469,7 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 			//Armor
 			for($slot = 100; $slot < 104; ++$slot){
 				$item = $this->inventory->getItem($this->inventory->getSize() + $slot - 100);
-				if(!$item->isNull()){
+				if($item instanceof ItemItem and $item->getId() !== ItemItem::AIR){
 					$this->namedtag->Inventory[$slot] = $item->nbtSerialize($slot);
 				}
 			}
@@ -506,49 +477,62 @@ class Human extends Creature implements ProjectileSource, InventoryHolder{
 			$this->namedtag->SelectedInventorySlot = new IntTag("SelectedInventorySlot", $this->inventory->getHeldItemIndex());
 		}
 
-		if($this->skin !== null){
+		$this->namedtag->EnderChestInventory = new ListTag("EnderChestInventory", []);
+		if($this->enderChestInventory !== null){
+			for($slot = 0; $slot < $this->enderChestInventory->getSize(); $slot++){
+				if(($item = $this->enderChestInventory->getItem($slot)) instanceof ItemItem){
+					$this->namedtag->EnderChestInventory[$slot] = $item->nbtSerialize($slot);
+				}
+			}
+		}
+
+		if(strlen($this->getSkinData()) > 0){
 			$this->namedtag->Skin = new CompoundTag("Skin", [
-				//TODO: save cape & geometry
-				new StringTag("Data", $this->skin->getSkinData()),
-				new StringTag("Name", $this->skin->getSkinId())
+				new StringTag("Data", $this->getSkinData()),
+				new StringTag("Name", $this->getSkinId())
 			]);
 		}
 	}
 
 	public function spawnTo(Player $player){
-		if($player !== $this){
-			parent::spawnTo($player);
-		}
-	}
+		if($player !== $this and !isset($this->hasSpawned[$player->getLoaderId()])){
+			$this->hasSpawned[$player->getLoaderId()] = $player;
 
-	protected function sendSpawnPacket(Player $player) : void{
-		if(!$this->skin->isValid()){
-			throw new \InvalidStateException((new \ReflectionClass($this))->getShortName() . " must have a valid skin set");
-		}
+			if(!Player::isValidSkin($this->skin)){
+				throw new \InvalidStateException((new \ReflectionClass($this))->getShortName() . " must have a valid skin set");
+			}
 
-		$pk = new AddPlayerPacket();
-		$pk->uuid = $this->getUniqueId();
-		$pk->username = $this->getName();
-		$pk->entityRuntimeId = $this->getId();
-		$pk->position = $this->asVector3();
-		$pk->motion = $this->getMotion();
-		$pk->yaw = $this->yaw;
-		$pk->pitch = $this->pitch;
-		$pk->item = $this->getInventory()->getItemInHand();
-		$pk->metadata = $this->dataProperties;
-		$player->dataPacket($pk);
+			if(!($this instanceof Player)){
+				$this->server->updatePlayerListData($this->getUniqueId(), $this->getId(), $this->getName(), $this->skinId, $this->skin, [$player]);
+			}
 
-		$this->inventory->sendArmorContents($player);
+			$pk = new AddPlayerPacket();
+			$pk->uuid = $this->getUniqueId();
+			$pk->username = $this->getName();
+			$pk->entityRuntimeId = $this->getId();
+			$pk->position = $this->asVector3();
+			$pk->motion = $this->getMotion();
+			$pk->yaw = $this->yaw;
+			$pk->pitch = $this->pitch;
+			$pk->item = $this->getInventory()->getItemInHand();
+			$pk->metadata = $this->dataProperties;
+			$player->dataPacket($pk);
 
-		if(!($this instanceof Player)){
-			$this->sendSkin([$player]);
+			$this->inventory->sendArmorContents($player);
+
+			if(!($this instanceof Player)){
+				$this->server->removePlayerListData($this->getUniqueId(), [$player]);
+			}
 		}
 	}
 
 	public function close(){
 		if(!$this->closed){
 			if($this->inventory !== null){
-				$this->inventory->removeAllViewers(true);
+				foreach($this->inventory->getViewers() as $viewer){
+					$viewer->removeWindow($this->inventory);
+				}
+
 				$this->inventory = null;
 			}
 			parent::close();
