@@ -24,11 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\entity;
 
 use pocketmine\block\Block;
-use pocketmine\entity\AI\EntityAITasks;
-use pocketmine\entity\AI\EntityLookHelper;
-use pocketmine\entity\AI\EntityMoveHelper;
-use pocketmine\entity\AI\EntityJumpHelper;
-use pocketmine\entity\AI\pathfinding\PathNavigateGround;
 use pocketmine\event\entity\EntityDamageByChildEntityEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -55,32 +50,17 @@ abstract class Living extends Entity implements Damageable{
 
 	protected $attackTime = 0;
 
-	protected $invisible = false;
+	/** @var int */
+	protected $maxDeadTicks = 20;
 
-	public $navigator;
-	public $tasks;
-	public $targetTasks;
-	public $lookHelper;
-	public $moveHelper;
-	public $jumpHelper;
-	public $isJumping = false;
-	public $jumpMovementFactor = 0.02;
-	private $jumpTicks = 0;
-	public $moveForward = 0.0;
-	public $moveStrafing = 0.0;
-	public $landMovementFactor;
-	private $attackTarget;
-	private $entityLivingToAttack;
-	private $revengeTimer = -1;
-	private $recentlyHit = 0;
-	private $attackingPlayer = null;
+	protected $invisible = false;
 
 	protected $jumpVelocity = 0.42;
 
 	/** @var Effect[] */
 	protected $effects = [];
 
-	abstract public function getName();
+	abstract public function getName() : string;
 
 	protected function initEntity(){
 		parent::initEntity();
@@ -96,7 +76,7 @@ abstract class Living extends Entity implements Damageable{
 			$this->namedtag->Health = new FloatTag("Health", (float) $this->getMaxHealth());
 		}
 
-		$this->setHealth($this->namedtag["Health"]);
+		$this->setHealth((float) $this->namedtag["Health"]);
 
 		if(isset($this->namedtag->ActiveEffects)){
 			foreach($this->namedtag->ActiveEffects->getValue() as $e){
@@ -126,7 +106,7 @@ abstract class Living extends Entity implements Damageable{
 	public function setHealth(float $amount){
 		$wasAlive = $this->isAlive();
 		parent::setHealth($amount);
-		$this->attributeMap->getAttribute(Attribute::HEALTH)->setValue($this->getHealth(), true);
+		$this->attributeMap->getAttribute(Attribute::HEALTH)->setValue(ceil($this->getHealth()), true);
 		if($this->isAlive() and !$wasAlive){
 			$pk = new EntityEventPacket();
 			$pk->entityRuntimeId = $this->getId();
@@ -174,7 +154,7 @@ abstract class Living extends Entity implements Damageable{
 	}
 
 
-	public function hasLineOfSight(Entity $entity){
+	public function hasLineOfSight(Entity $entity) : bool{
 		//TODO: head height
 		return true;
 		//return $this->getLevel()->rayTraceBlocks(Vector3::createVector($this->x, $this->y + $this->height, $this->z), Vector3::createVector($entity->x, $entity->y + $entity->height, $entity->z)) === null;
@@ -341,7 +321,7 @@ abstract class Living extends Entity implements Damageable{
 	}
 
 	public function fall(float $fallDistance){
-		$damage = floor($fallDistance - 3 - ($this->hasEffect(Effect::JUMP) ? $this->getEffect(Effect::JUMP)->getEffectLevel() : 0));
+		$damage = ceil($fallDistance - 3 - ($this->hasEffect(Effect::JUMP) ? $this->getEffect(Effect::JUMP)->getEffectLevel() : 0));
 		if($damage > 0){
 			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_FALL, $damage);
 			$this->attack($ev);
@@ -385,7 +365,7 @@ abstract class Living extends Entity implements Damageable{
 
 			if($e !== null){
 				if($e->isOnFire() > 0){
-					$this->setOnFire(2 * $this->server->getDifficulty());
+					$this->setOnFire(2 * $this->level->getDifficulty());
 				}
 
 				$deltaX = $this->x - $e->x;
@@ -403,7 +383,8 @@ abstract class Living extends Entity implements Damageable{
 
 		$this->attackTime = 10; //0.5 seconds cooldown
 	}
-	public function knockBack(Entity $attacker, $damage, $x, $z, $base = 0.4){
+
+	public function knockBack(Entity $attacker, float $damage, float $x, float $z, float $base = 0.4){
 		$f = sqrt($x * $x + $z * $z);
 		if($f <= 0){
 			return;
@@ -444,26 +425,8 @@ abstract class Living extends Entity implements Damageable{
 
 	public function entityBaseTick(int $tickDiff = 1) : bool{
 		Timings::$timerLivingEntityBaseTick->startTiming();
-		$this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_BREATHING, !$this->isInsideOfWater());
-		if ($this->jumpTicks > 0){
-			--$this->jumpTicks;
-		}
 
 		$hasUpdate = parent::entityBaseTick($tickDiff);
-
-		if($this->server->entityAIEnabled && !($this instanceof Human)){
-			$this->updateEntityActionState();
-			$this->moveStrafing *= 0.98;
-			$this->moveForward *= 0.98;
-			//$this->moveStrafing  = 0.01;
-			//$this->moveForward = 0.05;
-			$this->moveEntityWithHeading($this->moveStrafing, $this->moveForward);
-			if ($this->recentlyHit > 0){
-				--$this->recentlyHit;
-			}else{
-				$this->attackingPlayer = null;
-			}
-		}
 
 		$this->doEffectsTick($tickDiff);
 
@@ -474,59 +437,15 @@ abstract class Living extends Entity implements Damageable{
 				$this->attack($ev);
 			}
 
-			if(!$this->hasEffect(Effect::WATER_BREATHING) and $this->isInsideOfWater()){
-				if($this instanceof WaterAnimal){
-					$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 400);
-				}else{
-					$hasUpdate = true;
-					$airTicks = $this->getDataProperty(self::DATA_AIR) - $tickDiff;
-					if($airTicks <= -20){
-						$airTicks = 0;
-
-						$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_DROWNING, 2);
-						$this->attack($ev);
-					}
-					$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $airTicks);
+			if(!$this->canBreathe()){
+				if($this->isBreathing()){
+					$this->setBreathing(false);
 				}
-			}else{
-				if($this instanceof WaterAnimal){
-					$hasUpdate = true;
-					$airTicks = $this->getDataProperty(self::DATA_AIR) - $tickDiff;
-					if($airTicks <= -20){
-						$airTicks = 0;
-
-						$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_SUFFOCATION, 2);
-						$this->attack($ev);
-					}
-					$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $airTicks);
-				}else{
-					$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, 400);
-				}
+				$this->doAirSupplyTick($tickDiff);
+			}elseif(!$this->isBreathing()){
+				$this->setBreathing(true);
+				$this->setAirSupplyTicks($this->getMaxAirSupplyTicks());
 			}
-
-            if($this->server->entityAIEnabled){
-                if ($this->isJumping){
-                    if ($this->isInsideOfWater()){
-                        $this->updateAITick();
-                    }else if ($this->isInsideOfLava()){
-                        $this->handleJumpLava();
-                    }else if ($this->onGround && $this->jumpTicks == 0){
-                        $this->doJump();
-                        $this->jumpTicks = 10;
-                    }
- 			    }else{
-                    $this->jumpTicks = 0;
-                }
- 		    }
-		}
-        if($this->server->entityAIEnabled && !($this instanceof Human)){
-            if ($this->entityLivingToAttack != null){
-                if (!$this->entityLivingToAttack->isAlive()){
-                    $this->setRevengeTarget(null);
-                }else if ($this->server->getTick() - $this->revengeTimer > 100){
-                    $this->setRevengeTarget(null);
-                }
- 		    }
 		}
 
 		if($this->attackTime > 0){
@@ -537,89 +456,6 @@ abstract class Living extends Entity implements Damageable{
 
 		return $hasUpdate;
 	}
-	public function moveEntityWithHeading($strafe, $forward){
-		if (!$this->isInsideOfWater() || $this instanceof Player && $this->isFlying()){
-			if (!$this->isInsideOfLava() || $this instanceof Player && $this->isFlying()){
-				$f4 = 0.91;
-				if ($this->onGround){
-					$f4 = 0.6;
-				}
- 				$f = 0.16277136 / ($f4 * $f4 * $f4);
-
-				if ($this->onGround){
-					 $f5 = $this->getAIMoveSpeed() * $f;
-				}else{
- 					$f5 = $this->jumpMovementFactor;
-				}
-
-				$this->moveFlying($strafe, $forward, $f5);
-				$f4 = 0.91;
-				if ($this->onGround){
-					$f4 = 0.6;
-				}
-
-				if ($this->isOnLadder()){
-					$f6 = 0.15;
-					$this->motionX = $this->clamp($this->motionX, -$f6, $f6);
-					$this->motionZ = $this->clamp($this->motionZ, -$f6, $f6);
-					$this->fallDistance = 0.0;
-
-					if ($this->motionY < -0.15){
-						$this->motionY = -0.15;
-					}
-
-					$flag = $this->isSneaking() && $this instanceof Player;
-
-					if ($flag && $this->motionY < 0.0){
-						$this->motionY = 0.0;
-					}
-
-				}
-
- 				$this->move($this->motionX, $this->motionY, $this->motionZ);
-
-				if ($this->isCollidedHorizontally && $this->isOnLadder()){
-					$this->motionY = 0.2;
- 				}
-
-				$this->motionY -= 0.08;
-
- 				$this->motionY *= 0.9800000190734863;
- 				$this->motionX *= $f4;
- 				$this->motionZ *= $f4;
-			}else{
-				$d1 = $this->y;
-				$this->moveFlying($strafe, $forward, 0.02);
-				$this->move($this->motionX, $this->motionY, $this->motionZ);
-				$this->motionX *= 0.5;
-				$this->motionY *= 0.5;
-				$this->motionZ *= 0.5;
-				$this->motionY -= 0.02;
-			}
- 		}else{
-			$d0 = $this->y;
-			$f1 = 0.8;
-			$f2 = 0.02;
-			$f3 = 0;//水中移動のえんちゃんとレベル
-			if ($f3 > 3.0){
-				$f3 = 3.0;
-			}
-    			if (!$this->onGround){
-				$f3 *= 0.5;
-			}
- 			if ($f3 > 0.0){
-				$f1 += (0.54600006 - $f1) * $f3 / 3.0;
-				$f2 += ($this->getAIMoveSpeed() * 1.0 - $f2) * $f3 / 3.0;
-			}
-
-			$this->moveFlying($strafe, $forward, $f2);
- 			$this->move($this->motionX, $this->motionY, $this->motionZ);
- 			$this->motionX *= $f1;
- 			$this->motionY *= 0.800000011920929;
- 			$this->motionZ *= $f1;
- 			$this->motionY -= 0.02;
- 		}
- 	}
 
 	protected function doEffectsTick(int $tickDiff = 1){
 		if(count($this->effects) > 0){
@@ -627,9 +463,12 @@ abstract class Living extends Entity implements Damageable{
 				if($effect->canTick()){
 					$effect->applyEffect($this);
 				}
-				$effect->setDuration($effect->getDuration() - $tickDiff);
-				if($effect->getDuration() <= 0){
+
+				$duration = $effect->getDuration() - $tickDiff;
+				if($duration <= 0){
 					$this->removeEffect($effect->getId());
+				}else{
+					$effect->setDuration($duration);
 				}
 			}
 		}
@@ -639,6 +478,90 @@ abstract class Living extends Entity implements Damageable{
 		if(!$this->hasEffect(Effect::FIRE_RESISTANCE)){
 			parent::dealFireDamage();
 		}
+	}
+
+	/**
+	 * Ticks the entity's air supply when it cannot breathe.
+	 * @param int $tickDiff
+	 */
+	protected function doAirSupplyTick(int $tickDiff){
+		$ticks = $this->getAirSupplyTicks() - $tickDiff;
+
+		if($ticks <= -20){
+			$this->setAirSupplyTicks(0);
+			$this->onAirExpired();
+		}else{
+			$this->setAirSupplyTicks($ticks);
+		}
+	}
+
+	/**
+	 * Returns whether the entity can currently breathe.
+	 * @return bool
+	 */
+	public function canBreathe() : bool{
+		return $this->hasEffect(Effect::WATER_BREATHING) or !$this->isInsideOfWater();
+	}
+
+	/**
+	 * Returns whether the entity is currently breathing or not. If this is false, the entity's air supply will be used.
+	 * @return bool
+	 */
+	public function isBreathing() : bool{
+		return $this->getGenericFlag(self::DATA_FLAG_BREATHING);
+	}
+
+	/**
+	 * Sets whether the entity is currently breathing. If false, it will cause the entity's air supply to be used.
+	 * For players, this also shows the oxygen bar.
+	 *
+	 * @param bool $value
+	 */
+	public function setBreathing(bool $value = true){
+		$this->setGenericFlag(self::DATA_FLAG_BREATHING, $value);
+	}
+
+	/**
+	 * Returns the number of ticks remaining in the entity's air supply. Note that the entity may survive longer than
+	 * this amount of time without damage due to enchantments such as Respiration.
+	 *
+	 * @return int
+	 */
+	public function getAirSupplyTicks() : int{
+		return $this->getDataProperty(self::DATA_AIR);
+	}
+
+	/**
+	 * Sets the number of air ticks left in the entity's air supply.
+	 * @param int $ticks
+	 */
+	public function setAirSupplyTicks(int $ticks){
+		$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $ticks);
+	}
+
+	/**
+	 * Returns the maximum amount of air ticks the entity's air supply can contain.
+	 * @return int
+	 */
+	public function getMaxAirSupplyTicks() : int{
+		return $this->getDataProperty(self::DATA_MAX_AIR);
+	}
+
+	/**
+	 * Sets the maximum amount of air ticks the air supply can hold.
+	 * @param int $ticks
+	 */
+	public function setMaxAirSupplyTicks(int $ticks){
+		$this->setDataProperty(self::DATA_AIR, self::DATA_TYPE_SHORT, $ticks);
+	}
+
+	/**
+	 * Called when the entity's air supply ticks reaches -20 or lower. The entity will usually take damage at this point
+	 * and then the supply is reset to 0, so this method will be called roughly every second.
+	 */
+	public function onAirExpired(){
+		$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_DROWNING, 2);
+		$this->attack($ev);
 	}
 
 	/**
@@ -655,7 +578,7 @@ abstract class Living extends Entity implements Damageable{
 	 *
 	 * @return Block[]
 	 */
-	public function getLineOfSight($maxDistance, $maxLength = 0, array $transparent = []){
+	public function getLineOfSight(int $maxDistance, int $maxLength = 0, array $transparent = []) : array{
 		if($maxDistance > 120){
 			$maxDistance = 120;
 		}
@@ -701,7 +624,7 @@ abstract class Living extends Entity implements Damageable{
 	 *
 	 * @return Block|null
 	 */
-	public function getTargetBlock($maxDistance, array $transparent = []){
+	public function getTargetBlock(int $maxDistance, array $transparent = []){
 		try{
 			$block = $this->getLineOfSight($maxDistance, 1, $transparent)[0];
 			if($block instanceof Block){
@@ -712,123 +635,23 @@ abstract class Living extends Entity implements Damageable{
 
 		return null;
 	}
-	public function updateEntityActionState(){
-		$this->targetTasks->onUpdateTasks();
-		$this->tasks->onUpdateTasks();
-		$this->navigator->onUpdateNavigation();
-		$this->updateAITasks();
-		$this->moveHelper->onUpdateMoveHelper();
-		$this->lookHelper->onUpdateLook();
-		$this->jumpHelper->doJump();
-		$this->updateMovement();
-		return true;
-	}
 
-	public function updateAITasks(){
-	}
+	/**
+	 * Changes the entity's yaw and pitch to make it look at the specified Vector3 position. For mobs, this will cause
+	 * their heads to turn.
+	 *
+	 * @param Vector3 $target
+	 */
+	public function lookAt(Vector3 $target) : void{
+		$horizontal = sqrt(($target->x - $this->x) ** 2 + ($target->z - $this->z) ** 2);
+		$vertical = $target->y - $this->y;
+		$this->pitch = -atan2($vertical, $horizontal) / M_PI * 180; //negative is up, positive is down
 
-	public function updateAITick(){
-		$this->motionY += 0.03999999910593033;
-	}
-	protected function getJumpUpwardsMotion(){
-		return 0.42;
-	}
-
-	protected function handleJumpLava(){
-		$this->motionY += 0.03999999910593033;
-	}
-
-	protected function doJump(){
-		$this->motionY = $this->getJumpUpwardsMotion();
-
-		//if (this.isPotionActive(Potion.jump)){
-		//	this.motionY += (double)((float)(this.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F);
-		//}
-
-		if ($this->isSprinting()){
-			$f = $this->yaw * 0.017453292;
-			$this->motionX -= sin($f) * 0.2;
-			$this->motionZ += cos($f) * 0.2;
+		$xDist = $target->x - $this->x;
+		$zDist = $target->z - $this->z;
+		$this->yaw = atan2($zDist, $xDist) / M_PI * 180 - 90;
+		if($this->yaw < 0){
+			$this->yaw += 360.0;
 		}
-	}
-
-	public function setJumping($jumping){
-		$this->isJumping = $jumping;
-	}
-
-	public function getMaxFallHeight() : float{
-		if ($this->getAttackTarget() == null){
-			return 3;
-		}else{
-			$i = $this->getHealth() - $this->getMaxHealth() * 0.33;
-			$i = $i - (3 - 1) * 4;
-
-			if ($i < 0){
-				$i = 0;
-			}
-
-			return $i + 3;
-		}
-	}
-
-	public function getVerticalFaceSpeed(){
-		return 40;
-	}
-
-	public function setMoveForward($forward){
-		$this->moveForward = $forward;
-	}
-
-	public function getAIMoveSpeed(){
-		return $this->landMovementFactor;
-	}
-
-    public function setAIMoveSpeed($speedIn){
-        $this->landMovementFactor = $speedIn;
-        $this->setMoveForward($speedIn);
-    }
-
-	public function getNewNavigator($worldIn){
-		return new PathNavigateGround($this, $worldIn);
-	}
-
-	public function getNavigator(){
-		return $this->navigator;
-	}
-
-	public function getAITarget(){
-		return $this->entityLivingToAttack;
-	}
-
-	public function getRevengeTimer(){
-		return $this->revengeTimer;
-	}
-
-	public function setRevengeTarget($livingBase){
-		$this->entityLivingToAttack = $livingBase;
-		$this->revengeTimer = $this->server->getTick();
-	}
-
-	public function getAttackTarget(){
-		return $this->attackTarget;
-	}
-
-	public function setAttackTarget($entitylivingbaseIn){
-		$this->attackTarget = $entitylivingbaseIn;
-	}
-
-	public function getMoveHelper(){
-	        return $this->moveHelper;
-	}
-
-	public function getLookHelper(){
-		return $this->lookHelper;
-	}
-
-	public function getJumpHelper(){
-		return $this->jumpHelper;
-	}
-	public function clamp($num, $min, $max){
-		return $num < $min ? $min : ($num > $max ? $max : $num);
 	}
 }
