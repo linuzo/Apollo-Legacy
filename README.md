@@ -1,5 +1,7 @@
 ![Apollo](http://i.imgur.com/KBlbnkp.png)
 
+# we are rebuilding it soon so stay tuned
+
 
 Apollo is a Minecraft: PE Server Software with an improved Generator and a lot more features. 
 
