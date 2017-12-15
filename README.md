@@ -20,7 +20,7 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 ## Cradits
 
-[![darksystem](https://github.com/DarkSystem-PE/DarkSystem)
+[darksystem](https://github.com/DarkSystem-PE/DarkSystem)
 
 PmmP
 
