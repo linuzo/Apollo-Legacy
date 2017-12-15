@@ -106,7 +106,7 @@ use pocketmine\level\generator\ender\Ender;
 use pocketmine\level\generator\normal\Normal;
 use pocketmine\level\generator\normal\Normal2;
 use pocketmine\level\generator\Generator;
-use pocketmine\level\generator\Void;
+//use pocketmine\level\generator\Void;
 use pocketmine\level\generator\Flat;
 use pocketmine\entity\animal\walking\{Chicken, Cow, Mooshroom, Ocelot, Pig, Rabbit, Sheep};
 use pocketmine\entity\monster\flying\{Blaze, Ghast};
@@ -1769,7 +1769,7 @@ class Server extends DarkSystem{
 			Generator::addGenerator(Normal::class, "normal");
 			Generator::addGenerator(Normal::class, "default");
 			Generator::addGenerator(Normal2::class, "normal2");
-			Generator::addGenerator(Void::class, "void");
+			//Generator::addGenerator(Void::class, "void");
 			Generator::addGenerator(Nether::class, "hell");
 			Generator::addGenerator(Nether::class, "nether");
 			Generator::addGenerator(Ender::class, "ender");
