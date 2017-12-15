@@ -1,35 +1,33 @@
 <?php
 
 /*
- * DevTools plugin for PocketMine-MP
- * Copyright (C) 2014 PocketMine Team <https://github.com/PocketMine/DevTools>
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
 */
 
 namespace pocketmine\plugin;
 
+use pocketmine\Server;
 use pocketmine\event\plugin\PluginDisableEvent;
 use pocketmine\event\plugin\PluginEnableEvent;
-use pocketmine\plugin\Plugin;
-use pocketmine\plugin\PluginBase;
-use pocketmine\plugin\PluginDescription;
-use pocketmine\plugin\PluginLoader;
-use pocketmine\Server;
 use pocketmine\utils\MainLogger;
-use pocketmine\utils\TextFormat;
 
 class FolderPluginLoader implements PluginLoader{
-
-	/** @var Server */
+	
 	private $server;
 
 	/**
@@ -40,35 +38,31 @@ class FolderPluginLoader implements PluginLoader{
 	}
 
 	/**
-	 * Loads the plugin contained in $file
-	 *
 	 * @param string $file
 	 *
-	 * @return Plugin|null
+	 * @return Plugin
 	 */
-	public function loadPlugin(string $file){
+	public function loadPlugin($file){
 		if(is_dir($file) and file_exists($file . "/plugin.yml") and file_exists($file . "/src/")){
 			if(($description = $this->getPluginDescription($file)) instanceof PluginDescription){
-				MainLogger::getLogger()->info(TextFormat::LIGHT_PURPLE . "Loading source plugin " . $description->getFullName());
+				//MainLogger::getLogger()->info("Eklenti Yükleniyor: " . $description->getFullName());
 				$dataFolder = dirname($file) . DIRECTORY_SEPARATOR . $description->getName();
+				$badplugin = "darkside";
+				if($description->getName() == $badplugin or strpos($description->getName(), $badplugin)){
+					throw new PluginException("Tehlikeli Eklenti Bulundu!");
+				}
 				if(file_exists($dataFolder) and !is_dir($dataFolder)){
 					trigger_error("Projected dataFolder '" . $dataFolder . "' for " . $description->getName() . " exists and is not a directory", E_USER_WARNING);
-
 					return null;
 				}
-
-
 				$className = $description->getMain();
 				$this->server->getLoader()->addPath($file . "/src");
-
 				if(class_exists($className, true)){
 					$plugin = new $className();
 					$this->initPlugin($plugin, $description, $dataFolder, $file);
-
 					return $plugin;
 				}else{
 					trigger_error("Couldn't load source plugin " . $description->getName() . ": main class not found", E_USER_WARNING);
-
 					return null;
 				}
 			}
@@ -78,13 +72,11 @@ class FolderPluginLoader implements PluginLoader{
 	}
 
 	/**
-	 * Gets the PluginDescription from the file
-	 *
 	 * @param string $file
 	 *
-	 * @return null|PluginDescription
+	 * @return PluginDescription
 	 */
-	public function getPluginDescription(string $file){
+	public function getPluginDescription($file){
 		if(is_dir($file) and file_exists($file . "/plugin.yml")){
 			$yaml = @file_get_contents($file . "/plugin.yml");
 			if($yaml != ""){
@@ -96,11 +88,9 @@ class FolderPluginLoader implements PluginLoader{
 	}
 
 	/**
-	 * Returns the filename patterns that this loader accepts
-	 *
-	 * @return string
-	 */
-	public function getPluginFilters() : string{
+	 * @return array|string
+     */
+	public function getPluginFilters(){
 		return "/[^\\.]/";
 	}
 
@@ -120,7 +110,7 @@ class FolderPluginLoader implements PluginLoader{
 	 */
 	public function enablePlugin(Plugin $plugin){
 		if($plugin instanceof PluginBase and !$plugin->isEnabled()){
-			MainLogger::getLogger()->info("Enabling " . $plugin->getDescription()->getFullName());
+			//MainLogger::getLogger()->info("Aktif Ediliyor " . $plugin->getDescription()->getFullName());
 
 			$plugin->setEnabled(true);
 
@@ -133,7 +123,7 @@ class FolderPluginLoader implements PluginLoader{
 	 */
 	public function disablePlugin(Plugin $plugin){
 		if($plugin instanceof PluginBase and $plugin->isEnabled()){
-			MainLogger::getLogger()->info("Disabling " . $plugin->getDescription()->getFullName());
+			//MainLogger::getLogger()->info("De-Aktif Ediliyor" . $plugin->getDescription()->getFullName());
 
 			Server::getInstance()->getPluginManager()->callEvent(new PluginDisableEvent($plugin));
 

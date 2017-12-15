@@ -14,12 +14,10 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 namespace pocketmine\event\block;
 
@@ -28,89 +26,50 @@ use pocketmine\event\Cancellable;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
-/**
- * Called when a player destroys a block somewhere in the world.
- */
 class BlockBreakEvent extends BlockEvent implements Cancellable{
+	
 	public static $handlerList = null;
 
-	/** @var Player */
+	/** @var \pocketmine\Player */
 	protected $player;
 
-	/** @var Item */
+	/** @var \pocketmine\item\Item */
 	protected $item;
 
 	/** @var bool */
 	protected $instaBreak = false;
-	/** @var Item[] */
-	protected $blockDrops = [];
+	protected $drop = [];
 
-	public function __construct(Player $player, Block $block, Item $item, bool $instaBreak = false){
-		parent::__construct($block);
+	public function __construct(Player $player, Block $block, Item $item, $instaBreak = false, $drop = []){
+		$this->block = $block;
 		$this->item = $item;
 		$this->player = $player;
-
-		$this->instaBreak = $instaBreak;
-
-		if($player->isSurvival()){
-			$this->setDrops($block->getDrops($item));
-		}
+		$this->instaBreak = (bool) $instaBreak;
+		$this->drop = $drop;
 	}
 
-	/**
-	 * Returns the player who is destroying the block.
-	 * @return Player
-	 */
-	public function getPlayer() : Player{
+	public function getPlayer(){
 		return $this->player;
 	}
 
-	/**
-	 * Returns the item used to destroy the block.
-	 * @return Item
-	 */
-	public function getItem() : Item{
+	public function getItem(){
 		return $this->item;
 	}
 
-	/**
-	 * Returns whether the block may be broken in less than the amount of time calculated. This is usually true for
-	 * creative players.
-	 *
-	 * @return bool
-	 */
-	public function getInstaBreak() : bool{
+	public function getInstaBreak(){
 		return $this->instaBreak;
 	}
-
-	/**
-	 * @param bool $instaBreak
-	 */
-	public function setInstaBreak(bool $instaBreak){
-		$this->instaBreak = $instaBreak;
+	
+	public function setInstaBreak($instaBreak){
+		$this->instaBreak = (bool) $instaBreak;
 	}
-
-
-	/**
-	 * @return Item[]
-	 */
-	public function getDrops() : array{
-		return $this->blockDrops;
+	
+	public function getDrops(){
+		return $this->drop;
 	}
-
-	/**
-	 * @param Item[] $drops
-	 */
-	public function setDrops(array $drops){
-		$this->setDropsVariadic(...$drops);
+	
+	public function setDrops($drop = []){
+		$this->drop = $drop;
 	}
-
-	/**
-	 * Variadic hack for easy array member type enforcement.
-	 *
-	 * @param Item[] ...$drops
-	 */
-	public function setDropsVariadic(Item ...$drops){
-		$this->blockDrops = $drops;
-	}
+	
 }

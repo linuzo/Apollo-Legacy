@@ -19,11 +19,7 @@
  *
 */
 
-/**
- * Different noise generators for level generation
- */
 namespace pocketmine\level\generator\noise;
-
 
 abstract class Noise{
 	protected $perm = [];

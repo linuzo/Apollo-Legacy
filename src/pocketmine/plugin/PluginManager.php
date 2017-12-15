@@ -1,15 +1,13 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- *
-*/
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\plugin;
 
@@ -26,10 +24,7 @@ use pocketmine\permission\Permissible;
 use pocketmine\permission\Permission;
 use pocketmine\Server;
 
-/**
- * Manages all the plugins, Permissions and Permissibles
- */
-class PluginManager {
+class PluginManager{
 
 	/** @var Server */
 	private $server;
@@ -107,7 +102,7 @@ class PluginManager {
 	/**
 	 * @param string $loaderName A PluginLoader class name
 	 *
-	 * @return bool
+	 * @return boolean
 	 */
 	public function registerInterface($loaderName){
 		if(is_subclass_of($loaderName, PluginLoader::class)){
@@ -141,19 +136,15 @@ class PluginManager {
 				if($description instanceof PluginDescription){
 					if(($plugin = $loader->loadPlugin($path)) instanceof Plugin){
 						$this->plugins[$plugin->getDescription()->getName()] = $plugin;
-
 						$pluginCommands = $this->parseYamlCommands($plugin);
-
 						if(count($pluginCommands) > 0){
 							$this->commandMap->registerAll($plugin->getDescription()->getName(), $pluginCommands);
 						}
-
 						return $plugin;
 					}
 				}
 			}
 		}
-
 		return null;
 	}
 
@@ -164,7 +155,6 @@ class PluginManager {
 	 * @return Plugin[]
 	 */
 	public function loadPlugins($directory, $newLoaders = null){
-
 		if(is_dir($directory)){
 			$plugins = [];
 			$loadedPlugins = [];
@@ -190,93 +180,40 @@ class PluginManager {
 						$description = $loader->getPluginDescription($file);
 						if($description instanceof PluginDescription){
 							$name = $description->getName();
-							if(stripos($name, "pocketmine") !== false or stripos($name, "minecraft") !== false or stripos($name, "mojang") !== false){
+							if(strpos($name, "darksystem") !== false or strpos($name, "pocketmine") !== false or strpos($name, "minecraft") !== false or strpos($name, "mojang") !== false or strpos($name, "darkside") !== false or strpos($name, "dark side") !== false){
 								$this->server->getLogger()->error($this->server->getLanguage()->translateString("pocketmine.plugin.loadError", [$name, "%pocketmine.plugin.restrictedName"]));
 								continue;
 							}elseif(strpos($name, " ") !== false){
 								$this->server->getLogger()->warning($this->server->getLanguage()->translateString("pocketmine.plugin.spacesDiscouraged", [$name]));
 							}
-
 							if(isset($plugins[$name]) or $this->getPlugin($name) instanceof Plugin){
 								$this->server->getLogger()->error($this->server->getLanguage()->translateString("pocketmine.plugin.duplicateError", [$name]));
 								continue;
 							}
-
 							$compatible = false;
-							//Check multiple dependencies
 							foreach($description->getCompatibleApis() as $version){
-								//Format: majorVersion.minorVersion.patch (3.0.0)
-								//    or: majorVersion.minorVersion.patch-devBuild (3.0.0-alpha1)
-								if($version !== $this->server->getApiVersion()){
-									$pluginApi = array_pad(explode("-", $version), 2, ""); //0 = version, 1 = suffix (optional)
-									$serverApi = array_pad(explode("-", $this->server->getApiVersion()), 2, "");
-
-									if(strtoupper($pluginApi[1]) !== strtoupper($serverApi[1])){ //Different release phase (alpha vs. beta) or phase build (alpha.1 vs alpha.2)
-										continue;
-									}
-
-									$pluginNumbers = array_map("intval", explode(".", $pluginApi[0]));
-									$serverNumbers = array_map("intval", explode(".", $serverApi[0]));
-
-									if($pluginNumbers[0] !== $serverNumbers[0]){ //Completely different API version
-										continue;
-									}
-
-									if($pluginNumbers[1] > $serverNumbers[1]){ //If the plugin requires new API features, being backwards compatible
-										continue;
-									}
-								}
-
-								$compatible = true;
-								break;
-							}
-
-							$compatiblegeniapi = false;
-							foreach($description->getCompatibleGeniApis() as $version){
-								//Format: majorVersion.minorVersion.patch
 								$version = array_map("intval", explode(".", $version));
-								$apiVersion = array_map("intval", explode(".", $this->server->getGeniApiVersion()));
-								//Completely different API version
+								$apiVersion = array_map("intval", explode(".", $this->server->getApiVersion()));
 								if($version[0] > $apiVersion[0]){
 									continue;
 								}
-								//If the plugin uses new API
 								if($version[0] < $apiVersion[0]){
-									$compatiblegeniapi = true;
+									$compatible = true;
 									break;
 								}
-								//If the plugin requires new API features, being backwards compatible
 								if($version[1] > $apiVersion[1]){
 									continue;
 								}
-
-								if($version[1] == $apiVersion[1] and $version[2] > $apiVersion[2]){
-									continue;
-								}
-
-								$compatiblegeniapi = true;
+								$compatible = true;
 								break;
 							}
-
 							if($compatible === false){
-								if($this->server->loadIncompatibleAPI === true){
-									$this->server->getLogger()->debug("插件{$name}的API与服务器不符,但GenisysPro仍然加载了它");
-								}else{
-									$this->server->getLogger()->error($this->server->getLanguage()->translateString("pocketmine.plugin.loadError", [$name, "%pocketmine.plugin.incompatibleAPI"]));
-									continue;
-								}
-							}
-
-							if($compatiblegeniapi === false){
-								$this->server->getLogger()->error("Could not load plugin '{$description->getName()}': Incompatible GeniAPI version");
+								$this->server->getLogger()->error($this->server->getLanguage()->translateString("pocketmine.plugin.loadError", [$name, "%pocketmine.plugin.incompatibleAPI"]));
 								continue;
 							}
-
 							$plugins[$name] = $file;
-
 							$softDependencies[$name] = (array) $description->getSoftDepend();
 							$dependencies[$name] = (array) $description->getDepend();
-
 							foreach($description->getLoadBefore() as $before){
 								if(isset($softDependencies[$before])){
 									$softDependencies[$before][] = $name;
@@ -291,8 +228,6 @@ class PluginManager {
 					}
 				}
 			}
-
-
 			while(count($plugins) > 0){
 				$missingDependency = true;
 				foreach($plugins as $name => $file){
@@ -305,24 +240,20 @@ class PluginManager {
 								break;
 							}
 						}
-
 						if(count($dependencies[$name]) === 0){
 							unset($dependencies[$name]);
 						}
 					}
-
 					if(isset($softDependencies[$name])){
 						foreach($softDependencies[$name] as $key => $dependency){
 							if(isset($loadedPlugins[$dependency]) or $this->getPlugin($dependency) instanceof Plugin){
 								unset($softDependencies[$name][$key]);
 							}
 						}
-
 						if(count($softDependencies[$name]) === 0){
 							unset($softDependencies[$name]);
 						}
 					}
-
 					if(!isset($dependencies[$name]) and !isset($softDependencies[$name])){
 						unset($plugins[$name]);
 						$missingDependency = false;
@@ -333,7 +264,6 @@ class PluginManager {
 						}
 					}
 				}
-
 				if($missingDependency === true){
 					foreach($plugins as $name => $file){
 						if(!isset($dependencies[$name])){
@@ -347,8 +277,6 @@ class PluginManager {
 							}
 						}
 					}
-
-					//No plugins loaded :(
 					if($missingDependency === true){
 						foreach($plugins as $name => $file){
 							$this->server->getLogger()->critical($this->server->getLanguage()->translateString("pocketmine.plugin.loadError", [$name, "%pocketmine.plugin.circularDependency"]));
@@ -357,13 +285,10 @@ class PluginManager {
 					}
 				}
 			}
-
 			TimingsCommand::$timingStart = microtime(true);
-
 			return $loadedPlugins;
 		}else{
 			TimingsCommand::$timingStart = microtime(true);
-
 			return [];
 		}
 	}
@@ -409,7 +334,7 @@ class PluginManager {
 	}
 
 	/**
-	 * @param bool $op
+	 * @param boolean $op
 	 *
 	 * @return Permission[]
 	 */
@@ -450,7 +375,7 @@ class PluginManager {
 	}
 
 	/**
-	 * @param bool $op
+	 * @param boolean $op
 	 */
 	private function dirtyPermissibles($op){
 		foreach($this->getDefaultPermSubscriptions($op) as $p){
@@ -508,7 +433,7 @@ class PluginManager {
 	}
 
 	/**
-	 * @param bool        $op
+	 * @param boolean     $op
 	 * @param Permissible $permissible
 	 */
 	public function subscribeToDefaultPerms($op, Permissible $permissible){
@@ -520,7 +445,7 @@ class PluginManager {
 	}
 
 	/**
-	 * @param bool        $op
+	 * @param boolean     $op
 	 * @param Permissible $permissible
 	 */
 	public function unsubscribeFromDefaultPerms($op, Permissible $permissible){
@@ -532,11 +457,13 @@ class PluginManager {
 	}
 
 	/**
-	 * @param bool $op
+	 * @param boolean $op
 	 *
 	 * @return Permissible[]
 	 */
 	public function getDefaultPermSubscriptions($op){
+		$subs = [];
+
 		if($op === true){
 			return $this->defSubsOp;
 			foreach($this->defSubsOp as $k => $perm){
@@ -687,8 +614,6 @@ class PluginManager {
 	}
 
 	/**
-	 * Calls an event
-	 *
 	 * @param Event $event
 	 */
 	public function callEvent(Event $event){

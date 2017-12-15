@@ -1,55 +1,61 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
+use pocketmine\item\enchantment\Enchantment;
 
-class RedMushroomBlock extends Solid{
+class RedMushroomBlock extends Solid
+{
+    const RED = 14;
+    const STEM = 10;
 
-	protected $id = Block::RED_MUSHROOM_BLOCK;
+    protected $id = self::RED_MUSHROOM_BLOCK;
 
-	public function __construct(int $meta = 0){
-		$this->meta = $meta;
-	}
+    public function __construct($meta = 14)
+    {
+        $this->meta = $meta;
+    }
 
-	public function getName() : string{
-		return "Red Mushroom Block";
-	}
+    public function canBeActivated()
+    {
+        return true;
+    }
 
-	public function getHardness() : float{
-		return 0.2;
-	}
+    public function getName()
+    {
+        return "Red Mushroom Block";
+    }
 
-	public function getToolType() : int{
-		return Tool::TYPE_AXE;
-	}
+    public function getHardness()
+    {
+        return 0.2;
+    }
 
-	public function getDrops(Item $item) : array{
-		return [
-			Item::get(Item::RED_MUSHROOM, 0, mt_rand(0, 2))
-		];
-	}
+    public function getResistance()
+    {
+        return 1;
+    }
 
+    public function getDrops(Item $item)
+    {
+        if($item->getEnchantmentLevel(Enchantment::TYPE_MINING_SILK_TOUCH) > 0){
+            return [
+                [Item::RED_MUSHROOM_BLOCK, SELF::RED, 1],
+            ];
+        }else{
+            return [
+                [Item::RED_MUSHROOM, 0, mt_rand(0, 2)],
+            ];
+        }
+    }
 }

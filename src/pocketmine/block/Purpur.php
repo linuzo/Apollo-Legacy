@@ -1,47 +1,57 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\block;
 
-class Purpur extends Quartz{
+use pocketmine\item\Item;
+use pocketmine\item\Tool;
 
-	protected $id = self::PURPUR_BLOCK;
+class Purpur extends Solid
+{
 
-	public function getName() : string{
-		static $names = [
-			self::NORMAL => "Purpur Block",
-			self::CHISELED => "Chiseled Purpur", //wtf?
-			self::PILLAR => "Purpur Pillar"
-		];
+    protected $id = self::PURPUR;
 
-		return $names[$this->getVariant()] ?? "Unknown";
-	}
+    public function __construct($meta = 0)
+    {
+        $this->meta = $meta;
+    }
 
-	public function getHardness() : float{
-		return 1.5;
-	}
+    public function getHardness()
+    {
+        return 1.5;
+    }
 
-	public function getBlastResistance() : float{
-		return 30;
-	}
+    public function getToolType()
+    {
+        return Tool::TYPE_PICKAXE;
+    }
+
+    public function getName()
+    {
+        static $names = [
+            0 => "Purpur Block",
+            2 => "Purpur Pillar",
+        ];
+
+        return $names[$this->meta & 0x0f] ?? "Purpur Block";
+    }
+
+    public function getDrops(Item $item)
+    {
+        if($item->isPickaxe() >= Tool::TIER_WOODEN){
+            return [
+                [$this->id, $this->meta & 0x0f, 1],
+            ];
+        } else {
+            return [];
+        }
+    }
 }

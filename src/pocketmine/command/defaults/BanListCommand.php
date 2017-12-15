@@ -1,36 +1,23 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
-use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\event\TranslationContainer;
-use pocketmine\permission\BanEntry;
+use pocketmine\Server;
 
 class BanListCommand extends VanillaCommand{
 
-	public function __construct(string $name){
+	public function __construct($name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.banlist.description",
@@ -39,38 +26,40 @@ class BanListCommand extends VanillaCommand{
 		$this->setPermission("pocketmine.command.ban.list");
 	}
 
-	public function execute(CommandSender $sender, string $commandLabel, array $args){
+	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
-
-		if(isset($args[0])){
-			$args[0] = strtolower($args[0]);
-			if($args[0] === "ips"){
-				$list = $sender->getServer()->getIPBans();
-			}elseif($args[0] === "players"){
+		
+		$args[0] = (isset($args[0]) ? strtolower($args[0]): "");
+		$title = "";
+		
+		switch($args[0]){
+			case "ips":
+				$list = $sender->getServer()->getIPBans();	
+				$title = "commands.banlist.ips";
+				break;
+			case "cids":
+				$list = $list = $sender->getServer()->getCIDBans(); 
+				$title = "commands.banlist.cids";
+				break;
+			case "players":
 				$list = $sender->getServer()->getNameBans();
-			}else{
-				throw new InvalidCommandSyntaxException();
-			}
-		}else{
-			$list = $sender->getServer()->getNameBans();
-			$args[0] = "players";
+				$title = "commands.banlist.players";
+				break;
+				default;
+				$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
+				return false;			
 		}
-
+		
+		$message = "";
 		$list = $list->getEntries();
-		$message = implode(", ", array_map(function(BanEntry $entry){
-			return $entry->getName();
-		}, $list));
-
-		if($args[0] === "ips"){
-			$sender->sendMessage(new TranslationContainer("commands.banlist.ips", [count($list)]));
-		}else{
-			$sender->sendMessage(new TranslationContainer("commands.banlist.players", [count($list)]));
+		foreach($list as $entry){
+			$message .= $entry->getName() . ", ";
 		}
-
-		$sender->sendMessage($message);
-
+		
+		$sender->sendMessage(Server::getInstance()->getLanguage()->translateString($title, [count($list)]));
+		$sender->sendMessage(\substr($message, 0, -2));
 		return true;
 	}
 }

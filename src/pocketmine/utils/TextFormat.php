@@ -1,95 +1,85 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\utils;
 
-/**
- * Class used to handle Minecraft chat format, and convert it to other formats like ANSI or HTML
- */
 abstract class TextFormat{
+	
 	const ESCAPE = "\xc2\xa7"; //§
 
-	const BLACK = TextFormat::ESCAPE . "0";
-	const DARK_BLUE = TextFormat::ESCAPE . "1";
-	const DARK_GREEN = TextFormat::ESCAPE . "2";
-	const DARK_AQUA = TextFormat::ESCAPE . "3";
-	const DARK_RED = TextFormat::ESCAPE . "4";
-	const DARK_PURPLE = TextFormat::ESCAPE . "5";
-	const GOLD = TextFormat::ESCAPE . "6";
-	const GRAY = TextFormat::ESCAPE . "7";
-	const DARK_GRAY = TextFormat::ESCAPE . "8";
-	const BLUE = TextFormat::ESCAPE . "9";
-	const GREEN = TextFormat::ESCAPE . "a";
-	const AQUA = TextFormat::ESCAPE . "b";
-	const RED = TextFormat::ESCAPE . "c";
-	const LIGHT_PURPLE = TextFormat::ESCAPE . "d";
-	const YELLOW = TextFormat::ESCAPE . "e";
-	const WHITE = TextFormat::ESCAPE . "f";
+	const BLACK = "§0";
+	const DARK_BLUE = "§1";
+	const DARK_GREEN = "§2";
+	const DARK_AQUA = "§3";
+	const DARK_RED = "§4";
+	const DARK_PURPLE = "§5";
+	const GOLD = "§6";
+	const GRAY = "§7";
+	const DARK_GRAY = "§8";
+	const BLUE = "§9";
+	const GREEN = "§a";
+	const AQUA = "§b";
+	const RED = "§c";
+	const LIGHT_PURPLE = "§d";
+	const PINK = "§d";
+	const YELLOW = "§e";
+	const WHITE = "§f";
 
-	const OBFUSCATED = TextFormat::ESCAPE . "k";
-	const BOLD = TextFormat::ESCAPE . "l";
-	const STRIKETHROUGH = TextFormat::ESCAPE . "m";
-	const UNDERLINE = TextFormat::ESCAPE . "n";
-	const ITALIC = TextFormat::ESCAPE . "o";
-	const RESET = TextFormat::ESCAPE . "r";
-
+	const OBFUSCATED = "§k";
+	const BOLD = "§l";
+	const STRIKETHROUGH = "§m";
+	const UNDERLINE = "§n";
+	const ITALIC = "§o";
+	const RESET = "§r";
+	const CLEAN = "§r";
+	
+	const SPACE = " ";
+	const DOUBLE_SPACE = "  ";
+	const NEW_LINE = "\n";
+	const SPACE_NEW_LINE = " \n";
+	const DOUBLE_SPACE_NEW_LINE = "  \n";
+	
 	/**
-	 * Splits the string by Format tokens
-	 *
 	 * @param string $string
 	 *
 	 * @return array
 	 */
-	public static function tokenize(string $string) : array{
-		return preg_split("/(" . TextFormat::ESCAPE . "[0123456789abcdefklmnor])/", $string, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+	public static function tokenize($string){
+		return preg_split("/(§[0123456789abcdefklmnor])/", $string, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 	}
 
 	/**
-	 * Cleans the string from Minecraft codes and ANSI Escape Codes
-	 *
 	 * @param string $string
 	 * @param bool   $removeFormat
 	 *
-	 * @return string
+	 * @return mixed
 	 */
-	public static function clean(string $string, bool $removeFormat = true) : string{
+	public static function clean($string, $removeFormat = true){
 		if($removeFormat){
-			return str_replace(TextFormat::ESCAPE, "", preg_replace(["/" . TextFormat::ESCAPE . "[0123456789abcdefklmnor]/", "/\x1b[\\(\\][[0-9;\\[\\(]+[Bm]/"], "", $string));
+			return str_replace("§", "", preg_replace(["/§[0123456789abcdefklmnor]/", "/\x1b[\\(\\][[0-9;\\[\\(]+[Bm]/"], "", $string));
 		}
+		
 		return str_replace("\x1b", "", preg_replace("/\x1b[\\(\\][[0-9;\\[\\(]+[Bm]/", "", $string));
 	}
 
 	/**
-	 * Returns an JSON-formatted string with colors/markup
-	 *
 	 * @param string|array $string
 	 *
 	 * @return string
 	 */
-	public static function toJSON($string) : string{
+	public static function toJSON($string){
 		if(!is_array($string)){
-			$string = self::tokenize($string);
+			$string = TextFormat::tokenize($string);
 		}
+		
 		$newString = [];
 		$pointer =& $newString;
 		$color = "white";
@@ -184,8 +174,7 @@ abstract class TextFormat{
 						$obfuscated = false;
 					}
 					break;
-
-				//Colors
+					
 				case TextFormat::BLACK:
 					$pointer["color"] = "black";
 					$color = "black";
@@ -264,19 +253,17 @@ abstract class TextFormat{
 			}
 		}
 
-		return json_encode($newString, JSON_UNESCAPED_SLASHES);
+		return \json_encode($newString, JSON_UNESCAPED_SLASHES);
 	}
 
 	/**
-	 * Returns an HTML-formatted string with colors/markup
-	 *
 	 * @param string|array $string
 	 *
 	 * @return string
 	 */
-	public static function toHTML($string) : string{
+	public static function toHTML($string){
 		if(!is_array($string)){
-			$string = self::tokenize($string);
+			$string = TextFormat::tokenize($string);
 		}
 		$newString = "";
 		$tokens = 0;
@@ -306,8 +293,7 @@ abstract class TextFormat{
 					$newString .= str_repeat("</span>", $tokens);
 					$tokens = 0;
 					break;
-
-				//Colors
+					
 				case TextFormat::BLACK:
 					$newString .= "<span style=color:#000>";
 					++$tokens;
@@ -384,15 +370,13 @@ abstract class TextFormat{
 	}
 
 	/**
-	 * Returns a string with colorized ANSI Escape codes
-	 *
-	 * @param string|array $string
+	 * @param $string
 	 *
 	 * @return string
 	 */
-	public static function toANSI($string) : string{
+	public static function toANSI($string){
 		if(!is_array($string)){
-			$string = self::tokenize($string);
+			$string = TextFormat::tokenize($string);
 		}
 
 		$newString = "";
@@ -416,8 +400,7 @@ abstract class TextFormat{
 				case TextFormat::RESET:
 					$newString .= Terminal::$FORMAT_RESET;
 					break;
-
-				//Colors
+					
 				case TextFormat::BLACK:
 					$newString .= Terminal::$COLOR_BLACK;
 					break;
@@ -474,5 +457,5 @@ abstract class TextFormat{
 
 		return $newString;
 	}
-
+	
 }

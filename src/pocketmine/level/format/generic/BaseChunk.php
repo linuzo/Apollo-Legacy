@@ -1,50 +1,26 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\level\format\generic;
 
 use pocketmine\level\format\Chunk;
 use pocketmine\level\format\ChunkSection;
 use pocketmine\level\format\LevelProvider;
-use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\utils\Binary;
 use pocketmine\utils\ChunkException;
 
 abstract class BaseChunk extends BaseFullChunk implements Chunk{
-
-	/** @var ChunkSection[] */
+	
 	protected $sections = [];
-
-	/**
-	 * @param LevelProvider  $provider
-	 * @param int            $x
-	 * @param int            $z
-	 * @param ChunkSection[] $sections
-	 * @param int[]          $biomeColors
-	 * @param int[]          $heightMap
-	 * @param CompoundTag[]     $entities
-	 * @param CompoundTag[]     $tiles
-	 *
-	 * @throws ChunkException
-	 */
+	
 	protected function __construct($provider, $x, $z, array $sections, array $biomeColors = [], array $heightMap = [], array $entities = [], array $tiles = []){
 		$this->provider = $provider;
 		$this->x = (int) $x;
@@ -56,7 +32,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 				throw new ChunkException("Received invalid ChunkSection instance");
 			}
 
-			if($Y >= self::SECTION_COUNT){
+			if($Y >= static::SECTION_COUNT){
 				throw new ChunkException("Invalid amount of chunks");
 			}
 		}
@@ -64,13 +40,14 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 		if(count($biomeColors) === 256){
 			$this->biomeColors = $biomeColors;
 		}else{
-			$this->biomeColors = array_fill(0, 256, Binary::readInt("\xff\x00\x00\x00"));
+			$this->biomeColors = array_fill(0, 256, Binary::readInt("\x00\x85\xb2\x4a"));
 		}
 
 		if(count($heightMap) === 256){
 			$this->heightMap = $heightMap;
 		}else{
-			$this->heightMap = array_fill(0, 256, 127);
+			$this->heightMap = array_fill(0, 256, $provider::getMaxY() - 1);
+			$this->incorrectHeightMap = true;
 		}
 
 		$this->NBTtiles = $tiles;
@@ -84,7 +61,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 	}
 
 	public function getFullBlock($x, $y, $z){
-		return isset($this->sections[$y >> 4]) ? $this->sections[$y >> 4]->getFullBlock($x, $y & 0x0f, $z) : 0;
+		return $this->sections[$y >> 4]->getFullBlock($x, $y & 0x0f, $z);
 	}
 
 	public function setBlock($x, $y, $z, $blockId = null, $meta = null){
@@ -99,8 +76,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 	}
 
 	public function getBlockId($x, $y, $z){
-		if(isset($this->sections[$y >> 4])) return $this->sections[$y >> 4]->getBlockId($x, $y & 0x0f, $z);
-		else return 0;
+		return $this->sections[$y >> 4]->getBlockId($x, $y & 0x0f, $z);
 	}
 
 	public function setBlockId($x, $y, $z, $id){
@@ -161,7 +137,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
 	public function getBlockIdColumn($x, $z){
 		$column = "";
-		for($y = 0; $y < Chunk::SECTION_COUNT; ++$y){
+		for($y = 0; $y < static::SECTION_COUNT; ++$y){
 			$column .= $this->sections[$y]->getBlockIdColumn($x, $z);
 		}
 
@@ -170,7 +146,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
 	public function getBlockDataColumn($x, $z){
 		$column = "";
-		for($y = 0; $y < Chunk::SECTION_COUNT; ++$y){
+		for($y = 0; $y < static::SECTION_COUNT; ++$y){
 			$column .= $this->sections[$y]->getBlockDataColumn($x, $z);
 		}
 
@@ -179,7 +155,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
 	public function getBlockSkyLightColumn($x, $z){
 		$column = "";
-		for($y = 0; $y < Chunk::SECTION_COUNT; ++$y){
+		for($y = 0; $y < static::SECTION_COUNT; ++$y){
 			$column .= $this->sections[$y]->getBlockSkyLightColumn($x, $z);
 		}
 
@@ -188,7 +164,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
 	public function getBlockLightColumn($x, $z){
 		$column = "";
-		for($y = 0; $y < Chunk::SECTION_COUNT; ++$y){
+		for($y = 0; $y < static::SECTION_COUNT; ++$y){
 			$column .= $this->sections[$y]->getBlockLightColumn($x, $z);
 		}
 
@@ -223,7 +199,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
 	public function getBlockIdArray(){
 		$blocks = "";
-		for($y = 0; $y < Chunk::SECTION_COUNT; ++$y){
+		for($y = 0; $y < static::SECTION_COUNT; ++$y){
 			$blocks .= $this->sections[$y]->getIdArray();
 		}
 
@@ -232,7 +208,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
 	public function getBlockDataArray(){
 		$data = "";
-		for($y = 0; $y < Chunk::SECTION_COUNT; ++$y){
+		for($y = 0; $y < static::SECTION_COUNT; ++$y){
 			$data .= $this->sections[$y]->getDataArray();
 		}
 
@@ -241,7 +217,7 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
 	public function getBlockSkyLightArray(){
 		$skyLight = "";
-		for($y = 0; $y < Chunk::SECTION_COUNT; ++$y){
+		for($y = 0; $y < static::SECTION_COUNT; ++$y){
 			$skyLight .= $this->sections[$y]->getSkyLightArray();
 		}
 
@@ -250,16 +226,13 @@ abstract class BaseChunk extends BaseFullChunk implements Chunk{
 
 	public function getBlockLightArray(){
 		$blockLight = "";
-		for($y = 0; $y < Chunk::SECTION_COUNT; ++$y){
+		for($y = 0; $y < static::SECTION_COUNT; ++$y){
 			$blockLight .= $this->sections[$y]->getLightArray();
 		}
 
 		return $blockLight;
 	}
-
-	/**
-	 * @return ChunkSection[]
-	 */
+	
 	public function getSections(){
 		return $this->sections;
 	}

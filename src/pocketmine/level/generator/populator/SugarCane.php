@@ -1,4 +1,5 @@
 <?php
+
 /*
  *
  *  _____   _____   __   _   _   _____  __    __  _____
@@ -14,62 +15,76 @@
  * (at your option) any later version.
  *
  * @author iTX Technologies
- * @link https://itxtech.org
+ * @link https://mcper.cn
  *
  */
+
 namespace pocketmine\level\generator\populator;
 
-use pocketmine\block\BlockFactory;
 use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
-use pocketmine\level\generator\object\SugarCaneStack;
-use pocketmine\level\generator\populator\VariableAmountPopulator;
 use pocketmine\utils\Random;
 
-class SugarCane extends VariableAmountPopulator{
-	
+class Sugarcane extends Populator{
 	/** @var ChunkManager */
 	private $level;
-	protected $randomAmount = 10;
-	protected $baseAmount = 1;
+	private $randomAmount;
+	private $baseAmount;
+
+	public function setRandomAmount($amount){
+		$this->randomAmount = $amount;
+	}
+
+	public function setBaseAmount($amount){
+		$this->baseAmount = $amount;
+	}
+
 	public function populate(ChunkManager $level, $chunkX, $chunkZ, Random $random){
 		$this->level = $level;
-		$canes = new SugarCaneStack($random);
-		$successfulClusterCount = 0;
-		
-		for($count = 0; $count < $this->randomAmount; $count++){
+		$amount = $random->nextRange(0, $this->randomAmount + 1) + $this->baseAmount;
+		for($i = 0; $i < $amount; ++$i){
 			$x = $random->nextRange($chunkX * 16, $chunkX * 16 + 15);
 			$z = $random->nextRange($chunkZ * 16, $chunkZ * 16 + 15);
 			$y = $this->getHighestWorkableBlock($x, $z);
-			if($y == -1 or !$canes->canPlaceObject($level, $x, $y, $z)){
-				continue;
-			}
-			
-			$successfulClusterCount++;
-			$canes->randomize();
-			$canes->placeObject($level, $x, $y, $z);
-			for($placed = 1; $placed < 4; $placed++){
-				$xx = $x - 3 + $random->nextBoundedInt(7);
-				$zz = $z - 3 + $random->nextBoundedInt(7);
-				$canes->randomize();
-				if($canes->canPlaceObject($level, $xx, $y, $zz)){
-					$canes->placeObject($level, $xx, $y, $zz);
-				}
-			}
-			
-			if($successfulClusterCount >= $this->baseAmount){
-				return;
+
+			if($y !== -1 and $this->canSugarcaneStay($x, $y, $z)){
+				$this->level->setBlockIdAt($x, $y, $z, Block::SUGARCANE_BLOCK);
+				$this->level->setBlockDataAt($x, $y, $z, 1);
 			}
 		}
 	}
-	
+
+	private function findWater($x, $y, $z){
+		$count = 0;
+		for($i = $x - 4; $i < ($x + 4); $i++){
+			for($j = $z - 4; $j < ($z + 4); $j++){
+				$b = $this->level->getBlockIdAt($i, $y, $j);
+				//echo "$i $y $j $b $count \n";
+				if($b === Block::WATER or $b === Block::STILL_WATER){
+					$count++;
+				}
+				if($count > 10){
+					return true;
+				}
+			}
+		}
+		return ($count > 10);
+	}
+
+	private function canSugarcaneStay($x, $y, $z){
+		$b = $this->level->getBlockIdAt($x, $y, $z);
+		$below = $this->level->getBlockIdAt($x, $y - 1, $z);
+		return ($b === Block::AIR) and ($below === Block::SAND or $below === Block::GRASS) and $this->findWater($x, $y - 1, $z);
+	}
+
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
-			if($b !== Block::DIRT and $b !== Block::GRASS and $b !== Block::SAND and $b !== Block::LEAVES and $b !== Block::LEAVES2){
+			if($b !== Block::AIR and $b !== Block::LEAVES and $b !== Block::LEAVES2){
 				break;
 			}
 		}
+
 		return $y === 0 ? -1 : ++$y;
 	}
 }

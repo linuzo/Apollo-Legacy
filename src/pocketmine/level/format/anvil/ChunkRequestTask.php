@@ -1,23 +1,13 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\level\format\anvil;
 
@@ -28,7 +18,6 @@ use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 use pocketmine\tile\Spawnable;
 use pocketmine\utils\BinaryStream;
-
 
 class ChunkRequestTask extends AsyncTask{
 
@@ -52,7 +41,7 @@ class ChunkRequestTask extends AsyncTask{
 		foreach($chunk->getTiles() as $tile){
 			if($tile instanceof Spawnable){
 				$nbt->setData($tile->getSpawnCompound());
-				$tiles .= $nbt->write();
+				$tiles .= $nbt->write(true);
 			}
 		}
 
@@ -60,7 +49,6 @@ class ChunkRequestTask extends AsyncTask{
 	}
 
 	public function onRun(){
-
 		$chunk = Chunk::fromFastBinary($this->chunk);
 		$extraData = new BinaryStream();
 		$extraData->putLInt(count($chunk->getBlockExtraDataArray()));
@@ -70,13 +58,13 @@ class ChunkRequestTask extends AsyncTask{
 		}
 
 		$ordered = $chunk->getBlockIdArray() .
-			$chunk->getBlockDataArray() .
-			$chunk->getBlockSkyLightArray() .
-			$chunk->getBlockLightArray() .
-			pack("C*", ...$chunk->getHeightMapArray()) .
-			pack("N*", ...$chunk->getBiomeColorArray()) .
-			$extraData->getBuffer() .
-			$this->tiles;
+		    $chunk->getBlockDataArray() .
+		    $chunk->getBlockSkyLightArray() .
+		    $chunk->getBlockLightArray() .
+		    pack("C*", ...$chunk->getHeightMapArray()) .
+		    pack("N*", ...$chunk->getBiomeColorArray()) .
+		    $extraData->getBuffer() .
+		$this->tiles;
 
 		$this->setResult($ordered, false);
 	}
@@ -87,5 +75,4 @@ class ChunkRequestTask extends AsyncTask{
 			$level->chunkRequestCallback($this->chunkX, $this->chunkZ, $this->getResult(), FullChunkDataPacket::ORDER_LAYERED);
 		}
 	}
-
 }

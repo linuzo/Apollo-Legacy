@@ -1,31 +1,19 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\plugin;
 
-use pocketmine\event\Cancellable;
 use pocketmine\event\Event;
 use pocketmine\event\Listener;
+use pocketmine\event\Cancellable;
 use pocketmine\event\TimingsHandler;
 
 class RegisteredListener{
@@ -47,17 +35,16 @@ class RegisteredListener{
 
 	/** @var TimingsHandler */
 	private $timings;
-
-
+	
 	/**
 	 * @param Listener       $listener
 	 * @param EventExecutor  $executor
 	 * @param int            $priority
 	 * @param Plugin         $plugin
-	 * @param bool           $ignoreCancelled
+	 * @param boolean        $ignoreCancelled
 	 * @param TimingsHandler $timings
 	 */
-	public function __construct(Listener $listener, EventExecutor $executor, int $priority, Plugin $plugin, bool $ignoreCancelled, TimingsHandler $timings){
+	public function __construct(Listener $listener, EventExecutor $executor, $priority, Plugin $plugin, $ignoreCancelled, TimingsHandler $timings){
 		$this->listener = $listener;
 		$this->priority = $priority;
 		$this->plugin = $plugin;
@@ -69,21 +56,21 @@ class RegisteredListener{
 	/**
 	 * @return Listener
 	 */
-	public function getListener() : Listener{
+	public function getListener(){
 		return $this->listener;
 	}
 
 	/**
 	 * @return Plugin
 	 */
-	public function getPlugin() : Plugin{
+	public function getPlugin(){
 		return $this->plugin;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getPriority() : int{
+	public function getPriority(){
 		return $this->priority;
 	}
 
@@ -94,6 +81,7 @@ class RegisteredListener{
 		if($event instanceof Cancellable and $event->isCancelled() and $this->isIgnoringCancelled()){
 			return;
 		}
+		
 		$this->timings->startTiming();
 		$this->executor->execute($this->listener, $event);
 		$this->timings->stopTiming();
@@ -106,7 +94,8 @@ class RegisteredListener{
 	/**
 	 * @return bool
 	 */
-	public function isIgnoringCancelled() : bool{
+	public function isIgnoringCancelled(){
 		return $this->ignoreCancelled === true;
 	}
+	
 }

@@ -15,18 +15,18 @@
  * (at your option) any later version.
  *
  * @author iTX Technologies
- * @link https://itxtech.org
+ * @link https://mcper.cn
  *
  */
 
 namespace pocketmine\level\generator\populator;
 
 use pocketmine\block\Block;
-use pocketmine\block\Flower as FlowerBlock;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
+use pocketmine\block\Flower as FlowerBlock;
 
-class Flower extends Populator {
+class Flower extends Populator{
 	/** @var ChunkManager */
 	private $level;
 	private $randomAmount;
@@ -34,42 +34,22 @@ class Flower extends Populator {
 
 	private $flowerTypes = [];
 
-	/**
-	 * @param $amount
-	 */
 	public function setRandomAmount($amount){
 		$this->randomAmount = $amount;
 	}
 
-	/**
-	 * @param $amount
-	 */
 	public function setBaseAmount($amount){
 		$this->baseAmount = $amount;
 	}
 
-	/**
-	 * @param $type
-	 */
 	public function addType($type){
 		$this->flowerTypes[] = $type;
 	}
 
-	/**
-	 * @return array
-	 */
 	public function getTypes(){
 		return $this->flowerTypes;
 	}
 
-	/**
-	 * @param ChunkManager $level
-	 * @param              $chunkX
-	 * @param              $chunkZ
-	 * @param Random       $random
-	 *
-	 * @return mixed|void
-	 */
 	public function populate(ChunkManager $level, $chunkX, $chunkZ, Random $random){
 		$this->level = $level;
 		$amount = $random->nextRange(0, $this->randomAmount + 1) + $this->baseAmount;
@@ -93,24 +73,11 @@ class Flower extends Populator {
 		}
 	}
 
-	/**
-	 * @param $x
-	 * @param $y
-	 * @param $z
-	 *
-	 * @return bool
-	 */
 	private function canFlowerStay($x, $y, $z){
 		$b = $this->level->getBlockIdAt($x, $y, $z);
 		return ($b === Block::AIR or $b === Block::SNOW_LAYER) and $this->level->getBlockIdAt($x, $y - 1, $z) === Block::GRASS;
 	}
 
-	/**
-	 * @param $x
-	 * @param $z
-	 *
-	 * @return int
-	 */
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);

@@ -1,23 +1,13 @@
 <?php
 
-/*
- *
- *  _____   _____   __   _   _   _____  __    __  _____
- * /  ___| | ____| |  \ | | | | /  ___/ \ \  / / /  ___/
- * | |     | |__   |   \| | | | | |___   \ \/ /  | |___
- * | |  _  |  __|  | |\   | | | \___  \   \  /   \___  \
- * | |_| | | |___  | | \  | | |  ___| |   / /     ___| |
- * \_____/ |_____| |_|  \_| |_| /_____/  /_/     /_____/
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author iTX Technologies
- * @link https://itxtech.org
- *
- */
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\entity;
 
@@ -26,12 +16,13 @@ use pocketmine\level\Level;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\Player;
 use pocketmine\item\Item as ItemItem;
-use pocketmine\network\mcpe\protocol\EntityEventPacket;
-use pocketmine\network\mcpe\protocol\AddEntityPacket;
+use pocketmine\network\protocol\EntityEventPacket;
+use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Server;
 
 class FishingHook extends Projectile{
-	const NETWORK_ID = 77;
+	
+	const NETWORK_ID = self::FISHING_HOOK;
 
 	public $width = 0.25;
 	public $length = 0.25;
@@ -65,13 +56,11 @@ class FishingHook extends Projectile{
 		return $this->data;
 	}
 
-	public function onUpdate(int $currentTick) : bool{
+	public function onUpdate($currentTick){
 		if($this->closed){
 			return false;
 		}
-
-		$this->timings->startTiming();
-
+		
 		$hasUpdate = parent::onUpdate($currentTick);
 
 		if($this->isCollidedVertically && $this->isInsideOfWater()){
@@ -88,9 +77,9 @@ class FishingHook extends Projectile{
 			$this->keepMovement = false;
 			$hasUpdate = true;
 		}
-		if($this->attractTimer === 0 && mt_rand(0, 100) <= 30){ // chance, that a fish bites
-			$this->coughtTimer = mt_rand(5, 10) * 20; // random delay to catch fish
-			$this->attractTimer = mt_rand(30, 100) * 20; // reset timer
+		if($this->attractTimer === 0 && mt_rand(0, 100) <= 30){
+			$this->coughtTimer = mt_rand(5, 10) * 20;
+			$this->attractTimer = mt_rand(30, 100) * 20;
 			$this->attractFish();
 			if($this->shootingEntity instanceof Player) $this->shootingEntity->sendTip("A fish bites!");
 		}elseif($this->attractTimer > 0){
@@ -100,16 +89,14 @@ class FishingHook extends Projectile{
 			$this->coughtTimer--;
 			$this->fishBites();
 		}
-
-		$this->timings->stopTiming();
-
+		
 		return $hasUpdate;
 	}
 
 	public function fishBites(){
 		if($this->shootingEntity instanceof Player){
 			$pk = new EntityEventPacket();
-			$pk->entityRuntimeId = $this->shootingEntity->getId();//$this or $this->shootingEntity
+			$pk->eid = $this->shootingEntity->getId();//$this or $this->shootingEntity
 			$pk->event = EntityEventPacket::FISH_HOOK_HOOK;
 			Server::broadcastPacket($this->shootingEntity->hasSpawned, $pk);
 		}
@@ -118,7 +105,7 @@ class FishingHook extends Projectile{
 	public function attractFish(){
 		if($this->shootingEntity instanceof Player){
 			$pk = new EntityEventPacket();
-			$pk->entityRuntimeId = $this->shootingEntity->getId();//$this or $this->shootingEntity
+			$pk->eid = $this->shootingEntity->getId();//$this or $this->shootingEntity
 			$pk->event = EntityEventPacket::FISH_HOOK_BUBBLE;
 			Server::broadcastPacket($this->shootingEntity->hasSpawned, $pk);
 		}
@@ -153,19 +140,19 @@ class FishingHook extends Projectile{
 
 	public function spawnTo(Player $player){
 		$pk = new AddEntityPacket();
-		$pk->entityRuntimeId = $this->getId();
+		$pk->eid = $this->getId();
 		$pk->type = FishingHook::NETWORK_ID;
-	
-		$pk->position = $this->asVector3();
-
+		$pk->x = $this->x;
+		$pk->y = $this->y;
+		$pk->z = $this->z;
 		$pk->speedX = $this->motionX;
 		$pk->speedY = $this->motionY;
 		$pk->speedZ = $this->motionZ;
 		$pk->yaw = $this->yaw;
 		$pk->pitch = $this->pitch;
-		$pk->metadata = $this->dataProperties;
 		$player->dataPacket($pk);
 
 		parent::spawnTo($player);
 	}
+	
 }

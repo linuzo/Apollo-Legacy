@@ -1,60 +1,49 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\tile;
 
-
-use pocketmine\item\Item;
 use pocketmine\level\Level;
-use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\Player;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\nbt\tag\ByteTag;
 
 class Bed extends Spawnable{
-	const TAG_COLOR = "color";
-
+	
 	public function __construct(Level $level, CompoundTag $nbt){
-		if(!$nbt->hasTag(self::TAG_COLOR, ByteTag::class)){
-			$nbt->setTag(new ByteTag(self::TAG_COLOR, 14)); //default to old red
+		if(!isset($nbt->color) or !($nbt->color instanceof ByteTag)){
+			$nbt->color = new ByteTag("color", 14);
 		}
+		
 		parent::__construct($level, $nbt);
 	}
-
-	public function getColor() : int{
-		return $this->namedtag->getByte(self::TAG_COLOR);
+	
+	public function getColor(){
+		return $this->namedtag->color->getValue();
 	}
-
-	public function setColor(int $color){
-		$this->namedtag->setByte(self::TAG_COLOR, $color & 0x0f);
+	
+	public function setColor($color){
+		$this->namedtag["color"] = $color & 0x0f;
 		$this->onChanged();
 	}
-
-	public function addAdditionalSpawnData(CompoundTag $nbt) : void{
-		$nbt->setTag($this->namedtag->getTag(self::TAG_COLOR));
-	}
-
-	protected static function createAdditionalNBT(CompoundTag $nbt, Vector3 $pos, ?int $face = null, ?Item $item = null, ?Player $player = null) : void{
-		$nbt->setByte(self::TAG_COLOR, $item !== null ? $item->getDamage() : 14); //default red
+	
+	public function getSpawnCompound(){
+		return new CompoundTag("", [
+			new StringTag("id", Tile::BED),
+			new IntTag("x", (int) $this->x),
+			new IntTag("y", (int) $this->y),
+			new IntTag("z", (int) $this->z),
+			new ByteTag("color", (int) $this->namedtag["color"]),
+			new ByteTag("isMovable", (int) $this->namedtag["isMovable"])
+		]);
 	}
 }

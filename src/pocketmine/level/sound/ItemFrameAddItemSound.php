@@ -32,7 +32,7 @@ class ItemFrameAddItemSound extends GenericSound {
 	 * ItemFrameAddItemSound constructor.
 	 *
 	 * @param Vector3 $pos
-	 * @param int     $pitch
+	 * @param int $pitch
 	 */
 	public function __construct(Vector3 $pos, $pitch = 0){
 		parent::__construct($pos, LevelEventPacket::EVENT_SOUND_ITEMFRAME_ADD_ITEM, $pitch);

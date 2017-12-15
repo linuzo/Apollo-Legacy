@@ -25,7 +25,6 @@ use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
 use pocketmine\math\Vector3 as Vector3;
 use pocketmine\utils\Random;
-//use pocketmine\level\generator\object\Object;
 
 class Pond{
 	private $random;

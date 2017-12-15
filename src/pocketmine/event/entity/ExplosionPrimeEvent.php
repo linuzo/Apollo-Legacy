@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -14,62 +14,57 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 namespace pocketmine\event\entity;
 
 use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
 
-/**
- * Called when a entity decides to explode
- */
 class ExplosionPrimeEvent extends EntityEvent implements Cancellable{
+	
 	public static $handlerList = null;
 
-	/** @var float */
 	protected $force;
-	/** @var bool */
+	
 	private $blockBreaking;
 
 	/**
 	 * @param Entity $entity
 	 * @param float  $force
 	 */
-	public function __construct(Entity $entity, float $force){
+	public function __construct(Entity $entity, $force){
 		$this->entity = $entity;
 		$this->force = $force;
-		$this->blockBreaking = true;
+		$this->blockBreaking = false; //Default: true
 	}
 
 	/**
 	 * @return float
 	 */
-	public function getForce() : float{
+	public function getForce(){
 		return $this->force;
 	}
 
-	public function setForce(float $force){
-		$this->force = $force;
+	public function setForce($force){
+		$this->force = (float) $force;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isBlockBreaking() : bool{
+	public function isBlockBreaking(){
 		return $this->blockBreaking;
 	}
 
 	/**
 	 * @param bool $affectsBlocks
 	 */
-	public function setBlockBreaking(bool $affectsBlocks){
-		$this->blockBreaking = $affectsBlocks;
+	public function setBlockBreaking($affectsBlocks){
+		$this->blockBreaking = (bool) $affectsBlocks;
 	}
 
 }

@@ -1,29 +1,20 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\level\format\anvil;
 
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\level\format\ChunkSection as ChunkSection2;
 
-class ChunkSection implements \pocketmine\level\format\ChunkSection{
+class ChunkSection implements ChunkSection2{
 
 	private $y;
 	private $blocks;
@@ -69,7 +60,7 @@ class ChunkSection implements \pocketmine\level\format\ChunkSection{
 			$this->data{$i} = chr((($data & 0x0f) << 4) | ($old_m & 0x0f));
 		}
 	}
-
+	
 	public function getBlock($x, $y, $z, &$blockId, &$meta = null){
 		$full = $this->getFullBlock($x, $y, $z);
 		$blockId = $full >> 4;

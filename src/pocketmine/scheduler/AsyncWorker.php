@@ -19,56 +19,24 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\scheduler;
 
-use pocketmine\utils\MainLogger;
-use pocketmine\Worker;
+use darksystem\Worker;
 
 class AsyncWorker extends Worker{
 
-	private $logger;
-	private $id;
-
-	/** @var int */
-	private $memoryLimit;
-
-	public function __construct(MainLogger $logger, int $id, int $memoryLimit){
-		$this->logger = $logger;
-		$this->id = $id;
-		$this->memoryLimit = $memoryLimit;
-	}
-
 	public function run(){
-		error_reporting(-1);
-		set_error_handler('\pocketmine\error_handler');
-
 		$this->registerClassLoader();
-		$this->logger->registerStatic();
 		gc_enable();
-
-		if($this->memoryLimit > 0){
-			ini_set('memory_limit', $this->memoryLimit . 'M');
-			$this->logger->debug("Set memory limit to " . $this->memoryLimit . " MB");
-		}else{
-			ini_set('memory_limit', '-1');
-			$this->logger->debug("No memory limit set");
-		}
-
+		
+		ini_set("memory_limit", -1);
+		
 		global $store;
 		$store = [];
 	}
 
-	public function handleException(\Throwable $e){
-		$this->logger->logException($e);
+	public function start(int $options = \PTHREADS_INHERIT_NONE){
+		parent::start(PTHREADS_INHERIT_CONSTANTS);
 	}
-
-	public function getThreadName() : string{
-		return "Asynchronous Worker #" . $this->id;
-	}
-
-	public function getAsyncWorkerId() : int{
-		return $this->id;
-	}
+	
 }

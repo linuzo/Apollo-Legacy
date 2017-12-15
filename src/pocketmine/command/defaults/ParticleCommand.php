@@ -1,37 +1,23 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\command\defaults;
 
-use pocketmine\block\BlockFactory;
-use pocketmine\command\CommandSender;
-use pocketmine\command\utils\InvalidCommandSyntaxException;
-use pocketmine\event\TranslationContainer;
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
+use pocketmine\block\Block;
+use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 use pocketmine\level\particle\AngryVillagerParticle;
-use pocketmine\level\particle\BlockForceFieldParticle;
 use pocketmine\level\particle\BubbleParticle;
+use pocketmine\level\particle\BlockForceFieldParticle;
 use pocketmine\level\particle\CriticalParticle;
 use pocketmine\level\particle\DustParticle;
 use pocketmine\level\particle\EnchantmentTableParticle;
@@ -58,13 +44,13 @@ use pocketmine\level\particle\TerrainParticle;
 use pocketmine\level\particle\WaterDripParticle;
 use pocketmine\level\particle\WaterParticle;
 use pocketmine\math\Vector3;
-use pocketmine\Player;
 use pocketmine\utils\Random;
 use pocketmine\utils\TextFormat;
+use pocketmine\Player;
 
 class ParticleCommand extends VanillaCommand{
 
-	public function __construct(string $name){
+	public function __construct($name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.particle.description",
@@ -73,13 +59,14 @@ class ParticleCommand extends VanillaCommand{
 		$this->setPermission("pocketmine.command.particle");
 	}
 
-	public function execute(CommandSender $sender, string $commandLabel, array $args){
+	public function execute(CommandSender $sender, $currentAlias, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) < 7){
-			throw new InvalidCommandSyntaxException();
+			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
+			return true;
 		}
 
 		if($sender instanceof Player){
@@ -106,8 +93,7 @@ class ParticleCommand extends VanillaCommand{
 			$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.particle.notFound", [$name]));
 			return true;
 		}
-
-
+		
 		$sender->sendMessage(new TranslationContainer("commands.particle.success", [$name, $count]));
 
 		$random = new Random((int) (microtime(true) * 1000) + mt_rand());
@@ -118,23 +104,23 @@ class ParticleCommand extends VanillaCommand{
 				$pos->y + $random->nextSignedFloat() * $yd,
 				$pos->z + $random->nextSignedFloat() * $zd
 			);
+			
 			$level->addParticle($particle);
 		}
 
 		return true;
 	}
-
+	
 	/**
-	 * @param string   $name
-	 * @param Vector3  $pos
-	 * @param float    $xd
-	 * @param float    $yd
-	 * @param float    $zd
-	 * @param int|null $data
-	 *
-	 * @return Particle|null
-	 */
-	private function getParticle(string $name, Vector3 $pos, float $xd, float $yd, float $zd, int $data = null){
+	 * @param         $name
+	 * @param Vector3 $pos
+	 * @param         $xd
+	 * @param         $yd
+	 * @param         $zd
+	 * @param         $data
+	 * @return Particle
+     */
+	private function getParticle($name, Vector3 $pos, $xd, $yd, $zd, $data){
 		switch($name){
 			case "explode":
 				return new ExplodeParticle($pos);
@@ -173,17 +159,17 @@ class ParticleCommand extends VanillaCommand{
 			case "reddust":
 				return new RedstoneParticle($pos, $data ?? 1);
 			case "snowballpoof":
-				return new ItemBreakParticle($pos, ItemFactory::get(Item::SNOWBALL));
+				return new ItemBreakParticle($pos, Item::get(Item::SNOWBALL));
 			case "slime":
-				return new ItemBreakParticle($pos, ItemFactory::get(Item::SLIMEBALL));
+				return new ItemBreakParticle($pos, Item::get(Item::SLIMEBALL));
 			case "itembreak":
 				if($data !== null and $data !== 0){
-					return new ItemBreakParticle($pos, ItemFactory::get($data));
+					return new ItemBreakParticle($pos, $data);
 				}
 				break;
 			case "terrain":
 				if($data !== null and $data !== 0){
-					return new TerrainParticle($pos, BlockFactory::get($data));
+					return new TerrainParticle($pos, $data);
 				}
 				break;
 			case "heart":
@@ -203,17 +189,17 @@ class ParticleCommand extends VanillaCommand{
 
 		}
 
-		if(strpos($name, "iconcrack_") === 0){
+		if(substr($name, 0, 10) === "iconcrack_"){
 			$d = explode("_", $name);
 			if(count($d) === 3){
-				return new ItemBreakParticle($pos, ItemFactory::get((int) $d[1], (int) $d[2]));
+				return new ItemBreakParticle($pos, Item::get((int) $d[1], (int) $d[2]));
 			}
-		}elseif(strpos($name, "blockcrack_") === 0){
+		}elseif(substr($name, 0, 11) === "blockcrack_"){
 			$d = explode("_", $name);
 			if(count($d) === 2){
-				return new TerrainParticle($pos, BlockFactory::get($d[1] & 0xff, $d[1] >> 12));
+				return new TerrainParticle($pos, Block::get($d[1] & 0xff, $d[1] >> 12));
 			}
-		}elseif(strpos($name, "blockdust_") === 0){
+		}elseif(substr($name, 0, 10) === "blockdust_"){
 			$d = explode("_", $name);
 			if(count($d) >= 4){
 				return new DustParticle($pos, $d[1] & 0xff, $d[2] & 0xff, $d[3] & 0xff, isset($d[4]) ? $d[4] & 0xff : 255);

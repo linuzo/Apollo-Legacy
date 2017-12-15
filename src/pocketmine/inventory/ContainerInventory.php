@@ -19,21 +19,23 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\inventory;
 
 use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\protocol\ContainerClosePacket;
-use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
+use pocketmine\network\Network;
+use pocketmine\network\protocol\ContainerClosePacket;
+use pocketmine\network\protocol\ContainerOpenPacket;
 use pocketmine\Player;
 
 abstract class ContainerInventory extends BaseInventory{
-	public function onOpen(Player $who) {
+	
+	public function onOpen(Player $who){
 		parent::onOpen($who);
 		$pk = new ContainerOpenPacket();
-		$pk->windowId = $who->getWindowId($this);
-		$pk->type = $this->getNetworkType();
+		$pk->windowid = $who->getWindowId($this);
+		$pk->type = $this->getType()->getNetworkType();
+		$pk->slots = $this->getSize();
+		$pk->entityId = $who->getId();
 		$holder = $this->getHolder();
 		if($holder instanceof Vector3){
 			$pk->x = $holder->getX();
@@ -42,22 +44,14 @@ abstract class ContainerInventory extends BaseInventory{
 		}else{
 			$pk->x = $pk->y = $pk->z = 0;
 		}
-
 		$who->dataPacket($pk);
-
 		$this->sendContents($who);
 	}
 
-	public function onClose(Player $who) {
+	public function onClose(Player $who){
 		$pk = new ContainerClosePacket();
-		$pk->windowId = $who->getWindowId($this);
+		$pk->windowid = $who->getWindowId($this);
 		$who->dataPacket($pk);
 		parent::onClose($who);
 	}
-
-	/**
-	 * Returns the Minecraft PE inventory type used to show the inventory window to clients.
-	 * @return int
-	 */
-	abstract public function getNetworkType() : int;
 }

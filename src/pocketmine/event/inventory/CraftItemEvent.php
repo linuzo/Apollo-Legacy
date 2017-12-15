@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -14,67 +14,61 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @link   http://www.pocketmine.net/
  *
  *
-*/
-
-declare(strict_types=1);
+ */
 
 namespace pocketmine\event\inventory;
 
 use pocketmine\event\Cancellable;
 use pocketmine\event\Event;
 use pocketmine\inventory\Recipe;
-use pocketmine\inventory\transaction\CraftingTransaction;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
 class CraftItemEvent extends Event implements Cancellable{
+	
 	public static $handlerList = null;
 
-	/** @var CraftingTransaction */
-	private $transaction;
-
+	/** @var Item[] */
+	private $input = [];
+	/** @var Recipe */
+	private $recipe;
+	/** @var Player */
+	private $player;
+	
 	/**
-	 * @param CraftingTransaction $transaction
+	 * @param Item[] $input
+	 * @param Recipe $recipe
 	 */
-	public function __construct(CraftingTransaction $transaction){
-		$this->transaction = $transaction;
-	}
-
-	public function getTransaction() : CraftingTransaction{
-		return $this->transaction;
+	public function __construct(array $input, Recipe $recipe, Player $player){
+		$this->input = $input;
+		$this->recipe = $recipe;
+		$this->player = $player;
 	}
 
 	/**
-	 * @deprecated This returns a one-dimensional array of ingredients and does not account for the positioning of
-	 * items in the crafting grid. Prefer getting the input map from the transaction instead.
-	 *
 	 * @return Item[]
 	 */
-	public function getInput() : array{
-		return array_map(function(Item $item) : Item{
-			return clone $item;
-		}, array_merge(...$this->transaction->getInputMap()));
+	public function getInput(){
+		$items = [];
+		foreach($items as $i => $item){
+			$items[$i] = clone $item;
+		}
+
+		return $items;
+	}
+		
+	public function getPlayer(){
+		return $this->player;
 	}
 
 	/**
 	 * @return Recipe
 	 */
-	public function getRecipe() : Recipe{
-		$recipe = $this->transaction->getRecipe();
-		if($recipe === null){
-			throw new \RuntimeException("This shouldn't be called if the transaction can't be executed");
-		}
-
-		return $recipe;
+	public function getRecipe(){
+		return $this->recipe;
 	}
 
-	/**
-	 * @return Player
-	 */
-	public function getPlayer() : Player{
-		return $this->transaction->getSource();
-	}
 }

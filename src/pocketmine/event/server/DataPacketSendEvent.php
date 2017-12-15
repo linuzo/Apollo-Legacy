@@ -1,60 +1,39 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\event\server;
 
+use pocketmine\event;
 use pocketmine\event\Cancellable;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\protocol\DataPacket;
 use pocketmine\Player;
 
 class DataPacketSendEvent extends ServerEvent implements Cancellable{
+	
 	public static $handlerList = null;
 
-	/** @var DataPacket */
 	private $packet;
-	/** @var Player */
 	private $player;
 
-	/**
-	 * @param Player $player
-	 * @param DataPacket $packet
-	 */
 	public function __construct(Player $player, DataPacket $packet){
 		$this->packet = $packet;
 		$this->player = $player;
 	}
 
-	/**
-	 * @return DataPacket
-	 */
-	public function getPacket() : DataPacket{
+	public function getPacket(){
 		return $this->packet;
 	}
 
-	/**
-	 * @return Player
-	 */
-	public function getPlayer() : Player{
+	public function getPlayer(){
 		return $this->player;
 	}
+	
 }

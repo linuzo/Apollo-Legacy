@@ -2,48 +2,44 @@
 
 /*
  *
- *  _____   _____   __   _   _   _____  __    __  _____
- * /  ___| | ____| |  \ | | | | /  ___/ \ \  / / /  ___/
- * | |     | |__   |   \| | | | | |___   \ \/ /  | |___
- * | |  _  |  __|  | |\   | | | \___  \   \  /   \___  \
- * | |_| | | |___  | | \  | | |  ___| |   / /     ___| |
- * \_____/ |_____| |_|  \_| |_| /_____/  /_/     /_____/
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author iTX Technologies
- * @link https://itxtech.org
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
  *
- */
-
+ *
+*/
+ 
 namespace pocketmine\level\sound;
 
 use pocketmine\block\Block;
-use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
-
-class BlockPlaceSound extends GenericSound {
-
+use pocketmine\network\protocol\LevelEventPacket;
+ 
+class BlockPlaceSound extends GenericSound{
+	
 	protected $data;
-
-	/**
-	 * BlockPlaceSound constructor.
-	 *
-	 * @param Block $b
-	 */
+	
 	public function __construct(Block $b){
-		parent::__construct($b, LevelSoundEventPacket::SOUND_PLACE, 1, $b->getId());
+		parent::__construct($b, LevelEventPacket::EVENT_SOUND_BLOCK_PLACE);
 		$this->data = $b->getId();
 	}
 	
 	public function encode(){
-		$pk = new LevelSoundEventPacket;
-		$pk->sound = $this->id;
-		$pk->pitch = 1;
-		$pk->extraData = $this->data;
-		list($pk->x, $pk->y, $pk->z) = [$this->x, $this->y, $this->z];
+		$pk = new LevelEventPacket;
+		$pk->evid = $this->id;
+		$pk->x = $this->x;
+		$pk->y = $this->y;
+		$pk->z = $this->z;
+		$pk->data = $this->data;
 		
 		return $pk;
 	}

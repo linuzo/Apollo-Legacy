@@ -1,20 +1,29 @@
 <?php
 
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
+
 namespace pocketmine\level\generator\ender;
 
 use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
 use pocketmine\level\generator\biome\Biome;
-use pocketmine\level\generator\ender\populator\EnderPilar;
+use pocketmine\level\generator\biome\BiomeSelector;
 use pocketmine\level\generator\Generator;
 use pocketmine\level\generator\noise\Simplex;
 use pocketmine\level\generator\populator\Populator;
+use pocketmine\level\generator\populator\EnderPilar;
 use pocketmine\math\Vector3 as Vector3;
 use pocketmine\utils\Random;
 
 class Ender extends Generator
 {
-
     /** @var Populator[] */
     private $populators = [];
     /** @var ChunkManager */
@@ -25,11 +34,15 @@ class Ender extends Generator
     private $emptyHeight = 32;
     private $emptyAmplitude = 1;
     private $density = 0.6;
+    private $bedrockDepth = 5;
 
     /** @var Populator[] */
     private $generationPopulators = [];
     /** @var Simplex */
     private $noiseBase;
+
+    /** @var BiomeSelector */
+    private $selector;
 
     private static $GAUSSIAN_KERNEL = null;
     private static $SMOOTH_SIZE = 2;
@@ -59,12 +72,12 @@ class Ender extends Generator
         }
     }
 
-    public function getName(): string
+    public function getName()
     {
         return "Ender";
     }
 
-    public function getWaterHeight(): int
+    public function getWaterHeight()
     {
         return $this->waterHeight;
     }
@@ -98,7 +111,7 @@ class Ender extends Generator
         for ($x = 0; $x < 16; ++$x) {
             for ($z = 0; $z < 16; ++$z) {
 
-                $biome = Biome::getBiome(Biome::END);
+                $biome = Biome::getBiome(Biome::ENDER);
                 $biome->setGroundCover([
                     Block::get(Block::OBSIDIAN, 0)
 
@@ -146,7 +159,7 @@ class Ender extends Generator
 
     public function getSpawn()
     {
-        return new Vector3(48, 128, 48);
+        return new Vector3(0, 128, 0);
     }
 
 }

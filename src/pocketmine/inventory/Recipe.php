@@ -19,18 +19,14 @@
  *
 */
 
-declare(strict_types=1);
-
 namespace pocketmine\inventory;
 
-use pocketmine\item\Item;
-
 interface Recipe{
+	
+	public function getResult();
 
-	/**
-	 * @return Item
-	 */
-	public function getResult() : Item;
-
-	public function registerToCraftingManager(CraftingManager $manager) ;
+	public function registerToCraftingManager();
+	
+	public function getId();
+	
 }

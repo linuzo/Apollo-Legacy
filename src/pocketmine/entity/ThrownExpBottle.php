@@ -1,88 +1,91 @@
 <?php
 
-/*
- *
- *  _____   _____   __   _   _   _____  __    __  _____
- * /  ___| | ____| |  \ | | | | /  ___/ \ \  / / /  ___/
- * | |     | |__   |   \| | | | | |___   \ \/ /  | |___
- * | |  _  |  __|  | |\   | | | \___  \   \  /   \___  \
- * | |_| | | |___  | | \  | | |  ___| |   / /     ___| |
- * \_____/ |_____| |_|  \_| |_| /_____/  /_/     /_____/
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author iTX Technologies
- * @link https://itxtech.org
- *
- */
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\entity;
-
 
 use pocketmine\level\Level;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\level\particle\SpellParticle;
-use pocketmine\network\mcpe\protocol\AddEntityPacket;
+use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Player;
 
-class ThrownExpBottle extends Projectile{
-	const NETWORK_ID = 68;
+class ThrownExpBottle extends Projectile
+{
+    const NETWORK_ID = self::THROWN_EXP_BOTTLE;
 
-	public $width = 0.25;
-	public $length = 0.25;
-	public $height = 0.25;
+    public $width = 0.25;
+    public $length = 0.25;
+    public $height = 0.25;
 
-	protected $gravity = 0.1;
-	protected $drag = 0.15;
+    protected $gravity = 0.1;
+    protected $drag = 0.15;
 
-	public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null){
-		parent::__construct($level, $nbt, $shootingEntity);
-	}
+    private $hasSplashed = false;
 
-	public function onUpdate(int $currentTick) : bool{
-		if($this->closed){
-			return false;
-		}
+    public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null)
+    {
+        parent::__construct($level, $nbt, $shootingEntity);
+    }
 
-		$this->timings->startTiming();
+    public function splash()
+    {
+        if (!$this->hasSplashed) {
+            $this->hasSplashed = true;
+            //$this->getLevel()->addParticle(new SpellParticle($this, 46, 82, 153));
+            if ($this->getLevel()->getServer()->expEnabled) {
+                $this->getLevel()->spawnXPOrb($this->add(0, -0.2, 0), mt_rand(1, 4));
+                $this->getLevel()->spawnXPOrb($this->add(-0.1, -0.2, 0), mt_rand(1, 4));
+                $this->getLevel()->spawnXPOrb($this->add(0, -0.2, -0.1), mt_rand(1, 4));
+            }
 
-		$hasUpdate = parent::onUpdate($currentTick);
+            $this->kill();
+        }
+    }
 
-		$this->age++;
+    public function onUpdate($currentTick)
+    {
+        if ($this->closed) {
+            return false;
+        }
 
-		if($this->age > 1200 or $this->isCollided){
-			$this->kill();
-			$this->close();
-			$this->getLevel()->addParticle(new SpellParticle($this, 46, 82, 153));
-			if($this->getLevel()->getServer()->expEnabled){
-				$this->getLevel()->spawnXPOrb($this->add(0, -0.2, 0), mt_rand(1, 4));
-				$this->getLevel()->spawnXPOrb($this->add(-0.1, -0.2, 0), mt_rand(1, 4));
-				$this->getLevel()->spawnXPOrb($this->add(0, -0.2, -0.1), mt_rand(1, 4));
-			}
-			$hasUpdate = true;
-		}
+        $this->timings->startTiming();
 
-		$this->timings->stopTiming();
+        $hasUpdate = parent::onUpdate($currentTick);
 
-		return $hasUpdate;
-	}
+        $this->age++;
 
-	public function spawnTo(Player $player){
-		$pk = new AddEntityPacket();
-		$pk->type = self::NETWORK_ID;
-		$pk->entityRuntimeId = $this->getId();
-	
-		$pk->position = $this->asVector3();
+        if ($this->age > 1200 or $this->isCollided) {
+            $this->splash();
+            $hasUpdate = true;
+        }
 
-		$pk->speedX = $this->motionX;
-		$pk->speedY = $this->motionY;
-		$pk->speedZ = $this->motionZ;
-		$pk->metadata = $this->dataProperties;
-		$player->dataPacket($pk);
+        $this->timings->stopTiming();
 
-		parent::spawnTo($player);
-	}
+        return $hasUpdate;
+    }
+
+    public function spawnTo(Player $player)
+    {
+        $pk = new AddEntityPacket();
+        $pk->type = ThrownExpBottle::NETWORK_ID;
+        $pk->eid = $this->getId();
+        $pk->x = $this->x;
+        $pk->y = $this->y;
+        $pk->z = $this->z;
+        $pk->speedX = $this->motionX;
+        $pk->speedY = $this->motionY;
+        $pk->speedZ = $this->motionZ;
+        $pk->metadata = $this->dataProperties;
+        $player->dataPacket($pk);
+
+        parent::spawnTo($player);
+    }
 }

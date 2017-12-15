@@ -1,78 +1,74 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\block;
 
-use pocketmine\block\utils\ColorBlockMetaHelper;
 use pocketmine\item\Tool;
-use pocketmine\level\Level;
 
 class ConcretePowder extends Fallable{
 
 	protected $id = self::CONCRETE_POWDER;
 
-	public function __construct(int $meta = 0){
+	/**
+	 * @param int $meta
+	 */
+	public function __construct($meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function getName() : string{
-		return ColorBlockMetaHelper::getColorFromMeta($this->meta) . " Concrete Powder";
-	}
-
-	public function getHardness() : float{
+	/**
+	 * @return float
+	 */
+	public function getHardness(){
 		return 0.5;
 	}
 
-	public function getToolType() : int{
+	/**
+	 * @return float
+	 */
+	public function getResistance(){
+		return 2.5;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getToolType(){
 		return Tool::TYPE_SHOVEL;
 	}
 
-	public function onUpdate(int $type){
-		if($type === Level::BLOCK_UPDATE_NORMAL and ($block = $this->checkAdjacentWater()) !== null){
-			$this->level->setBlock($this, $block);
-			return $type;
-		}
-
-		return parent::onUpdate($type);
-	}
-
 	/**
-	 * @return null|Block
+	 * @return mixed
 	 */
-	public function tickFalling() : ?Block{
-		return $this->checkAdjacentWater();
+	public function getName(){
+		static $names = [
+			0 => "White Concrete Powder",
+			1 => "Orange Concrete Powder",
+			2 => "Magenta Concrete Powder",
+			3 => "Light Blue Concrete Powder",
+			4 => "Yellow Concrete Powder",
+			5 => "Lime Concrete Powder",
+			6 => "Pink Concrete Powder",
+			7 => "Gray Concrete Powder",
+			8 => "Silver Concrete Powder",
+			9 => "Cyan Concrete Powder",
+			10 => "Purple Concrete Powder",
+			11 => "Blue Concrete Powder",
+			12 => "Brown Concrete Powder",
+			13 => "Green Concrete Powder",
+			14 => "Red Concrete Powder",
+			15 => "Black Concrete Powder",
+		];
+		
+		return $names[$this->meta & 0x0f];
 	}
 
-	/**
-	 * @return null|Block
-	 */
-	private function checkAdjacentWater() : ?Block{
-		for($i = 1; $i < 6; ++$i){ //Do not check underneath
-			if($this->getSide($i) instanceof Water){
-				return Block::get(Block::CONCRETE, $this->meta);
-			}
-		}
-
-		return null;
-	}
 }

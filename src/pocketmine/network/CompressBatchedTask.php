@@ -1,29 +1,16 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\network;
 
-use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
@@ -31,32 +18,26 @@ class CompressBatchedTask extends AsyncTask{
 
 	public $level = 7;
 	public $data;
-	public $targets;
+	public $final;
+	public $targets = [];
 
-	/**
-	 * @param BatchPacket $batch
-	 * @param string[]    $targets
-	 */
-	public function __construct(BatchPacket $batch, array $targets){
-		$this->data = $batch->payload;
-		$this->targets = serialize($targets);
-		$this->level = $batch->getCompressionLevel();
+	public function __construct($data, array $targets, $level = 7){
+		$this->data = $data;
+		$this->targets = $targets;
+		$this->level = $level;
 	}
 
 	public function onRun(){
-		$batch = new BatchPacket();
-		$batch->payload = $this->data;
-		$this->data = null;
-
-		$batch->setCompressionLevel($this->level);
-		$batch->encode();
-
-		$this->setResult($batch->buffer, false);
+		try{
+			$this->final = zlib_encode($this->data, ZLIB_ENCODING_DEFLATE, $this->level);
+			$this->data = null;
+		}catch(\Exception $e){
+			
+		}
 	}
 
 	public function onCompletion(Server $server){
-		$pk = new BatchPacket($this->getResult());
-		$pk->isEncoded = true;
-		$server->broadcastPacketsCallback($pk, unserialize($this->targets));
+		$server->broadcastPacketsCallback($this->final, $this->targets);
 	}
+	
 }

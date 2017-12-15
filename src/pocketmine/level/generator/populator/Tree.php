@@ -27,45 +27,25 @@ use pocketmine\level\ChunkManager;
 use pocketmine\level\generator\object\Tree as ObjectTree;
 use pocketmine\utils\Random;
 
-class Tree extends Populator {
-	/** @var ChunkManager */
+class Tree extends Populator{
+	
 	private $level;
 	private $randomAmount;
 	private $baseAmount;
-
 	private $type;
 
-	/**
-	 * Tree constructor.
-	 *
-	 * @param int $type
-	 */
 	public function __construct($type = Sapling::OAK){
 		$this->type = $type;
 	}
 
-	/**
-	 * @param $amount
-	 */
 	public function setRandomAmount($amount){
 		$this->randomAmount = $amount;
 	}
 
-	/**
-	 * @param $amount
-	 */
 	public function setBaseAmount($amount){
 		$this->baseAmount = $amount;
 	}
 
-	/**
-	 * @param ChunkManager $level
-	 * @param              $chunkX
-	 * @param              $chunkZ
-	 * @param Random       $random
-	 *
-	 * @return mixed|void
-	 */
 	public function populate(ChunkManager $level, $chunkX, $chunkZ, Random $random){
 		$this->level = $level;
 		$amount = $random->nextRange(0, $this->randomAmount + 1) + $this->baseAmount;
@@ -76,20 +56,15 @@ class Tree extends Populator {
 			if($y === -1){
 				continue;
 			}
+			
 			ObjectTree::growTree($this->level, $x, $y, $z, $random, $this->type);
 		}
 	}
 
-	/**
-	 * @param $x
-	 * @param $z
-	 *
-	 * @return int
-	 */
 	private function getHighestWorkableBlock($x, $z){
-		for($y = 127; $y > 0; --$y){
+		for($y = $this->level->getMaxY() - 1; $y > 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);
-			if($b === Block::DIRT or $b === Block::GRASS or $b === Block::PODZOL){
+			if($b === Block::DIRT or $b === Block::GRASS){
 				break;
 			}elseif($b !== 0 and $b !== Block::SNOW_LAYER){
 				return -1;

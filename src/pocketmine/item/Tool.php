@@ -1,38 +1,27 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 
-abstract class Tool extends Durable{
+abstract class Tool extends Item{
+	
 	const TIER_WOODEN = 1;
 	const TIER_GOLD = 2;
 	const TIER_STONE = 3;
 	const TIER_IRON = 4;
 	const TIER_DIAMOND = 5;
-
+	
 	const TYPE_NONE = 0;
 	const TYPE_SWORD = 1;
 	const TYPE_SHOVEL = 2;
@@ -40,7 +29,11 @@ abstract class Tool extends Durable{
 	const TYPE_AXE = 4;
 	const TYPE_SHEARS = 5;
 
-	public function getMaxStackSize() : int{
+	public function __construct($id, $meta = 0, $count = 1, $name = "Unknown"){
+		parent::__construct($id, $meta, $count, $name);
+	}
+
+	public function getMaxStackSize(){
 		return 1;
 	}
 
@@ -52,30 +45,14 @@ abstract class Tool extends Durable{
 	 * @return bool
 	 */
 	public function useOn($object){
-		if($this->isUnbreakable()){
-			return true;
-		}
-
-		if($object instanceof Block){
-			if(
-				$object->getToolType() === Tool::TYPE_PICKAXE and $this->isPickaxe() or
-				$object->getToolType() === Tool::TYPE_SHOVEL and $this->isShovel() or
-				$object->getToolType() === Tool::TYPE_AXE and $this->isAxe() or
-				$object->getToolType() === Tool::TYPE_SWORD and $this->isSword() or
-				$object->getToolType() === Tool::TYPE_SHEARS and $this->isShears()
-			){
-				$this->applyDamage(1);
-			}elseif(!$this->isShears() and $object->getBreakTime($this) > 0){
-				$this->applyDamage(2);
-			}
-		}elseif($this->isHoe()){
+		if($this->isHoe()){
 			if(($object instanceof Block) and ($object->getId() === self::GRASS or $object->getId() === self::DIRT)){
-				$this->applyDamage(1);
+				$this->meta++;
 			}
 		}elseif(($object instanceof Entity) and !$this->isSword()){
-			$this->applyDamage(2);
+			$this->meta += 2;
 		}else{
-			$this->applyDamage(1);
+			$this->meta++;
 		}
 
 		return true;
@@ -87,13 +64,15 @@ abstract class Tool extends Durable{
 	 * @return int|bool
 	 */
 	public function getMaxDurability(){
-
 		$levels = [
-			Tool::TIER_GOLD => 33,
-			Tool::TIER_WOODEN => 60,
-			Tool::TIER_STONE => 132,
-			Tool::TIER_IRON => 251,
-			Tool::TIER_DIAMOND => 1562
+			2 => 33,
+			1 => 60,
+			3 => 132,
+			4 => 251,
+			5 => 1562,
+			self::FLINT_STEEL => 65,
+			self::SHEARS => 239,
+			self::BOW => 385,
 		];
 
 		if(($type = $this->isPickaxe()) === false){
@@ -101,7 +80,7 @@ abstract class Tool extends Durable{
 				if(($type = $this->isSword()) === false){
 					if(($type = $this->isShovel()) === false){
 						if(($type = $this->isHoe()) === false){
-							return false;
+							$type = $this->id;
 						}
 					}
 				}
@@ -111,7 +90,35 @@ abstract class Tool extends Durable{
 		return $levels[$type];
 	}
 
+	public function isPickaxe(){
+		return false;
+	}
+
+	public function isAxe(){
+		return false;
+	}
+
+	public function isSword(){
+		return false;
+	}
+
+	public function isShovel(){
+		return false;
+	}
+
+	public function isHoe(){
+		return false;
+	}
+
+	public function isShears(){
+		return ($this->id === self::SHEARS);
+	}
+	
+	public function isBow(){
+		return ($this->id === self::BOW);
+	}
+	
 	public function isTool(){
-		return true;
+		return ($this->id === self::FLINT_STEEL or $this->id === self::SHEARS or $this->id === self::BOW or $this->isPickaxe() !== false or $this->isAxe() !== false or $this->isShovel() !== false or $this->isSword() !== false);
 	}
 }

@@ -1,25 +1,13 @@
 <?php
 
-/*
- *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
-
-declare(strict_types=1);
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\item;
 
@@ -33,11 +21,11 @@ class WrittenBook extends WritableBook{
 	const GENERATION_COPY_OF_COPY = 2;
 	const GENERATION_TATTERED = 3;
 
-	public function __construct(int $meta = 0){
+	public function __construct($meta = 0){
 		Item::__construct(self::WRITTEN_BOOK, $meta, "Written Book");
 	}
 
-	public function getMaxStackSize() : int{
+	public function getMaxStackSize(){
 		return 16;
 	}
 
@@ -47,10 +35,11 @@ class WrittenBook extends WritableBook{
 	 *
 	 * @return int
 	 */
-	public function getGeneration() : int{
-		if(!isset($this->getNamedTag()->generation)) {
+	public function getGeneration(){
+		if(!isset($this->getNamedTag()->generation)){
 			return -1;
 		}
+		
 		return $this->getNamedTag()->generation->getValue();
 	}
 
@@ -59,17 +48,19 @@ class WrittenBook extends WritableBook{
 	 *
 	 * @param int $generation
 	 */
-	public function setGeneration(int $generation) : void{
+	public function setGeneration($generation){
 		if($generation < 0 or $generation > 3){
 			throw new \InvalidArgumentException("Generation \"$generation\" is out of range");
 		}
-		$namedTag = $this->getNamedTag();
+		
+		$namedTag = $this->getCorrectedNamedTag();
 
 		if(isset($namedTag->generation)){
 			$namedTag->generation->setValue($generation);
 		}else{
 			$namedTag->generation = new IntTag("generation", $generation);
 		}
+		
 		$this->setNamedTag($namedTag);
 	}
 
@@ -80,10 +71,11 @@ class WrittenBook extends WritableBook{
 	 *
 	 * @return string
 	 */
-	public function getAuthor() : string{
+	public function getAuthor(){
 		if(!isset($this->getNamedTag()->author)){
 			return "";
 		}
+		
 		return $this->getNamedTag()->author->getValue();
 	}
 
@@ -92,13 +84,14 @@ class WrittenBook extends WritableBook{
 	 *
 	 * @param string $authorName
 	 */
-	public function setAuthor(string $authorName) : void{
-		$namedTag = $this->getNamedTag();
+	public function setAuthor($authorName){
+		$namedTag = $this->getCorrectedNamedTag();
 		if(isset($namedTag->author)){
 			$namedTag->author->setValue($authorName);
 		}else{
 			$namedTag->author = new StringTag("author", $authorName);
 		}
+		
 		$this->setNamedTag($namedTag);
 	}
 
@@ -107,10 +100,11 @@ class WrittenBook extends WritableBook{
 	 *
 	 * @return string
 	 */
-	public function getTitle() : string{
+	public function getTitle(){
 		if(!isset($this->getNamedTag()->title)){
 			return "";
 		}
+		
 		return $this->getNamedTag()->title->getValue();
 	}
 
@@ -119,13 +113,14 @@ class WrittenBook extends WritableBook{
 	 *
 	 * @param string $title
 	 */
-	public function setTitle(string $title) : void{
-		$namedTag = $this->getNamedTag();
+	public function setTitle($title){
+		$namedTag = $this->getCorrectedNamedTag();
 		if(isset($namedTag->title)){
 			$namedTag->title->setValue($title);
 		}else{
 			$namedTag->title = new StringTag("title", $title);
 		}
+		
 		$this->setNamedTag($namedTag);
 	}
 }

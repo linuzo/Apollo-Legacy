@@ -1,47 +1,45 @@
 <?php
 
-/*
- *   ____  _            _      _       _     _
- *  |  _ \| |          | |    (_)     | |   | |
- *  | |_) | |_   _  ___| |     _  __ _| |__ | |_
- *  |  _ <| | | | |/ _ \ |    | |/ _` | '_ \| __|
- *  | |_) | | |_| |  __/ |____| | (_| | | | | |_
- *  |____/|_|\__,_|\___|______|_|\__, |_| |_|\__|
- *                                __/ |
- *                               |___/
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author BlueLightJapan Team
- * 
-*/
-
+#______           _    _____           _                  
+#|  _  \         | |  /  ___|         | |                 
+#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
+#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
+#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
+#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
+#                             __/ |                       
+#                            |___/
 
 namespace pocketmine\entity;
-use pocketmine\network\mcpe\protocol\AddEntityPacket;
+
+use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Player;
 
-class EnderDragon extends Monster{
-	const NETWORK_ID = 53;
+class EnderDragon extends Monster
+{
+	const NETWORK_ID = self::ENDER_DRAGON;
+	
+	public $dropExp = [500, 12,000];
 
-	public $width = 0.3;
-	public $length = 0.9;
-	public $height = 1.8;
-	public $maxhealth = 200;
-
-	public function getName() : string{
-		return "EnderDragon";
+	public function initEntity()
+	{
+		$this->setMaxHealth(200);
+		
+		parent::initEntity();
 	}
 	
-	public function spawnTo(Player $player){
-		$pk = new AddEntityPacket();
-		$pk->entityRuntimeId = $this->getId();
-		$pk->type = self::NETWORK_ID;
+	public function getName()
+	{
+		return "Ender Dragon";
+	}
 	
-		$pk->position = $this->asVector3();
-
+	public function spawnTo(Player $player)
+	{
+		$pk = new AddEntityPacket();
+		$pk->eid = $this->getId();
+		$pk->type = EnderDragon::NETWORK_ID;
+		$pk->x = $this->x;
+		$pk->y = $this->y;
+		$pk->z = $this->z;
 		$pk->speedX = $this->motionX;
 		$pk->speedY = $this->motionY;
 		$pk->speedZ = $this->motionZ;

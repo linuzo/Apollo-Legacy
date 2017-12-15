@@ -1,6 +1,5 @@
 ![Apollo](http://i.imgur.com/KBlbnkp.png)
 
-# we are rebuilding it soon so stay tuned
 
 
 Apollo is a Minecraft: PE Server Software with an improved Generator and a lot more features. 
@@ -18,6 +17,15 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 **CircleCI** [![CircleCI](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy.svg?style=svg)](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
 
 
+
+## Cradits
+
+[![darksystem](https://github.com/DarkSystem-PE/DarkSystem)
+
+PmmP
+
+genisys(pro)
+
 ## Information
 
 - Need to communicate with us? Join our [discord](https://discord.gg/xBN3WR6) group!
@@ -32,19 +40,20 @@ Apollo is for all. Anyone can copy-paste generator and other features.
  
 ## TODO :
 
-- [X] update generator
+- [ ] translate all things to english 
+
+- [ ] update generator
 
 - [ ] add enchanting
 
 - [ ] more blocks and items off the latest version of mcpe
 
-- [X] more features with items and block
+- [ ] more features with items and block
 
-- [ ] improve the generrator
+- [ ] improve the generator
 
 - [ ] fix any bugs that are left
 
-- [X] take some great features of genisyspro (because there dead now so we can take some stuff)
 
  If you have epic ideas, create an issue and tell us the idea!
 
