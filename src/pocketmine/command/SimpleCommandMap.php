@@ -57,7 +57,7 @@ use pocketmine\command\defaults\SeedCommand;
 use pocketmine\command\defaults\ServerInfoCommand;
 use pocketmine\command\defaults\SetBlockCommand;
 use pocketmine\command\defaults\SetWorldSpawnCommand;
-use pocketmine\command\defaults\SpawnPointCommand;
+//use pocketmine\command\defaults\SpawnPointCommand;
 use pocketmine\command\defaults\StatusCommand;
 use pocketmine\command\defaults\StopCommand;
 use pocketmine\command\defaults\SummonCommand;
@@ -146,7 +146,7 @@ class SimpleCommandMap implements CommandMap{
 		SimpleCommandMap::register(SimpleCommandMap::ROOT, new ParticleCommand("particle"));
 		SimpleCommandMap::register(SimpleCommandMap::ROOT, new GamemodeCommand("gamemode"));
 		SimpleCommandMap::register(SimpleCommandMap::ROOT, new KillCommand("kill"));
-		SimpleCommandMap::register(SimpleCommandMap::ROOT, new SpawnDarkBotCommand("spawndarkbot"));
+	//	SimpleCommandMap::register(SimpleCommandMap::ROOT, new SpawnDarkBotCommand("spawndarkbot"));
 		SimpleCommandMap::register(SimpleCommandMap::ROOT, new SpawnPointCommand("spawnpoint"));
 		SimpleCommandMap::register(SimpleCommandMap::ROOT, new SetWorldSpawnCommand("setworldspawn"));
 		SimpleCommandMap::register(SimpleCommandMap::ROOT, new SummonCommand("summon"));

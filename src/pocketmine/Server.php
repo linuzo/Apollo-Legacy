@@ -1548,14 +1548,14 @@ class Server extends DarkSystem{
 			$this->konsol->directSend($this->getLogo());
 			
 			//if(count($this->pluginMgr->getPlugins()) > 0){
-				if(Translate::checkTurkish() === "no"){
+				if(Translate::checkTurkish() === "yes"){
 					$this->konsol->info("§aEklentiler Yükleniyor...");
 				}else{
 					$this->konsol->info("§aEnabling Plugins...");
 				}
 			//}
 			
-			if(Translate::checkTurkish() === "no"){
+			if(Translate::checkTurkish() === "yes"){
 				$lang = Translate::TUR;
 			}else{
 				$lang = $this->getProperty("settings.language", Language::FALLBACK_LANGUAGE);
