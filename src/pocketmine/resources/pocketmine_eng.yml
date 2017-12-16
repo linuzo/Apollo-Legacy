@@ -100,9 +100,9 @@ debug:
   #Warn if assertions are enabled in php.ini, due to assertions may impact on runtime performance if enabled.
   warn-if-enabled: true
  #If > 1, it will show debug messages in the console
- level: 1
+ level: 2
  #Enables /status, /gc
- commands: false
+ commands: true
  
 player:
  #Choose whether to enable player data saving.
