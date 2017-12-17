@@ -18,13 +18,13 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 
 
-## Cradits
+## Credits
 
-[darksystem](https://github.com/DarkSystem-PE/DarkSystem)
+[DarkSystem](https://github.com/DarkSystem-PE/DarkSystem)
 
-PmmP
+[https://github.com/pmmp/PocketMine-MP](PocketMine-MP)
 
-genisys(pro)
+[https://github.com/GenisysPro/GenisysPro](GenisysPro)
 
 ## Information
 
