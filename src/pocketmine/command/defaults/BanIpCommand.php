@@ -1,24 +1,37 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\event\TranslationContainer;
 use pocketmine\Player;
 
 class BanIpCommand extends VanillaCommand{
 
-	public function __construct($name){
+	public function __construct(string $name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.ban.ip.description",
@@ -27,14 +40,13 @@ class BanIpCommand extends VanillaCommand{
 		$this->setPermission("pocketmine.command.ban.ip");
 	}
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
 
 		if(count($args) === 0){
-			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
-			return false;
+			throw new InvalidCommandSyntaxException();
 		}
 
 		$value = array_shift($args);
@@ -47,9 +59,11 @@ class BanIpCommand extends VanillaCommand{
 		}else{
 			if(($player = $sender->getServer()->getPlayer($value)) instanceof Player){
 				$this->processIPBan($player->getAddress(), $sender, $reason);
+
 				Command::broadcastCommandMessage($sender, new TranslationContainer("commands.banip.success.players", [$player->getAddress(), $player->getName()]));
 			}else{
 				$sender->sendMessage(new TranslationContainer("commands.banip.invalid"));
+
 				return false;
 			}
 		}
@@ -57,11 +71,12 @@ class BanIpCommand extends VanillaCommand{
 		return true;
 	}
 
-	private function processIPBan($ip, CommandSender $sender, $reason){
+	private function processIPBan(string $ip, CommandSender $sender, string $reason){
 		$sender->getServer()->getIPBans()->addBan($ip, $reason, null, $sender->getName());
+
 		foreach($sender->getServer()->getOnlinePlayers() as $player){
 			if($player->getAddress() === $ip){
-				$player->kick($reason !== "" ? $reason : "§cSunucumuza Girmeniz Yasaklandı!");
+				$player->kick($reason !== "" ? $reason : "IP banned.");
 			}
 		}
 

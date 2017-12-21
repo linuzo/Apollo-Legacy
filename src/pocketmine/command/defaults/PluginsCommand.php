@@ -19,6 +19,8 @@
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
@@ -27,20 +29,20 @@ use pocketmine\utils\TextFormat;
 
 class PluginsCommand extends VanillaCommand{
 
-	public function __construct($name){
+	public function __construct(string $name){
 		parent::__construct(
 			$name,
 			"%pocketmine.command.plugins.description",
-			"%pocketmine.command.plugins.usage"
+			"%pocketmine.command.plugins.usage",
+			["pl"]
 		);
 		$this->setPermission("pocketmine.command.plugins");
 	}
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 		if(!$this->testPermission($sender)){
 			return true;
 		}
-		
 		$this->sendPluginList($sender);
 		return true;
 	}
@@ -49,9 +51,8 @@ class PluginsCommand extends VanillaCommand{
 		$list = "";
 		foreach(($plugins = $sender->getServer()->getPluginManager()->getPlugins()) as $plugin){
 			if(strlen($list) > 0){
-				$list .= TextFormat::AQUA . ", ";
+				$list .= TextFormat::WHITE . ", ";
 			}
-			
 			$list .= $plugin->isEnabled() ? TextFormat::GREEN : TextFormat::RED;
 			$list .= $plugin->getDescription()->getFullName();
 		}

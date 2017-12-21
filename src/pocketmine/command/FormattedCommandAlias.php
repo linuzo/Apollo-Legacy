@@ -1,35 +1,45 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\command;
 
 use pocketmine\event\TranslationContainer;
 use pocketmine\Server;
-use pocketmine\utils\MainLogger;
 use pocketmine\utils\TextFormat;
 
 class FormattedCommandAlias extends Command{
-	
 	private $formatStrings = [];
 
 	/**
 	 * @param string   $alias
 	 * @param string[] $formatStrings
 	 */
-	public function __construct($alias, array $formatStrings){
+	public function __construct(string $alias, array $formatStrings){
 		parent::__construct($alias);
 		$this->formatStrings = $formatStrings;
 	}
 
-	public function execute(CommandSender $sender, $commandLabel, array $args){
+	public function execute(CommandSender $sender, string $commandLabel, array $args){
 
 		$commands = [];
 		$result = false;
@@ -42,10 +52,7 @@ class FormattedCommandAlias extends Command{
 					$sender->sendMessage(TextFormat::RED . $e->getMessage());
 				}else{
 					$sender->sendMessage(new TranslationContainer(TextFormat::RED . "%commands.generic.exception"));
-					$logger = $sender->getServer()->getLogger();
-					if($logger instanceof MainLogger){
-						$logger->logException($e);
-					}
+					$sender->getServer()->getLogger()->logException($e);
 				}
 
 				return false;
@@ -64,9 +71,8 @@ class FormattedCommandAlias extends Command{
 	 * @param array  $args
 	 *
 	 * @return string
-	 * @throws \InvalidArgumentException
 	 */
-	private function buildCommand($formatString, array $args){
+	private function buildCommand(string $formatString, array $args) : string{
 		$index = strpos($formatString, '$');
 		while($index !== false){
 			$start = $index;
@@ -95,7 +101,7 @@ class FormattedCommandAlias extends Command{
 				throw new \InvalidArgumentException("Invalid replacement token");
 			}
 
-			$position = intval(substr($formatString, $argStart, $index));
+			$position = (int) substr($formatString, $argStart, $index);
 
 			if($position === 0){
 				throw new \InvalidArgumentException("Invalid replacement token");
@@ -118,7 +124,7 @@ class FormattedCommandAlias extends Command{
 
 			$replacement = "";
 			if($rest and $position < count($args)){
-				for($i = $position; $i < count($args); ++$i){
+				for($i = $position, $c = count($args); $i < $c; ++$i){
 					if($i !== $position){
 						$replacement .= " ";
 					}
@@ -146,7 +152,7 @@ class FormattedCommandAlias extends Command{
 	 *
 	 * @return bool
 	 */
-	private static function inRange($i, $j, $k){
+	private static function inRange(int $i, int $j, int $k) : bool{
 		return $i >= $j and $i <= $k;
 	}
 

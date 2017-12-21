@@ -1,38 +1,53 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\command;
+
 
 interface CommandMap{
 
 	/**
-	 * @param string    $fallbackPrefix
+	 * @param string $fallbackPrefix
 	 * @param Command[] $commands
 	 */
-	public function registerAll($fallbackPrefix, array $commands);
+	public function registerAll(string $fallbackPrefix, array $commands);
 
 	/**
-	 * @param string  $fallbackPrefix
-	 * @param Command $command
-	 * @param string  $label
+	 * @param string      $fallbackPrefix
+	 * @param Command     $command
+	 * @param string|null $label
+	 *
+	 * @return bool
 	 */
-	public function register($fallbackPrefix, Command $command, $label = null);
+	public function register(string $fallbackPrefix, Command $command, string $label = null) : bool;
 
 	/**
 	 * @param CommandSender $sender
 	 * @param string        $cmdLine
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
-	public function dispatch(CommandSender $sender, $cmdLine);
+	public function dispatch(CommandSender $sender, string $cmdLine) : bool;
 
 	/**
 	 * @return void
@@ -42,8 +57,9 @@ interface CommandMap{
 	/**
 	 * @param string $name
 	 *
-	 * @return Command
+	 * @return Command|null
 	 */
-	public function getCommand($name);
-	
+	public function getCommand(string $name);
+
+
 }
