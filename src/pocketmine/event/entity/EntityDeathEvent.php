@@ -52,7 +52,7 @@ class EntityDeathEvent extends EntityEvent{
 	/**
 	 * @return Item[]
 	 */
-	public function getDrops() : array{
+	public function getDrops(){
 		return $this->drops;
 	}
 

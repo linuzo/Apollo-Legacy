@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class GameRulesChangedPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::GAME_RULES_CHANGED_PACKET;
+	const NETWORK_ID = ProtocolInfo::GAME_RULES_CHANGED_PACKET;
 
 	/** @var array */
 	public $gameRules = [];

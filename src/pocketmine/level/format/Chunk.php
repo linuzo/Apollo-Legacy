@@ -29,6 +29,7 @@ namespace pocketmine\level\format;
 use pocketmine\block\BlockFactory;
 use pocketmine\entity\Entity;
 use pocketmine\level\Level;
+use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\Player;
 use pocketmine\tile\Spawnable;
@@ -633,7 +634,7 @@ class Chunk{
 	 * @param Tile $tile
 	 */
 	public function addTile(Tile $tile){
-		if($tile->isClosed()){
+		if($tile->closed){
 			throw new \InvalidArgumentException("Attempted to add a garbage closed Tile to a chunk");
 		}
 		$this->tiles[$tile->getId()] = $tile;
@@ -938,10 +939,16 @@ class Chunk{
 		}
 		$result .= $extraData->getBuffer();
 
-		foreach($this->tiles as $tile){
-			if($tile instanceof Spawnable){
-				$result .= $tile->getSerializedSpawnCompound();
+		if(count($this->tiles) > 0){
+			$nbt = new NBT(NBT::LITTLE_ENDIAN);
+			$list = [];
+			foreach($this->tiles as $tile){
+				if($tile instanceof Spawnable){
+					$list[] = $tile->getSpawnCompound();
+				}
 			}
+			$nbt->setData($list);
+			$result .= $nbt->write(true);
 		}
 
 		return $result;

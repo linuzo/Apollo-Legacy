@@ -26,55 +26,51 @@ namespace pocketmine\event\inventory;
 use pocketmine\event\Cancellable;
 use pocketmine\event\Event;
 use pocketmine\inventory\Recipe;
-use pocketmine\inventory\transaction\CraftingTransaction;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
 class CraftItemEvent extends Event implements Cancellable{
 	public static $handlerList = null;
 
-	/** @var CraftingTransaction */
-	private $transaction;
+	/** @var Item[] */
+	private $input;
+	/** @var Recipe */
+	private $recipe;
+	/** @var Player */
+	private $player;
+
 
 	/**
-	 * @param CraftingTransaction $transaction
+	 * @param Player $player
+	 * @param Item[] $input
+	 * @param Recipe $recipe
 	 */
-	public function __construct(CraftingTransaction $transaction){
-		$this->transaction = $transaction;
-	}
-
-	public function getTransaction() : CraftingTransaction{
-		return $this->transaction;
+	public function __construct(Player $player, array $input, Recipe $recipe){
+		$this->player = $player;
+		$this->input = $input;
+		$this->recipe = $recipe;
 	}
 
 	/**
-	 * @deprecated This returns a one-dimensional array of ingredients and does not account for the positioning of
-	 * items in the crafting grid. Prefer getting the input map from the transaction instead.
-	 *
 	 * @return Item[]
 	 */
 	public function getInput() : array{
 		return array_map(function(Item $item) : Item{
 			return clone $item;
-		}, array_merge(...$this->transaction->getInputMap()));
+		}, $this->input);
 	}
 
 	/**
 	 * @return Recipe
 	 */
 	public function getRecipe() : Recipe{
-		$recipe = $this->transaction->getRecipe();
-		if($recipe === null){
-			throw new \RuntimeException("This shouldn't be called if the transaction can't be executed");
-		}
-
-		return $recipe;
+		return $this->recipe;
 	}
 
 	/**
 	 * @return Player
 	 */
 	public function getPlayer() : Player{
-		return $this->transaction->getSource();
+		return $this->player;
 	}
 }

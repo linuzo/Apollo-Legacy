@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 
 class SeaLantern extends Transparent{
 
@@ -48,7 +47,7 @@ class SeaLantern extends Transparent{
 
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get(Item::PRISMARINE_CRYSTALS, 0, 3)
+			Item::get(Item::PRISMARINE_CRYSTALS, 0, 3)
 		];
 	}
 

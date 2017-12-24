@@ -27,12 +27,10 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\types\ContainerIds;
-#ifndef COMPILE
 use pocketmine\utils\Binary;
-#endif
 
 class PlayerHotbarPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::PLAYER_HOTBAR_PACKET;
+	const NETWORK_ID = ProtocolInfo::PLAYER_HOTBAR_PACKET;
 
 	/** @var int */
 	public $selectedHotbarSlot;

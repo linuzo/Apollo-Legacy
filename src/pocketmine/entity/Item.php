@@ -26,14 +26,15 @@ namespace pocketmine\entity;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\ItemDespawnEvent;
 use pocketmine\event\entity\ItemSpawnEvent;
-use pocketmine\event\inventory\InventoryPickupItemEvent;
 use pocketmine\item\Item as ItemItem;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ShortTag;
+use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\mcpe\protocol\AddItemEntityPacket;
-use pocketmine\network\mcpe\protocol\TakeItemEntityPacket;
 use pocketmine\Player;
 
 class Item extends Entity{
-	public const NETWORK_ID = self::ITEM;
+	const NETWORK_ID = 64;
 
 	/** @var string */
 	protected $owner = "";
@@ -45,6 +46,7 @@ class Item extends Entity{
 	protected $item;
 
 	public $width = 0.25;
+	public $length = 0.25;
 	public $height = 0.25;
 	protected $baseOffset = 0.125;
 
@@ -57,34 +59,42 @@ class Item extends Entity{
 		parent::initEntity();
 
 		$this->setMaxHealth(5);
-		$this->setHealth($this->namedtag->getShort("Health", (int) $this->getHealth()));
-		$this->age = $this->namedtag->getShort("Age", $this->age);
-		$this->pickupDelay = $this->namedtag->getShort("PickupDelay", $this->pickupDelay);
-		$this->owner = $this->namedtag->getString("Owner", $this->owner);
-		$this->thrower = $this->namedtag->getString("Thrower", $this->thrower);
+		$this->setHealth($this->namedtag["Health"]);
+		if(isset($this->namedtag->Age)){
+			$this->age = $this->namedtag["Age"];
+		}
+		if(isset($this->namedtag->PickupDelay)){
+			$this->pickupDelay = $this->namedtag["PickupDelay"];
+		}
+		if(isset($this->namedtag->Owner)){
+			$this->owner = $this->namedtag["Owner"];
+		}
+		if(isset($this->namedtag->Thrower)){
+			$this->thrower = $this->namedtag["Thrower"];
+		}
 
 
-		$itemTag = $this->namedtag->getCompoundTag("Item");
-		if($itemTag === null){
+		if(!isset($this->namedtag->Item)){
 			$this->close();
 			return;
 		}
 
-		$this->item = ItemItem::nbtDeserialize($itemTag);
+		assert($this->namedtag->Item instanceof CompoundTag);
+
+		$this->item = ItemItem::nbtDeserialize($this->namedtag->Item);
 
 
 		$this->server->getPluginManager()->callEvent(new ItemSpawnEvent($this));
 	}
 
-	public function attack(EntityDamageEvent $source){
+	public function attack($damage, EntityDamageEvent $source){
 		if(
 			$source->getCause() === EntityDamageEvent::CAUSE_VOID or
 			$source->getCause() === EntityDamageEvent::CAUSE_FIRE_TICK or
-			$source->getCause() === EntityDamageEvent::CAUSE_LAVA or
 			$source->getCause() === EntityDamageEvent::CAUSE_ENTITY_EXPLOSION or
 			$source->getCause() === EntityDamageEvent::CAUSE_BLOCK_EXPLOSION
 		){
-			parent::attack($source);
+			parent::attack($damage, $source);
 		}
 	}
 
@@ -95,7 +105,7 @@ class Item extends Entity{
 
 		$hasUpdate = parent::entityBaseTick($tickDiff);
 
-		if(!$this->isFlaggedForDespawn()){
+		if($this->isAlive()){
 			if($this->pickupDelay > 0 and $this->pickupDelay < 32767){ //Infinite delay
 				$this->pickupDelay -= $tickDiff;
 				if($this->pickupDelay < 0){
@@ -108,7 +118,7 @@ class Item extends Entity{
 				if($ev->isCancelled()){
 					$this->age = 0;
 				}else{
-					$this->flagForDespawn();
+					$this->kill();
 					$hasUpdate = true;
 				}
 			}
@@ -129,15 +139,15 @@ class Item extends Entity{
 
 	public function saveNBT(){
 		parent::saveNBT();
-		$this->namedtag->setTag($this->item->nbtSerialize(-1, "Item"));
-		$this->namedtag->setShort("Health", (int) $this->getHealth());
-		$this->namedtag->setShort("Age", $this->age);
-		$this->namedtag->setShort("PickupDelay", $this->pickupDelay);
+		$this->namedtag->Item = $this->item->nbtSerialize(-1, "Item");
+		$this->namedtag->Health = new ShortTag("Health", $this->getHealth());
+		$this->namedtag->Age = new ShortTag("Age", $this->age);
+		$this->namedtag->PickupDelay = new ShortTag("PickupDelay", $this->pickupDelay);
 		if($this->owner !== null){
-			$this->namedtag->setString("Owner", $this->owner);
+			$this->namedtag->Owner = new StringTag("Owner", $this->owner);
 		}
 		if($this->thrower !== null){
-			$this->namedtag->setString("Thrower", $this->thrower);
+			$this->namedtag->Thrower = new StringTag("Thrower", $this->thrower);
 		}
 	}
 
@@ -194,49 +204,15 @@ class Item extends Entity{
 		$this->thrower = $thrower;
 	}
 
-	protected function sendSpawnPacket(Player $player) : void{
+	public function spawnTo(Player $player){
 		$pk = new AddItemEntityPacket();
 		$pk->entityRuntimeId = $this->getId();
 		$pk->position = $this->asVector3();
 		$pk->motion = $this->getMotion();
 		$pk->item = $this->getItem();
 		$pk->metadata = $this->dataProperties;
-
 		$player->dataPacket($pk);
-	}
 
-	public function onCollideWithPlayer(Player $player){
-		if($this->getPickupDelay() > 0){
-			return;
-		}
-
-		$item = $this->getItem();
-		$playerInventory = $player->getInventory();
-
-		if(!($item instanceof ItemItem) or ($player->isSurvival() and !$playerInventory->canAddItem($item))){
-			return;
-		}
-
-		$this->server->getPluginManager()->callEvent($ev = new InventoryPickupItemEvent($playerInventory, $this));
-		if($ev->isCancelled()){
-			return;
-		}
-
-		switch($item->getId()){
-			case ItemItem::WOOD:
-				$player->awardAchievement("mineWood");
-				break;
-			case ItemItem::DIAMOND:
-				$player->awardAchievement("diamond");
-				break;
-		}
-
-		$pk = new TakeItemEntityPacket();
-		$pk->eid = $player->getId();
-		$pk->target = $this->getId();
-		$this->server->broadcastPacket($this->getViewers(), $pk);
-
-		$playerInventory->addItem(clone $item);
-		$this->flagForDespawn();
+		parent::spawnTo($player);
 	}
 }

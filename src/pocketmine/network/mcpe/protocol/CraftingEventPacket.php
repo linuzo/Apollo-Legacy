@@ -30,7 +30,7 @@ use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\utils\UUID;
 
 class CraftingEventPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::CRAFTING_EVENT_PACKET;
+	const NETWORK_ID = ProtocolInfo::CRAFTING_EVENT_PACKET;
 
 	/** @var int */
 	public $windowId;

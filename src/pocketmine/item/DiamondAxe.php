@@ -25,8 +25,8 @@ namespace pocketmine\item;
 
 
 class DiamondAxe extends Tool{
-	public function __construct(int $meta = 0){
-		parent::__construct(self::DIAMOND_AXE, $meta, "Diamond Axe");
+	public function __construct($meta = 0, $count = 1){
+		parent::__construct(self::DIAMOND_AXE, $meta, $count, "Diamond Axe");
 	}
 
 	public function isAxe(){
@@ -34,6 +34,6 @@ class DiamondAxe extends Tool{
 	}
 
 	public function getAttackPoints() : int{
-		return 7;
+		return 6;
 	}
 }

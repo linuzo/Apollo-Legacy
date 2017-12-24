@@ -31,7 +31,7 @@ use pocketmine\utils\Binary;
 class QueryRegenerateEvent extends ServerEvent{
 	public static $handlerList = null;
 
-	public const GAME_ID = "MINECRAFTPE";
+	const GAME_ID = "MINECRAFTPE";
 
 	/** @var int */
 	private $timeout;

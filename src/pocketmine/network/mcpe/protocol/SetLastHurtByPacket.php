@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class SetLastHurtByPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::SET_LAST_HURT_BY_PACKET;
+	const NETWORK_ID = ProtocolInfo::SET_LAST_HURT_BY_PACKET;
 
 	/** @var int */
 	public $entityTypeId;

@@ -28,10 +28,9 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\entity\Attribute;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\types\EntityLink;
 
 class AddEntityPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::ADD_ENTITY_PACKET;
+	const NETWORK_ID = ProtocolInfo::ADD_ENTITY_PACKET;
 
 	/** @var int|null */
 	public $entityUniqueId = null; //TODO
@@ -52,7 +51,7 @@ class AddEntityPacket extends DataPacket{
 	public $attributes = [];
 	/** @var array */
 	public $metadata = [];
-	/** @var EntityLink[] */
+	/** @var array */
 	public $links = [];
 
 	protected function decodePayload(){

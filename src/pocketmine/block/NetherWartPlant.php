@@ -26,7 +26,6 @@ namespace pocketmine\block;
 
 use pocketmine\event\block\BlockGrowEvent;
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
@@ -40,18 +39,10 @@ class NetherWartPlant extends Flowable{
 		$this->meta = $meta;
 	}
 
-	public function getName() : string{
-		return "Nether Wart";
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
-	}
-
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		$down = $this->getSide(Vector3::SIDE_DOWN);
 		if($down->getId() === Block::SOUL_SAND){
-			$this->getLevel()->setBlock($blockReplace, $this, false, true);
+			$this->getLevel()->setBlock($block, $this, false, true);
 
 			return true;
 		}
@@ -87,7 +78,7 @@ class NetherWartPlant extends Flowable{
 
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get($this->getItemId(), 0, ($this->getDamage() === 3 ? mt_rand(2, 4) : 1))
+			Item::get($this->getItemId(), 0, ($this->getDamage() === 3 ? mt_rand(2, 4) : 1))
 		];
 	}
 }

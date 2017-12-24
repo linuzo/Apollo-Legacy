@@ -23,11 +23,16 @@ declare(strict_types=1);
 
 namespace pocketmine\inventory;
 
+use pocketmine\item\Item;
 use pocketmine\level\Position;
 use pocketmine\network\mcpe\protocol\types\WindowTypes;
 use pocketmine\Player;
 
 class AnvilInventory extends ContainerInventory{
+
+ 	const TARGET = 0;
+ 	const SACRIFICE = 1;
+ 	const RESULT = 2;
 
 	/** @var FakeBlockMenu */
 	protected $holder;
@@ -45,7 +50,7 @@ class AnvilInventory extends ContainerInventory{
 	}
 
 	public function getDefaultSize() : int{
-		return 2; //1 input, 1 material
+		return 3; //1 input, 1 material, 1 result
 	}
 
 	/**
@@ -56,9 +61,40 @@ class AnvilInventory extends ContainerInventory{
 		return $this->holder;
 	}
 
-	public function onClose(Player $who) : void{
+ 	public function onRename(Player $player, Item $resultItem) : bool{
+ 		if(!$resultItem->deepEquals($this->getItem(self::TARGET), true, false, true)){
+ 			//Item does not match target item. Everything must match except the tags.
+ 			return false;
+ 		}
+ 
+ 		if($player->getXpLevel() < $resultItem->getRepairCost()){ //Not enough exp
+ 			return false;
+  		}
+ 		$player->setXpLevel($player->getXpLevel() - $resultItem->getRepairCost());
+ 		
+ 		$this->clearAll();
+ 		if(!$player->getServer()->allowInventoryCheats and !$player->isCreative()){
+ 			if(!$player->getFloatingInventory()->canAddItem($resultItem)){
+ 				return false;
+ 			}
+ 			$player->getFloatingInventory()->addItem($resultItem);
+ 		}
+
+ 		$player->getLevel()->addSound(new AnvilUseSound($player), [$player]);
+
+ 		return true;
+ 	}
+
+  	public function onSlotChange(int $index, Item $before, bool $send){
+ 		//Do not send anvil slot updates to anyone. This will cause a client crash.
+  	}
+
+	public function onClose(Player $who){
 		parent::onClose($who);
 
-		$this->dropContents($this->holder->getLevel(), $this->holder->add(0.5, 0.5, 0.5));
+		for($i = 0; $i < 2; ++$i){
+			$this->getHolder()->getLevel()->dropItem($this->getHolder()->add(0.5, 0.5, 0.5), $this->getItem($i));
+			$this->clear($i);
+		}
 	}
 }

@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class ServerSettingsResponsePacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::SERVER_SETTINGS_RESPONSE_PACKET;
+	const NETWORK_ID = ProtocolInfo::SERVER_SETTINGS_RESPONSE_PACKET;
 
 	/** @var int */
 	public $formId;

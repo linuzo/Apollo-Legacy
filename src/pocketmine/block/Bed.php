@@ -25,10 +25,13 @@ namespace pocketmine\block;
 
 use pocketmine\event\TranslationContainer;
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\ByteTag;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\StringTag;
 use pocketmine\Player;
 use pocketmine\tile\Bed as TileBed;
 use pocketmine\tile\Tile;
@@ -54,7 +57,7 @@ class Bed extends Transparent{
 		return "Bed Block";
 	}
 
-	protected function recalculateBoundingBox() : ?AxisAlignedBB{
+	protected function recalculateBoundingBox(){
 		return new AxisAlignedBB(
 			$this->x,
 			$this->y,
@@ -125,7 +128,7 @@ class Bed extends Transparent{
 	/**
 	 * @return Bed|null
 	 */
-	public function getOtherHalf() : ?Bed{
+	public function getOtherHalf(){
 		$other = $this->getSide(self::getOtherHalfSide($this->meta, $this->isHeadPart()));
 		if($other instanceof Bed and $other->getId() === $this->getId() and $other->isHeadPart() !== $this->isHeadPart() and (($other->getDamage() & 0x03) === ($this->getDamage() & 0x03))){
 			return $other;
@@ -171,17 +174,29 @@ class Bed extends Transparent{
 
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		$down = $this->getSide(Vector3::SIDE_DOWN);
 		if(!$down->isTransparent()){
 			$meta = (($player instanceof Player ? $player->getDirection() : 0) - 1) & 0x03;
 			$next = $this->getSide(self::getOtherHalfSide($meta));
 			if($next->canBeReplaced() === true and !$next->getSide(Vector3::SIDE_DOWN)->isTransparent()){
-				$this->getLevel()->setBlock($blockReplace, BlockFactory::get($this->id, $meta), true, true);
+				$this->getLevel()->setBlock($block, BlockFactory::get($this->id, $meta), true, true);
 				$this->getLevel()->setBlock($next, BlockFactory::get($this->id, $meta | self::BITFLAG_HEAD), true, true);
 
-				Tile::createTile(Tile::BED, $this->getLevel(), TileBed::createNBT($this, $face, $item, $player));
-				Tile::createTile(Tile::BED, $this->getLevel(), TileBed::createNBT($next, $face, $item, $player));
+				$nbt = new CompoundTag("", [
+					new StringTag("id", Tile::BED),
+					new ByteTag("color", $item->getDamage() & 0x0f),
+					new IntTag("x", $block->x),
+					new IntTag("y", $block->y),
+					new IntTag("z", $block->z),
+				]);
+
+				$nbt2 = clone $nbt;
+				$nbt2["x"] = $next->x;
+				$nbt2["z"] = $next->z;
+
+				Tile::createTile(Tile::BED, $this->getLevel(), $nbt);
+				Tile::createTile(Tile::BED, $this->getLevel(), $nbt2);
 
 				return true;
 			}
@@ -190,10 +205,10 @@ class Bed extends Transparent{
 		return false;
 	}
 
-	public function onBreak(Item $item, Player $player = null) : bool{
+	public function onBreak(Item $item) : bool{
 		$this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), true, true);
 		if(($other = $this->getOtherHalf()) !== null){
-			$this->getLevel()->useBreakOn($other, $item, null, $player !== null); //make sure tiles get removed
+			$this->getLevel()->useBreakOn($other); //make sure tiles get removed
 		}
 
 		return true;
@@ -204,11 +219,11 @@ class Bed extends Transparent{
 			$tile = $this->getLevel()->getTile($this);
 			if($tile instanceof TileBed){
 				return [
-					ItemFactory::get($this->getItemId(), $tile->getColor(), 1)
+					Item::get($this->getItemId(), $tile->getColor(), 1)
 				];
 			}else{
 				return [
-					ItemFactory::get($this->getItemId(), 14, 1) //Red
+					Item::get($this->getItemId(), 14, 1) //Red
 				];
 			}
 		}

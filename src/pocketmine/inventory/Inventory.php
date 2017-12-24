@@ -30,7 +30,7 @@ use pocketmine\item\Item;
 use pocketmine\Player;
 
 interface Inventory{
-	public const MAX_STACK = 64;
+	const MAX_STACK = 64;
 
 	/**
 	 * @return int
@@ -45,7 +45,7 @@ interface Inventory{
 	/**
 	 * @param int $size
 	 */
-	public function setMaxStackSize(int $size) : void;
+	public function setMaxStackSize(int $size);
 
 	/**
 	 * @return string
@@ -114,20 +114,19 @@ interface Inventory{
 
 	/**
 	 * @param Item[] $items
-	 * @param bool   $send
 	 */
-	public function setContents(array $items, bool $send = true) : void;
+	public function setContents(array $items);
 
 	/**
 	 * @param Player|Player[] $target
 	 */
-	public function sendContents($target) : void;
+	public function sendContents($target);
 
 	/**
 	 * @param int             $index
 	 * @param Player|Player[] $target
 	 */
-	public function sendSlot(int $index, $target) : void;
+	public function sendSlot(int $index, $target);
 
 	/**
 	 * Checks if the inventory contains any Item with the same material data.
@@ -150,17 +149,14 @@ interface Inventory{
 	public function all(Item $item) : array;
 
 	/**
-	 * Returns the first slot number containing an item with the same ID, damage (if not any-damage), NBT (if not empty)
-	 * and count >= to the count of the specified item stack.
-	 *
-	 * If $exact is true, only items with equal ID, damage, NBT and count will match.
+	 * Will return the first slot has the same id and metadata (if not null) as the Item.
+	 * -1 if not found, will check amount
 	 *
 	 * @param Item $item
-	 * @param bool $exact
 	 *
 	 * @return int
 	 */
-	public function first(Item $item, bool $exact = false) : int;
+	public function first(Item $item) : int;
 
 	/**
 	 * Returns the first empty slot, or -1 if not found
@@ -174,7 +170,7 @@ interface Inventory{
 	 *
 	 * @param Item $item
 	 */
-	public function remove(Item $item) : void;
+	public function remove(Item $item);
 
 	/**
 	 * Will clear a specific slot
@@ -189,7 +185,7 @@ interface Inventory{
 	/**
 	 * Clears all the slots
 	 */
-	public function clearAll() : void;
+	public function clearAll();
 
 	/**
 	 * Gets all the Players viewing the inventory
@@ -207,7 +203,7 @@ interface Inventory{
 	/**
 	 * @param Player $who
 	 */
-	public function onOpen(Player $who) : void;
+	public function onOpen(Player $who);
 
 	/**
 	 * Tries to open the inventory to a player
@@ -218,25 +214,17 @@ interface Inventory{
 	 */
 	public function open(Player $who) : bool;
 
-	public function close(Player $who) : void;
+	public function close(Player $who);
 
 	/**
 	 * @param Player $who
 	 */
-	public function onClose(Player $who) : void;
+	public function onClose(Player $who);
 
 	/**
 	 * @param int  $index
 	 * @param Item $before
 	 * @param bool $send
 	 */
-	public function onSlotChange(int $index, Item $before, bool $send) : void;
-
-	/**
-	 * Returns whether the specified slot exists in the inventory.
-	 *
-	 * @param int $slot
-	 * @return bool
-	 */
-	public function slotExists(int $slot) : bool;
+	public function onSlotChange(int $index, Item $before, bool $send);
 }

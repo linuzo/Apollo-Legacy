@@ -30,7 +30,7 @@ use pocketmine\entity\Attribute;
 use pocketmine\network\mcpe\NetworkSession;
 
 class UpdateAttributesPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::UPDATE_ATTRIBUTES_PACKET;
+	const NETWORK_ID = ProtocolInfo::UPDATE_ATTRIBUTES_PACKET;
 
 	/** @var int */
 	public $entityRuntimeId;

@@ -34,30 +34,27 @@ use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\utils\BinaryStream;
 
 class CraftingDataPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::CRAFTING_DATA_PACKET;
+	const NETWORK_ID = ProtocolInfo::CRAFTING_DATA_PACKET;
 
-	public const ENTRY_SHAPELESS = 0;
-	public const ENTRY_SHAPED = 1;
-	public const ENTRY_FURNACE = 2;
-	public const ENTRY_FURNACE_DATA = 3;
-	public const ENTRY_MULTI = 4; //TODO
-	public const ENTRY_SHULKER_BOX = 5; //TODO
+	const ENTRY_SHAPELESS = 0;
+	const ENTRY_SHAPED = 1;
+	const ENTRY_FURNACE = 2;
+	const ENTRY_FURNACE_DATA = 3;
+	const ENTRY_MULTI = 4; //TODO
+	const ENTRY_SHULKER_BOX = 5; //TODO
 
 	/** @var object[] */
 	public $entries = [];
 	/** @var bool */
 	public $cleanRecipes = false;
 
-	public $decodedEntries = [];
-
 	public function clean(){
 		$this->entries = [];
-		$this->decodedEntries = [];
 		return parent::clean();
 	}
 
 	protected function decodePayload(){
-		$this->decodedEntries = [];
+		$entries = [];
 		$recipeCount = $this->getUnsignedVarInt();
 		for($i = 0; $i < $recipeCount; ++$i){
 			$entry = [];
@@ -109,7 +106,7 @@ class CraftingDataPacket extends DataPacket{
 				default:
 					throw new \UnexpectedValueException("Unhandled recipe type $recipeType!"); //do not continue attempting to decode
 			}
-			$this->decodedEntries[] = $entry;
+			$entries[] = $entry;
 		}
 		$this->getBool(); //cleanRecipes
 	}
@@ -133,11 +130,8 @@ class CraftingDataPacket extends DataPacket{
 			$stream->putSlot($item);
 		}
 
-		$results = $recipe->getAllResults();
-		$stream->putUnsignedVarInt(count($results));
-		foreach($results as $item){
-			$stream->putSlot($item);
-		}
+		$stream->putUnsignedVarInt(1);
+		$stream->putSlot($recipe->getResult());
 
 		$stream->putUUID($recipe->getId());
 
@@ -154,11 +148,8 @@ class CraftingDataPacket extends DataPacket{
 			}
 		}
 
-		$results = $recipe->getAllResults();
-		$stream->putUnsignedVarInt(count($results));
-		foreach($results as $item){
-			$stream->putSlot($item);
-		}
+		$stream->putUnsignedVarInt(1);
+		$stream->putSlot($recipe->getResult());
 
 		$stream->putUUID($recipe->getId());
 

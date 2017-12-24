@@ -25,7 +25,6 @@ namespace pocketmine\block;
 
 use pocketmine\event\block\BlockSpreadEvent;
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\item\Tool;
 use pocketmine\level\generator\object\TallGrass as TallGrassObject;
 use pocketmine\level\Level;
@@ -55,12 +54,8 @@ class Grass extends Solid{
 
 	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get(Item::DIRT, 0, 1)
+			Item::get(Item::DIRT, 0, 1),
 		];
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onUpdate(int $type){
@@ -76,22 +71,22 @@ class Grass extends Solid{
 				return Level::BLOCK_UPDATE_RANDOM;
 			}elseif($lightAbove >= 9){
 				//try grass spread
+				$vector = $this->asVector3();
 				for($i = 0; $i < 4; ++$i){
-					$x = mt_rand($this->x - 1, $this->x + 1);
-					$y = mt_rand($this->y - 3, $this->y + 1);
-					$z = mt_rand($this->z - 1, $this->z + 1);
+					$vector->x = mt_rand($this->x - 1, $this->x + 1);
+					$vector->y = mt_rand($this->y - 3, $this->y + 1);
+					$vector->z = mt_rand($this->z - 1, $this->z + 1);
 					if(
-						$this->level->getBlockIdAt($x, $y, $z) !== Block::DIRT or
-						$this->level->getBlockDataAt($x, $y, $z) === 1 or
-						$this->level->getFullLightAt($x, $y + 1, $z) < 4 or
-						BlockFactory::$lightFilter[$this->level->getBlockIdAt($x, $y + 1, $z)] >= 3
+						$this->level->getBlockIdAt($vector->x, $vector->y, $vector->z) !== Block::DIRT or
+						$this->level->getFullLightAt($vector->x, $vector->y + 1, $vector->z) < 4 or
+						BlockFactory::$lightFilter[$this->level->getBlockIdAt($vector->x, $vector->y + 1, $vector->z)] >= 3
 					){
 						continue;
 					}
 
-					$this->level->getServer()->getPluginManager()->callEvent($ev = new BlockSpreadEvent($b = $this->level->getBlockAt($x, $y, $z), $this, BlockFactory::get(Block::GRASS)));
+					$this->level->getServer()->getPluginManager()->callEvent($ev = new BlockSpreadEvent($this->level->getBlock($vector), $this, BlockFactory::get(Block::GRASS)));
 					if(!$ev->isCancelled()){
-						$this->level->setBlock($b, $ev->getNewState(), false, false);
+						$this->level->setBlock($vector, $ev->getNewState(), false, false);
 					}
 				}
 

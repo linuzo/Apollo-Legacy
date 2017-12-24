@@ -28,11 +28,10 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\types\EntityLink;
 use pocketmine\utils\UUID;
 
 class AddPlayerPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::ADD_PLAYER_PACKET;
+	const NETWORK_ID = ProtocolInfo::ADD_PLAYER_PACKET;
 
 	/** @var UUID */
 	public $uuid;
@@ -48,10 +47,10 @@ class AddPlayerPacket extends DataPacket{
 	public $motion;
 	/** @var float */
 	public $pitch = 0.0;
-	/** @var float */
-	public $yaw = 0.0;
 	/** @var float|null */
 	public $headYaw = null; //TODO
+	/** @var float */
+	public $yaw = 0.0;
 	/** @var Item */
 	public $item;
 	/** @var array */
@@ -66,7 +65,6 @@ class AddPlayerPacket extends DataPacket{
 
 	public $long1 = 0;
 
-	/** @var EntityLink[] */
 	public $links = [];
 
 	protected function decodePayload(){
@@ -77,8 +75,8 @@ class AddPlayerPacket extends DataPacket{
 		$this->position = $this->getVector3Obj();
 		$this->motion = $this->getVector3Obj();
 		$this->pitch = $this->getLFloat();
-		$this->yaw = $this->getLFloat();
 		$this->headYaw = $this->getLFloat();
+		$this->yaw = $this->getLFloat();
 		$this->item = $this->getSlot();
 		$this->metadata = $this->getEntityMetadata();
 
@@ -104,8 +102,8 @@ class AddPlayerPacket extends DataPacket{
 		$this->putVector3Obj($this->position);
 		$this->putVector3ObjNullable($this->motion);
 		$this->putLFloat($this->pitch);
-		$this->putLFloat($this->yaw);
 		$this->putLFloat($this->headYaw ?? $this->yaw);
+		$this->putLFloat($this->yaw);
 		$this->putSlot($this->item);
 		$this->putEntityMetadata($this->metadata);
 

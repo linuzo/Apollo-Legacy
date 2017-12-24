@@ -25,6 +25,7 @@ namespace pocketmine\level\format\io;
 
 use pocketmine\level\format\Chunk;
 use pocketmine\level\Level;
+use pocketmine\nbt\NBT;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\FullChunkDataPacket;
 use pocketmine\scheduler\AsyncTask;
@@ -53,9 +54,11 @@ class ChunkRequestTask extends AsyncTask{
 
 		//TODO: serialize tiles with chunks
 		$tiles = "";
+		$nbt = new NBT(NBT::LITTLE_ENDIAN);
 		foreach($chunk->getTiles() as $tile){
 			if($tile instanceof Spawnable){
-				$tiles .= $tile->getSerializedSpawnCompound();
+				$nbt->setData($tile->getSpawnCompound());
+				$tiles .= $nbt->write(true);
 			}
 		}
 

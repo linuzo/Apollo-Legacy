@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class AddBehaviorTreePacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::ADD_BEHAVIOR_TREE_PACKET;
+	const NETWORK_ID = ProtocolInfo::ADD_BEHAVIOR_TREE_PACKET;
 
 	/** @var string */
 	public $unknownString1;

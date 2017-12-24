@@ -38,9 +38,7 @@ class StoneSlab extends Slab{
 
 	protected $id = self::STONE_SLAB;
 
-	public function getDoubleSlabId() : int{
-		return self::DOUBLE_STONE_SLAB;
-	}
+	protected $doubleId = self::DOUBLE_STONE_SLAB;
 
 	public function getHardness() : float{
 		return 2;
@@ -55,9 +53,9 @@ class StoneSlab extends Slab{
 			self::BRICK => "Brick",
 			self::STONE_BRICK => "Stone Brick",
 			self::QUARTZ => "Quartz",
-			self::NETHER_BRICK => "Nether Brick"
+			self::NETHER_BRICK => "Nether Brick",
 		];
-		return (($this->meta & 0x08) > 0 ? "Upper " : "") . ($names[$this->getVariant()] ?? "") . " Slab";
+		return (($this->meta & 0x08) > 0 ? "Upper " : "") . $names[$this->meta & 0x07] . " Slab";
 	}
 
 	public function getToolType() : int{

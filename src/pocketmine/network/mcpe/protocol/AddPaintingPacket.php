@@ -29,7 +29,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class AddPaintingPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::ADD_PAINTING_PACKET;
+	const NETWORK_ID = ProtocolInfo::ADD_PAINTING_PACKET;
 
 	/** @var int|null */
 	public $entityUniqueId = null; //TODO

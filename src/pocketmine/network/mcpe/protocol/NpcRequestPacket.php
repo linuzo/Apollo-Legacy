@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class NpcRequestPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::NPC_REQUEST_PACKET;
+	const NETWORK_ID = ProtocolInfo::NPC_REQUEST_PACKET;
 
 	/** @var int */
 	public $entityRuntimeId;

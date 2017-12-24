@@ -23,8 +23,10 @@ declare(strict_types=1);
 
 namespace pocketmine\inventory\transaction\action;
 
+use pocketmine\inventory\ContainerInventory;
+use pocketmine\inventory\CraftingGrid;
 use pocketmine\inventory\Inventory;
-use pocketmine\inventory\transaction\InventoryTransaction;
+use pocketmine\inventory\PlayerInventory;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
@@ -33,30 +35,45 @@ use pocketmine\Player;
  */
 class SlotChangeAction extends InventoryAction{
 
-	/** @var Inventory */
+	/** @var Inventory|null */
 	protected $inventory;
 	/** @var int */
 	private $inventorySlot;
+	/** @var int */
+	private $containerId;
 
 	/**
-	 * @param Inventory $inventory
-	 * @param int       $inventorySlot
-	 * @param Item      $sourceItem
-	 * @param Item      $targetItem
+	 * @param Item $sourceItem
+	 * @param Item $targetItem
+	 * @param int  $containerId
+	 * @param int  $inventorySlot
 	 */
-	public function __construct(Inventory $inventory, int $inventorySlot, Item $sourceItem, Item $targetItem){
+	public function __construct(Item $sourceItem, Item $targetItem, int $containerId, int $inventorySlot){
 		parent::__construct($sourceItem, $targetItem);
-		$this->inventory = $inventory;
 		$this->inventorySlot = $inventorySlot;
+		$this->containerId = $containerId;
+	}
+
+	public function getContainerId() : int{
+		return $this->containerId;
 	}
 
 	/**
-	 * Returns the inventory involved in this action.
+	 * Returns the inventory involved in this action. Will return null if the action has not yet been fully initialized.
 	 *
-	 * @return Inventory
+	 * @return Inventory|null
 	 */
-	public function getInventory() : Inventory{
+	public function getInventory(){
 		return $this->inventory;
+	}
+
+	public function setInventoryFrom(Player $player){
+		$inventory = $player->getWindow($this->containerId);
+		if($inventory === null){
+			throw new \InvalidStateException("Player " . $player->getName() . " has no open container with ID " . $this->containerId);
+		}
+
+		$this->inventory = $inventory;
 	}
 
 	/**
@@ -75,20 +92,18 @@ class SlotChangeAction extends InventoryAction{
 	 * @return bool
 	 */
 	public function isValid(Player $source) : bool{
-		return (
-			$this->inventory->slotExists($this->inventorySlot) and
-			$this->inventory->getItem($this->inventorySlot)->equalsExact($this->sourceItem)
-		);
+		$check = $this->inventory->getItem($this->inventorySlot);
+		return $check->equals($this->sourceItem) and $check->getCount() === $this->sourceItem->getCount();
 	}
 
 	/**
-	 * Adds this action's target inventory to the transaction's inventory list.
+	 * Checks if the item in the inventory at the specified slot is already the same as this action's target item.
 	 *
-	 * @param InventoryTransaction $transaction
-	 *
+	 * @return bool
 	 */
-	public function onAddToTransaction(InventoryTransaction $transaction) : void{
-		$transaction->addInventory($this->inventory);
+	public function isAlreadyDone(Player $source) : bool{
+		$check = $this->inventory->getItem($this->inventorySlot);
+		return $check->equals($this->targetItem) and $check->getCount() === $this->targetItem->getCount();
 	}
 
 	/**
@@ -107,7 +122,7 @@ class SlotChangeAction extends InventoryAction{
 	 *
 	 * @param Player $source
 	 */
-	public function onExecuteSuccess(Player $source) : void{
+	public function onExecuteSuccess(Player $source){
 		$viewers = $this->inventory->getViewers();
 		unset($viewers[spl_object_hash($source)]);
 		$this->inventory->sendSlot($this->inventorySlot, $viewers);
@@ -118,7 +133,7 @@ class SlotChangeAction extends InventoryAction{
 	 *
 	 * @param Player $source
 	 */
-	public function onExecuteFail(Player $source) : void{
+	public function onExecuteFail(Player $source){
 		$this->inventory->sendSlot($this->inventorySlot, $source);
 	}
 }

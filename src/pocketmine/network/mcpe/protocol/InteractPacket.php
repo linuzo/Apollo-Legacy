@@ -29,12 +29,12 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class InteractPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::INTERACT_PACKET;
+	const NETWORK_ID = ProtocolInfo::INTERACT_PACKET;
 
-	public const ACTION_LEAVE_VEHICLE = 3;
-	public const ACTION_MOUSEOVER = 4;
+	const ACTION_LEAVE_VEHICLE = 3;
+	const ACTION_MOUSEOVER = 4;
 
-	public const ACTION_OPEN_INVENTORY = 6;
+	const ACTION_OPEN_INVENTORY = 6;
 
 	/** @var int */
 	public $action;

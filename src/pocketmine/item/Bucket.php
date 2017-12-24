@@ -26,19 +26,20 @@ namespace pocketmine\item;
 use pocketmine\block\Air;
 use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
+use pocketmine\block\FlowingLava;
 use pocketmine\block\Liquid;
-use pocketmine\event\player\PlayerBucketEmptyEvent;
 use pocketmine\event\player\PlayerBucketFillEvent;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\Player;
 
 class Bucket extends Item{
-	public function __construct(int $meta = 0){
-		parent::__construct(self::BUCKET, $meta, "Bucket");
+	public function __construct($meta = 0, $count = 1){
+		parent::__construct(self::BUCKET, $meta, $count, "Bucket");
 	}
 
-	public function getMaxStackSize() : int{
+	public function getMaxStackSize(){
 		return 1;
 	}
 
@@ -50,16 +51,22 @@ class Bucket extends Item{
 		return 0;
 	}
 
-	public function onActivate(Level $level, Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector) : bool{
-		$resultBlock = BlockFactory::get($this->meta);
+	public function onActivate(Level $level, Player $player, Block $block, Block $target, int $face, Vector3 $facePos) : bool{
+		$targetBlock = BlockFactory::get($this->meta);
 
-		if($resultBlock instanceof Air){
-			if($blockClicked instanceof Liquid and $blockClicked->getDamage() === 0){
-				$resultItem = clone $this;
-				$resultItem->setDamage($blockClicked->getId());
-				$player->getServer()->getPluginManager()->callEvent($ev = new PlayerBucketFillEvent($player, $blockReplace, $face, $this, $resultItem));
+		if($targetBlock instanceof Air){
+			if($target instanceof Liquid and $target->getDamage() === 0){
+				$result = clone $this;
+				$result->setDamage($target->getId());
+				$player->getServer()->getPluginManager()->callEvent($ev = new PlayerBucketFillEvent($player, $block, $face, $this, $result));
 				if(!$ev->isCancelled()){
-					$player->getLevel()->setBlock($blockClicked, BlockFactory::get(Block::AIR), true, true);
+					if($target instanceof FlowingLava){
+ 						$soundId = LevelSoundEventPacket::SOUND_BUCKET_FILL_LAVA;
+					}else{
+ 						$soundId = LevelSoundEventPacket::SOUND_BUCKET_FILL_WATER;
+ 					}
+ 					$player->getLevel()->broadcastLevelSoundEvent($target, $soundId);
+					$player->getLevel()->setBlock($target, BlockFactory::get(Block::AIR), true, true);
 					if($player->isSurvival()){
 						$player->getInventory()->setItemInHand($ev->getItem());
 					}
@@ -68,12 +75,18 @@ class Bucket extends Item{
 					$player->getInventory()->sendContents($player);
 				}
 			}
-		}elseif($resultBlock instanceof Liquid){
-			$resultItem = clone $this;
-			$resultItem->setDamage(0);
-			$player->getServer()->getPluginManager()->callEvent($ev = new PlayerBucketEmptyEvent($player, $blockReplace, $face, $this, $resultItem));
+		}elseif($targetBlock instanceof Liquid){
+			$result = clone $this;
+			$result->setDamage(0);
+			$player->getServer()->getPluginManager()->callEvent($ev = new PlayerBucketFillEvent($player, $block, $face, $this, $result));
 			if(!$ev->isCancelled()){
-				$player->getLevel()->setBlock($blockReplace, $resultBlock, true, true);
+				if($targetBlock instanceof FlowingLava){
+ 					$soundId = LevelSoundEventPacket::SOUND_BUCKET_EMPTY_LAVA;
+  				}else{
+ 					$soundId = LevelSoundEventPacket::SOUND_BUCKET_EMPTY_WATER;
+ 				}
+  				$player->getLevel()->broadcastLevelSoundEvent($targetBlock, $soundId);
+				$player->getLevel()->setBlock($block, $targetBlock, true, true);
 				if($player->isSurvival()){
 					$player->getInventory()->setItemInHand($ev->getItem());
 				}

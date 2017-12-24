@@ -24,25 +24,19 @@ declare(strict_types=1);
 namespace pocketmine\tile;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
-use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ShortTag;
-use pocketmine\Player;
 
 class FlowerPot extends Spawnable{
-	public const TAG_ITEM = "item";
-	public const TAG_ITEM_DATA = "mData";
 
 	public function __construct(Level $level, CompoundTag $nbt){
-		//TODO: check PC format
-		if(!$nbt->hasTag(self::TAG_ITEM, ShortTag::class)){
-			$nbt->setShort(self::TAG_ITEM, 0, true);
+		if(!isset($nbt->item)){
+			$nbt->item = new ShortTag("item", 0);
 		}
-		if(!$nbt->hasTag(self::TAG_ITEM_DATA, IntTag::class)){
-			$nbt->setInt(self::TAG_ITEM_DATA, 0, true);
+		if(!isset($nbt->mData)){
+			$nbt->mData = new IntTag("mData", 0);
 		}
 		parent::__construct($level, $nbt);
 	}
@@ -71,30 +65,25 @@ class FlowerPot extends Spawnable{
 	}
 
 	public function getItem() : Item{
-		return ItemFactory::get($this->namedtag->getShort(self::TAG_ITEM), $this->namedtag->getInt(self::TAG_ITEM_DATA), 1);
+		return Item::get($this->namedtag->item->getValue(), $this->namedtag->mData->getValue(), 1);
 	}
 
 	public function setItem(Item $item){
-		$this->namedtag->setShort(self::TAG_ITEM, $item->getId());
-		$this->namedtag->setInt(self::TAG_ITEM_DATA, $item->getDamage());
+		$this->namedtag->item->setValue($item->getId());
+		$this->namedtag->mData->setValue($item->getDamage());
 		$this->onChanged();
 	}
 
 	public function removeItem(){
-		$this->setItem(ItemFactory::get(Item::AIR, 0, 0));
+		$this->setItem(Item::get(Item::AIR));
 	}
 
 	public function isEmpty() : bool{
-		return $this->getItem()->isNull();
+		return $this->getItem()->getId() === Item::AIR;
 	}
 
-	public function addAdditionalSpawnData(CompoundTag $nbt) : void{
-		$nbt->setTag($this->namedtag->getTag(self::TAG_ITEM));
-		$nbt->setTag($this->namedtag->getTag(self::TAG_ITEM_DATA));
-	}
-
-	protected static function createAdditionalNBT(CompoundTag $nbt, Vector3 $pos, ?int $face = null, ?Item $item = null, ?Player $player = null) : void{
-		$nbt->setShort(self::TAG_ITEM, 0);
-		$nbt->setInt(self::TAG_ITEM_DATA, 0);
+	public function addAdditionalSpawnData(CompoundTag $nbt){
+		$nbt->item = $this->namedtag->item;
+		$nbt->mData = $this->namedtag->mData;
 	}
 }

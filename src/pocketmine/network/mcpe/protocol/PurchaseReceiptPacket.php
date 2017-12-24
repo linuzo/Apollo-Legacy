@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class PurchaseReceiptPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::PURCHASE_RECEIPT_PACKET;
+	const NETWORK_ID = ProtocolInfo::PURCHASE_RECEIPT_PACKET;
 
 	/** @var string[] */
 	public $entries = [];

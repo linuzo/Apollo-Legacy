@@ -23,20 +23,40 @@ declare(strict_types=1);
 
 namespace pocketmine\inventory;
 
+use pocketmine\item\Item;
 use pocketmine\Player;
 
 class CraftingGrid extends BaseInventory{
+
+	const WINDOW_ID = -1;
+
+	const RESULT_INDEX = -1;
+
+	protected $result = null;
 
 	public function __construct(Player $holder){
 		parent::__construct($holder);
 	}
 
-	public function getGridWidth() : int{
-		return 2;
+	public function getDefaultSize() : int{
+		return 4;
 	}
 
-	public function getDefaultSize() : int{
-		return $this->getGridWidth() ** 2;
+	public function getItem(int $slot) : Item{
+		if($slot === self::RESULT_INDEX){
+			return $this->result === null ? Item::get(Item::AIR) : clone $this->result;
+		}else{
+			return parent::getItem($slot);
+		}
+	}
+
+	public function setItem(int $slot, Item $item, bool $send = true) : bool{
+		if($slot === self::RESULT_INDEX){
+			$this->result = clone $item;
+			return true;
+		}else{
+			return parent::setItem($slot, $item, $send);
+		}
 	}
 
 	public function setSize(int $size){
@@ -47,11 +67,11 @@ class CraftingGrid extends BaseInventory{
 		return "Crafting";
 	}
 
-	public function sendSlot(int $index, $target) : void{
+	public function sendSlot(int $index, $target){
 		//we can't send a slot of a client-sided inventory window
 	}
 
-	public function sendContents($target) : void{
-		//no way to do this
+	public function sendContents($target){
+		//we can't send the contents of a client-sided inventory window
 	}
 }

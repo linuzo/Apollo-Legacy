@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 
 class Leaves2 extends Leaves{
 
@@ -34,21 +33,21 @@ class Leaves2 extends Leaves{
 	public function getName() : string{
 		static $names = [
 			self::ACACIA => "Acacia Leaves",
-			self::DARK_OAK => "Dark Oak Leaves"
+			self::DARK_OAK => "Dark Oak Leaves",
 		];
-		return $names[$this->getVariant()] ?? "Unknown";
+		return $names[$this->meta & 0x03] ?? "Unknown";
 	}
 
 	public function getDrops(Item $item) : array{
-		$variantMeta = $this->getVariant();
+		$variantMeta = $this->getDamage() & 0x03;
 
 		if($item->isShears()){
 			return [
-				ItemFactory::get($this->getItemId(), $variantMeta, 1)
+				Item::get($this->getItemId(), $variantMeta, 1)
 			];
 		}elseif(mt_rand(1, 20) === 1){ //Saplings
 			return [
-				ItemFactory::get(Item::SAPLING, $variantMeta + 4, 1)
+				Item::get(Item::SAPLING, $variantMeta + 4, 1)
 			];
 		}
 

@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class SetTimePacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::SET_TIME_PACKET;
+	const NETWORK_ID = ProtocolInfo::SET_TIME_PACKET;
 
 	/** @var int */
 	public $time;

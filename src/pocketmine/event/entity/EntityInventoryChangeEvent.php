@@ -27,54 +27,33 @@ use pocketmine\entity\Entity;
 use pocketmine\event\Cancellable;
 use pocketmine\item\Item;
 
-/**
- * Called before a slot in an entity's inventory changes.
- */
 class EntityInventoryChangeEvent extends EntityEvent implements Cancellable{
 	public static $handlerList = null;
 
-	/** @var Item */
 	private $oldItem;
-	/** @var Item */
 	private $newItem;
-	/** @var int */
 	private $slot;
 
-	public function __construct(Entity $entity, Item $oldItem, Item $newItem, int $slot){
+	public function __construct(Entity $entity, Item $oldItem, Item $newItem, $slot){
 		$this->entity = $entity;
 		$this->oldItem = $oldItem;
 		$this->newItem = $newItem;
-		$this->slot = $slot;
+		$this->slot = (int) $slot;
 	}
 
-	/**
-	 * Returns the inventory slot number affected by the event.
-	 * @return int
-	 */
-	public function getSlot() : int{
+	public function getSlot(){
 		return $this->slot;
 	}
 
-	/**
-	 * Returns the item which will be in the slot after the event.
-	 * @return Item
-	 */
-	public function getNewItem() : Item{
+	public function getNewItem(){
 		return $this->newItem;
 	}
 
-	/**
-	 * @param Item $item
-	 */
 	public function setNewItem(Item $item){
 		$this->newItem = $item;
 	}
 
-	/**
-	 * Returns the item currently in the slot.
-	 * @return Item
-	 */
-	public function getOldItem() : Item{
+	public function getOldItem(){
 		return $this->oldItem;
 	}
 

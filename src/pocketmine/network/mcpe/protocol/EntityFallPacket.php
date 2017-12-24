@@ -29,7 +29,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class EntityFallPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::ENTITY_FALL_PACKET;
+	const NETWORK_ID = ProtocolInfo::ENTITY_FALL_PACKET;
 
 	/** @var int */
 	public $entityRuntimeId;

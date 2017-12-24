@@ -29,9 +29,7 @@ class WoodenSlab extends Slab{
 
 	protected $id = self::WOODEN_SLAB;
 
-	public function getDoubleSlabId() : int{
-		return self::DOUBLE_WOODEN_SLAB;
-	}
+	protected $doubleId = self::DOUBLE_WOODEN_SLAB;
 
 	public function getHardness() : float{
 		return 2;
@@ -46,7 +44,7 @@ class WoodenSlab extends Slab{
 			4 => "Acacia",
 			5 => "Dark Oak"
 		];
-		return (($this->meta & 0x08) === 0x08 ? "Upper " : "") . ($names[$this->getVariant()] ?? "") . " Wooden Slab";
+		return (($this->meta & 0x08) === 0x08 ? "Upper " : "") . ($names[$this->meta & 0x07] ?? "") . " Wooden Slab";
 	}
 
 	public function getToolType() : int{

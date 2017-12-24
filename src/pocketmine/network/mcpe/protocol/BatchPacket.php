@@ -33,7 +33,7 @@ use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryStream;
 
 class BatchPacket extends DataPacket{
-	public const NETWORK_ID = 0xfe;
+	const NETWORK_ID = 0xfe;
 
 	/** @var string */
 	public $payload = "";

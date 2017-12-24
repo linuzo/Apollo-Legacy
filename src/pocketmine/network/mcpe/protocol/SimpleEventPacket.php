@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class SimpleEventPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::SIMPLE_EVENT_PACKET;
+	const NETWORK_ID = ProtocolInfo::SIMPLE_EVENT_PACKET;
 
 	/** @var int */
 	public $unknownShort1;

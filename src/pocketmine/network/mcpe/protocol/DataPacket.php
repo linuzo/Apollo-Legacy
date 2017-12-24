@@ -27,18 +27,16 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Entity;
-use pocketmine\item\ItemFactory;
+use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\types\CommandOriginData;
-use pocketmine\network\mcpe\protocol\types\EntityLink;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
 
 
 abstract class DataPacket extends BinaryStream{
 
-	public const NETWORK_ID = 0;
+	const NETWORK_ID = 0;
 
 	/** @var bool */
 	public $isEncoded = false;
@@ -61,14 +59,6 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	public function canBeSentBeforeLogin() : bool{
-		return false;
-	}
-
-	/**
-	 * Returns whether the packet may legally have unread bytes left in the buffer.
-	 * @return bool
-	 */
-	public function mayHaveUnreadBytes() : bool{
 		return false;
 	}
 
@@ -239,7 +229,7 @@ abstract class DataPacket extends BinaryStream{
 					break;
 				case Entity::DATA_TYPE_SLOT:
 					//TODO: change this implementation (use objects)
-					$this->putSlot(ItemFactory::get($d[1][0], $d[1][2], $d[1][1])); //ID, damage, count
+					$this->putSlot(Item::get($d[1][0], $d[1][2], $d[1][1])); //ID, damage, count
 					break;
 				case Entity::DATA_TYPE_POS:
 					//TODO: change this implementation (use objects)
@@ -516,50 +506,20 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	/**
-	 * @return EntityLink
+	 * @return array
 	 */
-	protected function getEntityLink() : EntityLink{
-		$link = new EntityLink();
-
-		$link->fromEntityUniqueId = $this->getEntityUniqueId();
-		$link->toEntityUniqueId = $this->getEntityUniqueId();
-		$link->type = $this->getByte();
-		$link->bool1 = $this->getBool();
-
-		return $link;
+	protected function getEntityLink() : array{
+		return [$this->getEntityUniqueId(), $this->getEntityUniqueId(), $this->getByte(), $this->getByte()];
 	}
 
 	/**
-	 * @param EntityLink $link
+	 * @param array $link
 	 */
-	protected function putEntityLink(EntityLink $link){
-		$this->putEntityUniqueId($link->fromEntityUniqueId);
-		$this->putEntityUniqueId($link->toEntityUniqueId);
-		$this->putByte($link->type);
-		$this->putBool($link->bool1);
-	}
+	protected function putEntityLink(array $link){
+		$this->putEntityUniqueId($link[0]);
+		$this->putEntityUniqueId($link[1]);
+		$this->putByte($link[2]);
+		$this->putByte($link[3]);
 
-	protected function getCommandOriginData() : CommandOriginData{
-		$result = new CommandOriginData();
-
-		$result->type = $this->getUnsignedVarInt();
-		$result->uuid = $this->getUUID();
-		$result->requestId = $this->getString();
-
-		if($result->type === CommandOriginData::ORIGIN_DEV_CONSOLE or $result->type === CommandOriginData::ORIGIN_TEST){
-			$result->varlong1 = $this->getVarLong();
-		}
-
-		return $result;
-	}
-
-	protected function putCommandOriginData(CommandOriginData $data) : void{
-		$this->putUnsignedVarInt($data->type);
-		$this->putUUID($data->uuid);
-		$this->putString($data->requestId);
-
-		if($data->type === CommandOriginData::ORIGIN_DEV_CONSOLE or $data->type === CommandOriginData::ORIGIN_TEST){
-			$this->putVarLong($data->varlong1);
-		}
 	}
 }

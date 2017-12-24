@@ -23,17 +23,15 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\utils\PillarRotationHelper;
 use pocketmine\item\Item;
 use pocketmine\item\Tool;
-use pocketmine\math\Vector3;
-use pocketmine\Player;
 
 class Quartz extends Solid{
 
-	const NORMAL = 0;
-	const CHISELED = 1;
-	const PILLAR = 2;
+	const QUARTZ_NORMAL = 0;
+	const QUARTZ_CHISELED = 1;
+	const QUARTZ_PILLAR = 2;
+	const QUARTZ_PILLAR2 = 3;
 
 	protected $id = self::QUARTZ_BLOCK;
 
@@ -47,18 +45,12 @@ class Quartz extends Solid{
 
 	public function getName() : string{
 		static $names = [
-			self::NORMAL => "Quartz Block",
-			self::CHISELED => "Chiseled Quartz Block",
-			self::PILLAR => "Quartz Pillar"
+			self::QUARTZ_NORMAL => "Quartz Block",
+			self::QUARTZ_CHISELED => "Chiseled Quartz Block",
+			self::QUARTZ_PILLAR => "Quartz Pillar",
+			self::QUARTZ_PILLAR2 => "Quartz Pillar",
 		];
-		return $names[$this->getVariant()] ?? "Unknown";
-	}
-
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
-		if($this->meta !== self::NORMAL){
-			$this->meta = PillarRotationHelper::getMetaFromFace($this->meta, $face);
-		}
-		return $this->getLevel()->setBlock($blockReplace, $this, true, true);
+		return $names[$this->meta & 0x03];
 	}
 
 	public function getToolType() : int{

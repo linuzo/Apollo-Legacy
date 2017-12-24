@@ -29,7 +29,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class TakeItemEntityPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::TAKE_ITEM_ENTITY_PACKET;
+	const NETWORK_ID = ProtocolInfo::TAKE_ITEM_ENTITY_PACKET;
 
 	/** @var int */
 	public $target;

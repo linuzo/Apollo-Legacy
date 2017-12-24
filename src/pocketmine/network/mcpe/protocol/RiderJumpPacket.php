@@ -30,7 +30,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class RiderJumpPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::RIDER_JUMP_PACKET;
+	const NETWORK_ID = ProtocolInfo::RIDER_JUMP_PACKET;
 
 	/** @var int */
 	public $unknown;

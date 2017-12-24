@@ -30,7 +30,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
 
 class RespawnPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::RESPAWN_PACKET;
+	const NETWORK_ID = ProtocolInfo::RESPAWN_PACKET;
 
 	/** @var Vector3 */
 	public $position;

@@ -36,7 +36,7 @@ class PlayerAnimationEvent extends PlayerEvent implements Cancellable{
 	 * @deprecated This is dependent on the protocol and should not be here.
 	 * Use the constants in {@link pocketmine\network\mcpe\protocol\AnimatePacket} instead.
 	 */
-	public const ARM_SWING = 1;
+	const ARM_SWING = 1;
 
 	/** @var int */
 	private $animationType;
@@ -45,7 +45,7 @@ class PlayerAnimationEvent extends PlayerEvent implements Cancellable{
 	 * @param Player $player
 	 * @param int    $animation
 	 */
-	public function __construct(Player $player, int $animation){
+	public function __construct(Player $player, $animation = self::ARM_SWING){
 		$this->player = $player;
 		$this->animationType = $animation;
 	}

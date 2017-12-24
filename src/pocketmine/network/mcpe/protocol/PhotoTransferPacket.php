@@ -28,25 +28,25 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class PhotoTransferPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::PHOTO_TRANSFER_PACKET;
+	const NETWORK_ID = ProtocolInfo::PHOTO_TRANSFER_PACKET;
 
 	/** @var string */
-	public $photoName;
+	public $string1;
 	/** @var string */
-	public $photoData;
+	public $string2;
 	/** @var string */
-	public $bookId; //photos are stored in a sibling directory to the games folder (screenshots/(some UUID)/bookID/example.png)
+	public $string3;
 
 	protected function decodePayload(){
-		$this->photoName = $this->getString();
-		$this->photoData = $this->getString();
-		$this->bookId = $this->getString();
+		$this->string1 = $this->getString();
+		$this->string2 = $this->getString();
+		$this->string3 = $this->getString();
 	}
 
 	protected function encodePayload(){
-		$this->putString($this->photoName);
-		$this->putString($this->photoData);
-		$this->putString($this->bookId);
+		$this->putString($this->string1);
+		$this->putString($this->string2);
+		$this->putString($this->string3);
 	}
 
 	public function handle(NetworkSession $session) : bool{

@@ -29,7 +29,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class SetCommandsEnabledPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::SET_COMMANDS_ENABLED_PACKET;
+	const NETWORK_ID = ProtocolInfo::SET_COMMANDS_ENABLED_PACKET;
 
 	/** @var bool */
 	public $enabled;

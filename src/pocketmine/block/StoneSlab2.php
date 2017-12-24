@@ -17,21 +17,20 @@
  * @link http://www.pocketmine.net/
  *
  *
-*/
+ */
 
 declare(strict_types=1);
 
 namespace pocketmine\block;
 
 class StoneSlab2 extends StoneSlab{
+
 	const TYPE_RED_SANDSTONE = 0;
 	const TYPE_PURPUR = 1;
 
 	protected $id = self::STONE_SLAB2;
 
-	public function getDoubleSlabId() : int{
-		return self::DOUBLE_STONE_SLAB2;
-	}
+	protected $doubleId = self::DOUBLE_STONE_SLAB2;
 
 	public function getName() : string{
 		static $names = [

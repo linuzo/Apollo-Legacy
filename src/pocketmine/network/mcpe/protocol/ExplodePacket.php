@@ -30,7 +30,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
 
 class ExplodePacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::EXPLODE_PACKET;
+	const NETWORK_ID = ProtocolInfo::EXPLODE_PACKET;
 
 	/** @var Vector3 */
 	public $position;

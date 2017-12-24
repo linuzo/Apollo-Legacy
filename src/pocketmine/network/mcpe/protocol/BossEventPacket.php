@@ -29,24 +29,24 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class BossEventPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::BOSS_EVENT_PACKET;
+	const NETWORK_ID = ProtocolInfo::BOSS_EVENT_PACKET;
 
 	/* S2C: Shows the boss-bar to the player. */
-	public const TYPE_SHOW = 0;
+	const TYPE_SHOW = 0;
 	/* C2S: Registers a player to a boss fight. */
-	public const TYPE_REGISTER_PLAYER = 1;
+	const TYPE_REGISTER_PLAYER = 1;
 	/* S2C: Removes the boss-bar from the client. */
-	public const TYPE_HIDE = 2;
+	const TYPE_HIDE = 2;
 	/* C2S: Unregisters a player from a boss fight. */
-	public const TYPE_UNREGISTER_PLAYER = 3;
+	const TYPE_UNREGISTER_PLAYER = 3;
 	/* S2C: Appears not to be implemented. Currently bar percentage only appears to change in response to the target entity's health. */
-	public const TYPE_HEALTH_PERCENT = 4;
+	const TYPE_HEALTH_PERCENT = 4;
 	/* S2C: Also appears to not be implemented. Title client-side sticks as the target entity's nametag, or their entity type name if not set. */
-	public const TYPE_TITLE = 5;
+	const TYPE_TITLE = 5;
 	/* S2C: Not sure on this. Includes color and overlay fields, plus an unknown short. TODO: check this */
-	public const TYPE_UNKNOWN_6 = 6;
+	const TYPE_UNKNOWN_6 = 6;
 	/* S2C: Not implemented :( Intended to alter bar appearance, but these currently produce no effect on client-side whatsoever. */
-	public const TYPE_TEXTURE = 7;
+	const TYPE_TEXTURE = 7;
 
 	/** @var int */
 	public $bossEid;

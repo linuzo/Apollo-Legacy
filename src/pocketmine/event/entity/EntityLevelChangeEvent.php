@@ -30,9 +30,7 @@ use pocketmine\level\Level;
 class EntityLevelChangeEvent extends EntityEvent implements Cancellable{
 	public static $handlerList = null;
 
-	/** @var Level */
 	private $originLevel;
-	/** @var Level */
 	private $targetLevel;
 
 	public function __construct(Entity $entity, Level $originLevel, Level $targetLevel){
@@ -41,11 +39,11 @@ class EntityLevelChangeEvent extends EntityEvent implements Cancellable{
 		$this->targetLevel = $targetLevel;
 	}
 
-	public function getOrigin() : Level{
+	public function getOrigin(){
 		return $this->originLevel;
 	}
 
-	public function getTarget() : Level{
+	public function getTarget(){
 		return $this->targetLevel;
 	}
 }

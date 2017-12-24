@@ -57,10 +57,10 @@ class Magma extends Solid{
 		return true;
 	}
 
-	public function onEntityCollide(Entity $entity) : void{
+	public function onEntityCollide(Entity $entity){
 		if(!$entity->isSneaking()){
 			$ev = new EntityDamageByBlockEvent($this, $entity, EntityDamageEvent::CAUSE_FIRE, 1);
-			$entity->attack($ev);
+			$entity->attack($ev->getFinalDamage(), $ev);
 		}
 	}
 

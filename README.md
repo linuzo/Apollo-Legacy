@@ -40,17 +40,17 @@ Apollo is for all. Anyone can copy-paste generator and other features.
  
 ## TODO :
 
-- [ ] translate all things to english 
+- [ ] translate all
 
 - [X] update generator
 
-- [ ] add enchanting
+- [X] add enchanting (not fully work but it works)
 
-- [ ] more blocks and items off the latest version of mcpe
+- [X] more blocks and items off the latest version of mcpe (30% done)
 
-- [ ] more features with items and block
+- [X] more features with items and block (10% done)
 
-- [ ] improve the generator
+- [X] improve the generator
 
 - [ ] fix any bugs that are left
 

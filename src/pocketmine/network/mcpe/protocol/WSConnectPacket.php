@@ -28,7 +28,7 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\network\mcpe\NetworkSession;
 
 class WSConnectPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::W_S_CONNECT_PACKET;
+	const NETWORK_ID = ProtocolInfo::W_S_CONNECT_PACKET;
 
 	/** @var string */
 	public $string1;

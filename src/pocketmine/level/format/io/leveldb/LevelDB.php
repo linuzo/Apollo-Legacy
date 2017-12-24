@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace pocketmine\level\format\io\leveldb;
 
+use pocketmine\entity\Entity;
 use pocketmine\level\format\Chunk;
 use pocketmine\level\format\io\BaseLevelProvider;
 use pocketmine\level\format\io\ChunkUtils;
@@ -37,6 +38,7 @@ use pocketmine\nbt\tag\{
 	ByteTag, CompoundTag, FloatTag, IntTag, LongTag, StringTag
 };
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\tile\Tile;
 use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\MainLogger;
@@ -67,8 +69,8 @@ class LevelDB extends BaseLevelProvider{
 	const GENERATOR_INFINITE = 1;
 	const GENERATOR_FLAT = 2;
 
-	const CURRENT_STORAGE_VERSION = 5; //Current MCPE level format version
-	const CURRENT_LEVEL_CHUNK_VERSION = 4;
+	const CURRENT_STORAGE_VERSION = 6; //Current MCPE level format version
+	const CURRENT_LEVEL_CHUNK_VERSION = 7;
 	const CURRENT_LEVEL_SUBCHUNK_VERSION = 0;
 
 	/** @var Chunk[] */
@@ -92,12 +94,17 @@ class LevelDB extends BaseLevelProvider{
 			throw new LevelException("Invalid level.dat");
 		}
 
+		if(!defined('LEVELDB_ZLIB_RAW_COMPRESSION')){
+			throw new LevelException("Given version of php-leveldb doesn't support zlib raw compression");
+		}
+
 		$this->db = new \LevelDB($this->path . "/db", [
-			"compression" => LEVELDB_ZLIB_COMPRESSION
+			"compression" => LEVELDB_ZLIB_RAW_COMPRESSION
 		]);
 
-		if(isset($this->levelData->StorageVersion) and $this->levelData->StorageVersion->getValue() > self::CURRENT_STORAGE_VERSION){
-			throw new LevelException("Specified LevelDB world format version is newer than the version supported by the server");
+		$version = $this->levelData->getInt("StorageVersion", INT32_MAX, true);
+		if($version > self::CURRENT_STORAGE_VERSION){
+			throw new LevelException("Specified LevelDB world format version ($version) is not supported by " . \pocketmine\NAME);
 		}
 
 		if(!isset($this->levelData->generatorName)){
@@ -165,7 +172,7 @@ class LevelDB extends BaseLevelProvider{
 		$levelData = new CompoundTag("", [
 			//Vanilla fields
 			new IntTag("DayCycleStopTime", -1),
-			new IntTag("Difficulty", Level::getDifficultyFromString((string) ($options["difficulty"] ?? "normal"))),
+			new IntTag("Difficulty", 2),
 			new ByteTag("ForceGameType", 0),
 			new IntTag("GameType", 0),
 			new IntTag("Generator", $generatorType),
@@ -194,7 +201,7 @@ class LevelDB extends BaseLevelProvider{
 
 			//Additional PocketMine-MP fields
 			new CompoundTag("GameRules", []),
-			new ByteTag("hardcore", ($options["hardcore"] ?? false) === true ? 1 : 0),
+			new ByteTag("hardcore", 0),
 			new StringTag("generatorName", Generator::getGeneratorName($generator)),
 			new StringTag("generatorOptions", $options["preset"] ?? "")
 		]);
@@ -206,7 +213,7 @@ class LevelDB extends BaseLevelProvider{
 
 
 		$db = new \LevelDB($path . "/db", [
-			"compression" => LEVELDB_ZLIB_COMPRESSION
+			"compression" => LEVELDB_ZLIB_RAW_COMPRESSION
 		]);
 
 		if($generatorType === self::GENERATOR_FLAT and isset($options["preset"])){
@@ -248,14 +255,6 @@ class LevelDB extends BaseLevelProvider{
 
 	public function getGeneratorOptions() : array{
 		return ["preset" => $this->levelData["generatorOptions"]];
-	}
-
-	public function getDifficulty() : int{
-		return isset($this->levelData->Difficulty) ? $this->levelData->Difficulty->getValue() : Level::DIFFICULTY_NORMAL;
-	}
-
-	public function setDifficulty(int $difficulty){
-		$this->levelData->Difficulty = new IntTag("Difficulty", $difficulty);
 	}
 
 	public function getLoadedChunks() : array{
@@ -318,6 +317,7 @@ class LevelDB extends BaseLevelProvider{
 			$binaryStream = new BinaryStream();
 
 			switch($chunkVersion){
+				case 7: //MC 1.2
 				case 4: //MCPE 1.1
 					//TODO: check beds
 				case 3: //MCPE 1.0
@@ -506,38 +506,29 @@ class LevelDB extends BaseLevelProvider{
 		//TODO: use this properly
 		$this->db->put($index . self::TAG_STATE_FINALISATION, chr(self::FINALISATION_DONE));
 
-		/** @var CompoundTag[] $tiles */
-		$tiles = [];
-		foreach($chunk->getTiles() as $tile){
-			if(!$tile->isClosed()){
-				$tile->saveNBT();
-				$tiles[] = $tile->namedtag;
-			}
-		}
-		$this->writeTags($tiles, $index . self::TAG_BLOCK_ENTITY);
-
-		/** @var CompoundTag[] $entities */
-		$entities = [];
-		foreach($chunk->getEntities() as $entity){
-			if($entity->canSaveWithChunk() and !$entity->isClosed()){
-				$entity->saveNBT();
-				$entities[] = $entity->namedtag;
-			}
-		}
-		$this->writeTags($entities, $index . self::TAG_ENTITY);
+		$this->writeTags($chunk->getTiles(), $index . self::TAG_BLOCK_ENTITY);
+		$this->writeTags($chunk->getEntities(), $index . self::TAG_ENTITY);
 
 		$this->db->delete($index . self::TAG_DATA_2D_LEGACY);
 		$this->db->delete($index . self::TAG_LEGACY_TERRAIN);
 	}
 
 	/**
-	 * @param CompoundTag[] $targets
-	 * @param string        $index
+	 * @param Entity[]|Tile[] $targets
+	 * @param string          $index
 	 */
 	private function writeTags(array $targets, string $index){
+		$nbt = new NBT(NBT::LITTLE_ENDIAN);
+		$out = [];
+		foreach($targets as $target){
+			if(!$target->closed){
+				$target->saveNBT();
+				$out[] = $target->namedtag;
+			}
+		}
+
 		if(!empty($targets)){
-			$nbt = new NBT(NBT::LITTLE_ENDIAN);
-			$nbt->setData($targets);
+			$nbt->setData($out);
 			$this->db->put($index, $nbt->write());
 		}else{
 			$this->db->delete($index);

@@ -54,7 +54,7 @@ class Cactus extends Transparent{
 		return "Cactus";
 	}
 
-	protected function recalculateBoundingBox() : ?AxisAlignedBB{
+	protected function recalculateBoundingBox(){
 
 		return new AxisAlignedBB(
 			$this->x + 0.0625,
@@ -66,13 +66,9 @@ class Cactus extends Transparent{
 		);
 	}
 
-	public function ticksRandomly() : bool{
-		return true;
-	}
-
-	public function onEntityCollide(Entity $entity) : void{
+	public function onEntityCollide(Entity $entity){
 		$ev = new EntityDamageByBlockEvent($this, $entity, EntityDamageEvent::CAUSE_CONTACT, 1);
-		$entity->attack($ev);
+		$entity->attack($ev->getFinalDamage(), $ev);
 	}
 
 	public function onUpdate(int $type){
@@ -92,7 +88,7 @@ class Cactus extends Transparent{
 			if($this->getSide(Vector3::SIDE_DOWN)->getId() !== self::CACTUS){
 				if($this->meta === 0x0f){
 					for($y = 1; $y < 3; ++$y){
-						$b = $this->getLevel()->getBlockAt($this->x, $this->y + $y, $this->z);
+						$b = $this->getLevel()->getBlock(new Vector3($this->x, $this->y + $y, $this->z));
 						if($b->getId() === self::AIR){
 							Server::getInstance()->getPluginManager()->callEvent($ev = new BlockGrowEvent($b, BlockFactory::get(Block::CACTUS)));
 							if(!$ev->isCancelled()){
@@ -112,7 +108,7 @@ class Cactus extends Transparent{
 		return false;
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+	public function place(Item $item, Block $block, Block $target, int $face, Vector3 $facePos, Player $player = null) : bool{
 		$down = $this->getSide(Vector3::SIDE_DOWN);
 		if($down->getId() === self::SAND or $down->getId() === self::CACTUS){
 			$block0 = $this->getSide(Vector3::SIDE_NORTH);

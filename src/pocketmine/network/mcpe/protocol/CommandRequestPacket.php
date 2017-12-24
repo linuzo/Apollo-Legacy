@@ -26,28 +26,21 @@ namespace pocketmine\network\mcpe\protocol;
 #include <rules/DataPacket.h>
 
 use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\types\CommandOriginData;
 
 class CommandRequestPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::COMMAND_REQUEST_PACKET;
+	const NETWORK_ID = ProtocolInfo::COMMAND_REQUEST_PACKET;
 
 	/** @var string */
 	public $command;
-	/** @var CommandOriginData */
-	public $originData;
-	/** @var bool */
-	public $isInternal;
 
 	protected function decodePayload(){
 		$this->command = $this->getString();
-		$this->originData = $this->getCommandOriginData();
-		$this->isInternal = $this->getBool();
+		//TODO: everything else
 	}
 
 	protected function encodePayload(){
 		$this->putString($this->command);
-		$this->putCommandOriginData($this->originData);
-		$this->putBool($this->isInternal);
+		//TODO
 	}
 
 	public function handle(NetworkSession $session) : bool{

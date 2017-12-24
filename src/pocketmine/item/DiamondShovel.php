@@ -25,8 +25,8 @@ namespace pocketmine\item;
 
 
 class DiamondShovel extends Tool{
-	public function __construct(int $meta = 0){
-		parent::__construct(self::DIAMOND_SHOVEL, $meta, "Diamond Shovel");
+	public function __construct($meta = 0, $count = 1){
+		parent::__construct(self::DIAMOND_SHOVEL, $meta, $count, "Diamond Shovel");
 	}
 
 	public function isShovel(){
@@ -34,6 +34,6 @@ class DiamondShovel extends Tool{
 	}
 
 	public function getAttackPoints() : int{
-		return 5;
+		return 4;
 	}
 }

@@ -24,7 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\ItemFactory;
 
 class Beetroot extends Crops{
 
@@ -41,17 +40,13 @@ class Beetroot extends Crops{
 	public function getDrops(Item $item) : array{
 		if($this->meta >= 0x07){
 			return [
-				ItemFactory::get(Item::BEETROOT, 0, 1),
-				ItemFactory::get(Item::BEETROOT_SEEDS, 0, mt_rand(0, 3))
+				Item::get(Item::BEETROOT, 0, 1),
+				Item::get(Item::BEETROOT_SEEDS, 0, mt_rand(0, 3))
 			];
 		}
 
 		return [
-			ItemFactory::get(Item::BEETROOT_SEEDS, 0, 1)
+			Item::get(Item::BEETROOT_SEEDS, 0, 1)
 		];
-	}
-
-	public function getPickedItem() : Item{
-		return ItemFactory::get(Item::BEETROOT_SEEDS);
 	}
 }

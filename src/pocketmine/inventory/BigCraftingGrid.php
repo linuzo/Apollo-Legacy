@@ -25,7 +25,7 @@ namespace pocketmine\inventory;
 
 class BigCraftingGrid extends CraftingGrid{
 
-	public function getGridWidth() : int{
-		return 3;
+	public function getDefaultSize() : int{
+		return 9;
 	}
 }

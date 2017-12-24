@@ -31,6 +31,7 @@ use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\{
 	ByteArrayTag, ByteTag, CompoundTag, IntArrayTag, IntTag, ListTag, LongTag
 };
+use pocketmine\Player;
 use pocketmine\utils\MainLogger;
 
 class Anvil extends McRegion{
@@ -48,15 +49,20 @@ class Anvil extends McRegion{
 		$nbt->TerrainPopulated = new ByteTag("TerrainPopulated", $chunk->isPopulated() ? 1 : 0);
 		$nbt->LightPopulated = new ByteTag("LightPopulated", $chunk->isLightPopulated() ? 1 : 0);
 
-		$nbt->Sections = new ListTag("Sections", [], NBT::TAG_Compound);
+		$nbt->Sections = new ListTag("Sections", []);
+		$nbt->Sections->setTagType(NBT::TAG_Compound);
 		$subChunks = -1;
 		foreach($chunk->getSubChunks() as $y => $subChunk){
 			if($subChunk->isEmpty()){
 				continue;
 			}
-			$tag = $this->serializeSubChunk($subChunk);
-			$tag->setByte("Y", $y);
-			$nbt->Sections[++$subChunks] = $tag;
+			$nbt->Sections[++$subChunks] = new CompoundTag("", [
+				new ByteTag("Y", $y),
+				new ByteArrayTag("Blocks", ChunkUtils::reorderByteArray($subChunk->getBlockIdArray())), //Generic in-memory chunks are currently always XZY
+				new ByteArrayTag("Data", ChunkUtils::reorderNibbleArray($subChunk->getBlockDataArray())),
+				new ByteArrayTag("SkyLight", ChunkUtils::reorderNibbleArray($subChunk->getBlockSkyLightArray(), "\xff")),
+				new ByteArrayTag("BlockLight", ChunkUtils::reorderNibbleArray($subChunk->getBlockLightArray()))
+			]);
 		}
 
 		$nbt->Biomes = new ByteArrayTag("Biomes", $chunk->getBiomeIdArray());
@@ -65,13 +71,14 @@ class Anvil extends McRegion{
 		$entities = [];
 
 		foreach($chunk->getEntities() as $entity){
-			if($entity->canSaveWithChunk() and !$entity->isClosed()){
+			if(!($entity instanceof Player) and !$entity->isClosed()){
 				$entity->saveNBT();
 				$entities[] = $entity->namedtag;
 			}
 		}
 
-		$nbt->Entities = new ListTag("Entities", $entities, NBT::TAG_Compound);
+		$nbt->Entities = new ListTag("Entities", $entities);
+		$nbt->Entities->setTagType(NBT::TAG_Compound);
 
 		$tiles = [];
 		foreach($chunk->getTiles() as $tile){
@@ -79,7 +86,8 @@ class Anvil extends McRegion{
 			$tiles[] = $tile->namedtag;
 		}
 
-		$nbt->TileEntities = new ListTag("TileEntities", $tiles, NBT::TAG_Compound);
+		$nbt->TileEntities = new ListTag("TileEntities", $tiles);
+		$nbt->TileEntities->setTagType(NBT::TAG_Compound);
 
 		//TODO: TileTicks
 
@@ -88,15 +96,6 @@ class Anvil extends McRegion{
 		$writer->setData(new CompoundTag("", [$nbt]));
 
 		return $writer->writeCompressed(ZLIB_ENCODING_DEFLATE, RegionLoader::$COMPRESSION_LEVEL);
-	}
-
-	protected function serializeSubChunk(SubChunk $subChunk) : CompoundTag{
-		return new CompoundTag("", [
-			new ByteArrayTag("Blocks", ChunkUtils::reorderByteArray($subChunk->getBlockIdArray())), //Generic in-memory chunks are currently always XZY
-			new ByteArrayTag("Data", ChunkUtils::reorderNibbleArray($subChunk->getBlockDataArray())),
-			new ByteArrayTag("SkyLight", ChunkUtils::reorderNibbleArray($subChunk->getBlockSkyLightArray(), "\xff")),
-			new ByteArrayTag("BlockLight", ChunkUtils::reorderNibbleArray($subChunk->getBlockLightArray()))
-		]);
 	}
 
 	public function nbtDeserialize(string $data){
@@ -116,7 +115,12 @@ class Anvil extends McRegion{
 			if($chunk->Sections instanceof ListTag){
 				foreach($chunk->Sections as $subChunk){
 					if($subChunk instanceof CompoundTag){
-						$subChunks[$subChunk->Y->getValue()] = $this->deserializeSubChunk($subChunk);
+						$subChunks[$subChunk->Y->getValue()] = new SubChunk(
+							ChunkUtils::reorderByteArray($subChunk->Blocks->getValue()),
+							ChunkUtils::reorderNibbleArray($subChunk->Data->getValue()),
+							ChunkUtils::reorderNibbleArray($subChunk->SkyLight->getValue(), "\xff"),
+							ChunkUtils::reorderNibbleArray($subChunk->BlockLight->getValue())
+						);
 					}
 				}
 			}
@@ -146,15 +150,6 @@ class Anvil extends McRegion{
 			MainLogger::getLogger()->logException($e);
 			return null;
 		}
-	}
-
-	protected function deserializeSubChunk(CompoundTag $subChunk) : SubChunk{
-		return new SubChunk(
-			ChunkUtils::reorderByteArray($subChunk->Blocks->getValue()),
-			ChunkUtils::reorderNibbleArray($subChunk->Data->getValue()),
-			ChunkUtils::reorderNibbleArray($subChunk->SkyLight->getValue(), "\xff"),
-			ChunkUtils::reorderNibbleArray($subChunk->BlockLight->getValue())
-		);
 	}
 
 	public static function getProviderName() : string{

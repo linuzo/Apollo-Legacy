@@ -27,12 +27,12 @@ use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 
 class Cake extends Item{
-	public function __construct(int $meta = 0){
+	public function __construct($meta = 0, $count = 1){
 		$this->block = BlockFactory::get(Block::CAKE_BLOCK);
-		parent::__construct(self::CAKE, $meta, "Cake");
+		parent::__construct(self::CAKE, $meta, $count, "Cake");
 	}
 
-	public function getMaxStackSize() : int{
+	public function getMaxStackSize(){
 		return 1;
 	}
 }

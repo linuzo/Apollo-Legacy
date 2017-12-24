@@ -25,10 +25,6 @@ namespace pocketmine\tile;
 
 interface Nameable{
 
-	/**
-	 * @return string
-	 */
-	public function getDefaultName() : string;
 
 	/**
 	 * @return string
