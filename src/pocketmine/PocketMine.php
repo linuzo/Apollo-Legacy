@@ -80,10 +80,9 @@ namespace pocketmine {
 	use raklib\RakLib;
 
 	const NAME = "Apollo";
-	const VERSION = "1.0dev";
-	const API_VERSION = "3.0.0-ALPHA9";
-	const CODENAME = "Legacy";
-	const GENISYS_API_VERSION = '2.0.0';
+	const VERSION = "1.1dev";
+	const API_VERSION = "3.0.0-ALPHA10";
+	const CODENAME = "[REDACTED]";
 
 	const MIN_PHP_VERSION = "7.2.0RC3";
 
@@ -130,50 +129,26 @@ namespace pocketmine {
 		define('pocketmine\PATH', dirname(__FILE__, 3) . DIRECTORY_SEPARATOR);
 	}
 
-	$requiredSplVer = "0.0.1";
-	if(!is_file(\pocketmine\PATH . "src/spl/version.php")){
-		echo "[CRITICAL] Cannot find PocketMine-SPL or incompatible version." . PHP_EOL;
-		echo "[CRITICAL] Please update your submodules or use provided builds." . PHP_EOL;
-		exit(1);
-	}elseif(version_compare($requiredSplVer, require(\pocketmine\PATH . "src/spl/version.php")) > 0){
-		echo "[CRITICAL] Incompatible PocketMine-SPL submodule version ($requiredSplVer is required)." . PHP_EOL;
-		echo "[CRITICAL] Please update your submodules or use provided builds." . PHP_EOL;
-		exit(1);
+	//define('pocketmine\COMPOSER_AUTOLOADER_PATH', \pocketmine\PATH . 'vendor/autoload.php'); COMPOSER
+
+
+	if(!class_exists(RakLib::class)){
+		composer_error_die("Unable to find the RakLib library.");
 	}
-/*
-	if(is_file(\pocketmine\PATH . "vendor/autoload.php")){
-		require_once(\pocketmine\PATH . "vendor/autoload.php");
-	}else{
-		echo "[CRITICAL] Composer autoloader not found" . PHP_EOL;
-		echo "[CRITICAL] Please initialize composer dependencies before running." . PHP_EOL;
-		exit(1);
+	if(version_compare(RakLib::VERSION, "0.9.0") < 0){ //TODO: remove this check (it's managed by Composer now)
+		composer_error_die("RakLib version 0.9.0 is required, while you have version " . RakLib::VERSION . ".");
 	}
-*/
-	if(!class_exists("ClassLoader", false)){
-		require_once(\pocketmine\PATH . "src/spl/ClassLoader.php");
-		require_once(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
+	if(!class_exists(\BaseClassLoader::class)){
+		composer_error_die("Unable to find the PocketMine-SPL library.");
 	}
 
 	/*
-	 * We now use the Composer autoloader, but this autoloader is still used by RakLib and for loading plugins.
+	 * We now use the Composer autoloader, but this autoloader is still for loading plugins.
 	 */
 	$autoloader = new \BaseClassLoader();
 	$autoloader->addPath(\pocketmine\PATH . "src");
 	$autoloader->addPath(\pocketmine\PATH . "src" . DIRECTORY_SEPARATOR . "spl");
 	$autoloader->register(false);
-
-	
-	if(!class_exists(RakLib::class)){
-		echo "[CRITICAL] Unable to find the RakLib library." . PHP_EOL;
-		echo "[CRITICAL] Please use provided builds or clone the repository recursively." . PHP_EOL;
-		exit(1);
-	}
-
-	if(version_compare(RakLib::VERSION, "0.8.1") < 0){
-		echo "[CRITICAL] RakLib version 0.8.1 is required, while you have version " . RakLib::VERSION . "." . PHP_EOL;
-		echo "[CRITICAL] Please update your submodules or use provided builds." . PHP_EOL;
-		exit(1);
-	}
 
 	set_time_limit(0); //Who set it to 30 seconds?!?!
 
@@ -184,6 +159,8 @@ namespace pocketmine {
 
 	ini_set("memory_limit", '-1');
 	define('pocketmine\START_TIME', microtime(true));
+
+	define('pocketmine\RESOURCE_PATH', \pocketmine\PATH . 'src' . DIRECTORY_SEPARATOR . 'pocketmine' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR);
 
 	$opts = getopt("", ["data:", "plugins:", "no-wizard", "enable-profiler"]);
 
@@ -480,8 +457,8 @@ namespace pocketmine {
 
 		if(extension_loaded("leveldb")){
 			$leveldb_version = phpversion("leveldb");
-			if(version_compare($leveldb_version, "0.2.0") < 0){
-				$logger->critical("php-leveldb >= 0.2.0 is required, while you have $leveldb_version");
+			if(version_compare($leveldb_version, "0.2.1") < 0){
+				$logger->critical("php-leveldb >= 0.2.1 is required, while you have $leveldb_version");
 				++$errors;
 			}
 		}
@@ -517,6 +494,7 @@ namespace pocketmine {
 				++$errors;
 			}
 		}
+
 		if($errors > 0){
 			$logger->critical("Please use the installer provided on the homepage, or recompile PHP again.");
 			$exitCode = 1;
@@ -562,7 +540,7 @@ namespace pocketmine {
 		}
 
 		ThreadManager::init();
-		new Server($autoloader, $logger, \pocketmine\PATH, \pocketmine\DATA, \pocketmine\PLUGIN_PATH);
+		new Server($autoloader, $logger, \pocketmine\DATA, \pocketmine\PLUGIN_PATH);
 
 		$logger->info("Stopping other threads");
 
