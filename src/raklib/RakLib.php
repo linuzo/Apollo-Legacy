@@ -13,16 +13,13 @@
  *
  */
 
-declare(strict_types=1);
-
 namespace raklib;
 
-const MIN_PHP_VERSION = "7.2.0RC3";
 
 //Dependencies check
 $errors = 0;
-if(version_compare(MIN_PHP_VERSION, PHP_VERSION) > 0){
-	echo "[CRITICAL] Use PHP >= " . MIN_PHP_VERSION . PHP_EOL;
+if(version_compare("7.0", PHP_VERSION) > 0){
+	echo "[CRITICAL] Use PHP >= 7.0" . PHP_EOL;
 	++$errors;
 }
 
@@ -45,8 +42,8 @@ if(extension_loaded("pthreads")){
 		$pthreads_version = "0.$pthreads_version";
 	}
 
-	if(version_compare($pthreads_version, "3.1.7dev") < 0){
-		echo "[CRITICAL] pthreads >= 3.1.7dev is required, while you have $pthreads_version.";
+	if(version_compare($pthreads_version, "3.0.0") < 0){
+		echo "[CRITICAL] pthreads >= 3.0.0 is required, while you have $pthreads_version.";
 		++$errors;
 	}
 }
@@ -57,7 +54,7 @@ if($errors > 0){
 unset($errors, $exts);
 
 abstract class RakLib{
-	const VERSION = "0.9.0";
+	const VERSION = "0.8.1";
 	const PROTOCOL = 6;
 	const MAGIC = "\x00\xff\xff\x00\xfe\xfe\xfe\xfe\xfd\xfd\xfd\xfd\x12\x34\x56\x78";
 
@@ -67,9 +64,6 @@ abstract class RakLib{
 	const FLAG_NEED_ACK = 0b00001000;
 
 	/*
-	 * These internal "packets" DO NOT exist in the RakNet protocol. They are used by the RakLib API to communicate
-	 * messages between the RakLib thread and the implementation's thread.
-	 *
 	 * Internal Packet:
 	 * int32 (length without this field)
 	 * byte (packet ID)
@@ -159,14 +153,6 @@ abstract class RakLib{
 	const PACKET_UNBLOCK_ADDRESS = 0x10;
 
 	/*
-	 * REPORT_PING payload:
-	 * byte (identifier length)
-	 * byte[] (identifier)
-	 * int32 (measured latency in MS)
-	 */
-	const PACKET_REPORT_PING = 0x11;
-
-	/*
 	 * No payload
 	 *
 	 * Sends the disconnect message, removes sessions correctly, closes sockets.
@@ -179,12 +165,6 @@ abstract class RakLib{
 	 * Leaves everything as-is and halts, other Threads can be in a post-crash condition.
 	 */
 	const PACKET_EMERGENCY_SHUTDOWN = 0x7f;
-
-	/**
-	 * Regular RakNet uses 10 by default. MCPE uses 20. Configure this value as appropriate.
-	 * @var int
-	 */
-	public static $SYSTEM_ADDRESS_COUNT = 20;
 
 	public static function bootstrap(\ClassLoader $loader){
 		$loader->addPath(dirname(__FILE__) . DIRECTORY_SEPARATOR . "..");

@@ -13,8 +13,6 @@
  *
  */
 
-declare(strict_types=1);
-
 namespace raklib\protocol;
 
 #ifndef COMPILE
@@ -27,17 +25,9 @@ use raklib\Binary;
 abstract class Packet{
 	public static $ID = -1;
 
-	/** @var int */
 	protected $offset = 0;
-	/** @var string|null */
 	public $buffer;
-	/** @var float|null */
 	public $sendTime;
-
-	public function __construct(string $buffer = "", int $offset = 0){
-		$this->buffer = $buffer;
-		$this->offset = $offset;
-	}
 
 	protected function get($len){
 		if($len < 0){
@@ -151,33 +141,12 @@ abstract class Packet{
 		}
 	}
 
-	public function encode() : void{
-		$this->reset();
-		$this->encodeHeader();
-		$this->encodePayload();
+	public function encode(){
+		$this->buffer = chr(static::$ID);
 	}
 
-	protected function encodeHeader() : void{
-		$this->putByte(static::$ID);
-	}
-
-	abstract protected function encodePayload() : void;
-
-	public function decode() : void{
-		$this->offset = 0;
-		$this->decodeHeader();
-		$this->decodePayload();
-	}
-
-	protected function decodeHeader() : void{
-		$this->getByte(); //PID
-	}
-
-	abstract protected function decodePayload() : void;
-
-	public function reset(){
-		$this->buffer = "";
-		$this->offset = 0;
+	public function decode(){
+		$this->offset = 1;
 	}
 
 	public function clean(){

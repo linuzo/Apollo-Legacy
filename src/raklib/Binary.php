@@ -13,8 +13,6 @@
  *
  */
 
-declare(strict_types=1);
-
 namespace raklib;
 
 if(!defined("ENDIANNESS")){

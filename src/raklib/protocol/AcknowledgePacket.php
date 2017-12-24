@@ -13,8 +13,6 @@
  *
  */
 
-declare(strict_types=1);
-
 namespace raklib\protocol;
 
 #ifndef COMPILE
@@ -28,7 +26,8 @@ abstract class AcknowledgePacket extends Packet{
 	/** @var int[] */
 	public $packets = [];
 
-	protected function encodePayload() : void{
+	public function encode(){
+		parent::encode();
 		$payload = "";
 		sort($this->packets, SORT_NUMERIC);
 		$count = count($this->packets);
@@ -74,7 +73,8 @@ abstract class AcknowledgePacket extends Packet{
 		$this->buffer .= $payload;
 	}
 
-	protected function decodePayload() : void{
+	public function decode(){
+		parent::decode();
 		$count = $this->getShort();
 		$this->packets = [];
 		$cnt = 0;

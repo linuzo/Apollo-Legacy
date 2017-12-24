@@ -13,8 +13,6 @@
  *
  */
 
-declare(strict_types=1);
-
 namespace raklib\protocol;
 
 #ifndef COMPILE
@@ -25,34 +23,18 @@ use raklib\Binary;
 #include <rules/RakLibPacket.h>
 
 class EncapsulatedPacket{
-	const RELIABILITY_SHIFT = 5;
-	const RELIABILITY_FLAGS = 0b111 << self::RELIABILITY_SHIFT;
 
-	const SPLIT_FLAG = 0b00010000;
-
-	/** @var int */
 	public $reliability;
-	/** @var bool */
 	public $hasSplit = false;
-	/** @var int */
 	public $length = 0;
-	/** @var int|null */
 	public $messageIndex = null;
-	/** @var int|null */
 	public $orderIndex = null;
-	/** @var int|null */
 	public $orderChannel = null;
-	/** @var int|null */
 	public $splitCount = null;
-	/** @var int|null */
 	public $splitID = null;
-	/** @var int|null */
 	public $splitIndex = null;
-	/** @var string */
-	public $buffer = "";
-	/** @var bool */
+	public $buffer;
 	public $needACK = false;
-	/** @var int|null */
 	public $identifierACK = null;
 
 	/**
@@ -67,8 +49,8 @@ class EncapsulatedPacket{
 		$packet = new EncapsulatedPacket();
 
 		$flags = ord($binary{0});
-		$packet->reliability = $reliability = ($flags & self::RELIABILITY_FLAGS) >> self::RELIABILITY_SHIFT;
-		$packet->hasSplit = $hasSplit = ($flags & self::SPLIT_FLAG) > 0;
+		$packet->reliability = $reliability = ($flags & 0b11100000) >> 5;
+		$packet->hasSplit = $hasSplit = ($flags & 0b00010000) > 0;
 		if($internal){
 			$length = Binary::readInt(substr($binary, 1, 4));
 			$packet->identifierACK = Binary::readInt(substr($binary, 5, 4));
@@ -118,34 +100,15 @@ class EncapsulatedPacket{
 	 */
 	public function toBinary($internal = false){
 		return
-			chr(($this->reliability << self::RELIABILITY_SHIFT) | ($this->hasSplit ? self::SPLIT_FLAG : 0)) .
+			chr(($this->reliability << 5) | ($this->hasSplit ? 0b00010000 : 0)) .
 			($internal ? Binary::writeInt(strlen($this->buffer)) . Binary::writeInt($this->identifierACK) : Binary::writeShort(strlen($this->buffer) << 3)) .
 			($this->reliability > PacketReliability::UNRELIABLE ?
-				($this->isReliable() ? Binary::writeLTriad($this->messageIndex) : "") .
-				($this->isSequenced() ? Binary::writeLTriad($this->orderIndex) . chr($this->orderChannel) : "")
+				(($this->reliability >= PacketReliability::RELIABLE and $this->reliability !== PacketReliability::UNRELIABLE_WITH_ACK_RECEIPT) ? Binary::writeLTriad($this->messageIndex) : "") .
+				(($this->reliability <= PacketReliability::RELIABLE_SEQUENCED and $this->reliability !== PacketReliability::RELIABLE) ? Binary::writeLTriad($this->orderIndex) . chr($this->orderChannel) : "")
 				: ""
 			) .
 			($this->hasSplit ? Binary::writeInt($this->splitCount) . Binary::writeShort($this->splitID) . Binary::writeInt($this->splitIndex) : "")
 			. $this->buffer;
-	}
-
-	public function isReliable() : bool{
-		return (
-			$this->reliability === PacketReliability::RELIABLE or
-			$this->reliability === PacketReliability::RELIABLE_ORDERED or
-			$this->reliability === PacketReliability::RELIABLE_SEQUENCED or
-			$this->reliability === PacketReliability::RELIABLE_WITH_ACK_RECEIPT or
-			$this->reliability === PacketReliability::RELIABLE_ORDERED_WITH_ACK_RECEIPT
-		);
-	}
-
-	public function isSequenced() : bool{
-		return (
-			$this->reliability === PacketReliability::UNRELIABLE_SEQUENCED or
-			$this->reliability === PacketReliability::RELIABLE_ORDERED or
-			$this->reliability === PacketReliability::RELIABLE_SEQUENCED or
-			$this->reliability === PacketReliability::RELIABLE_ORDERED_WITH_ACK_RECEIPT
-		);
 	}
 
 	public function __toString(){
