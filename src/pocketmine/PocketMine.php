@@ -81,7 +81,7 @@ namespace pocketmine {
 
 	const NAME = "Apollo";
 	const VERSION = "1.0dev";
-	const API_VERSION = "3.0.0-ALPHA9";
+	const API_VERSION = "3.0.0-ALPHA10";
 	const CODENAME = "Legacy";
 	const GENISYS_API_VERSION = '2.0.0';
 
