@@ -131,11 +131,5 @@
         "id": 24,
         "color": "#FFCEFFFF",
         "name": "levitation"
-    },
-    "fatal_poison": {
-        "id": 25,
-        "color": "#FF4E9331",
-        "name": "poison",
-        "isBad": true
     }
 }
