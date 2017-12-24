@@ -37,6 +37,9 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 - Worlds: Generator has been improved and more biomes!
 - Little to no lag at all!
 - all pmmp features and some other tweaks
+- more features with items and block
+- more blocks and items off the latest version of mcpe
+- and enchanting
  
 ## TODO :
 
