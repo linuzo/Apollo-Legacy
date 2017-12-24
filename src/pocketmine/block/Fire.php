@@ -79,7 +79,7 @@ class Fire extends Flowable{
 		}
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
+	public function getDrops(Item $item) : array{
 		return [];
 	}
 

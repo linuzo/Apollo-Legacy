@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 
 class MonsterSpawner extends Transparent{
 
@@ -39,18 +39,14 @@ class MonsterSpawner extends Transparent{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_WOODEN;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getName() : string{
 		return "Monster Spawner";
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
+	public function getDrops(Item $item) : array{
 		return [];
 	}
 }

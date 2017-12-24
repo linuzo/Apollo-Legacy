@@ -23,16 +23,15 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\StringTag;
+
 class WrittenBook extends WritableBook{
 
-	public const GENERATION_ORIGINAL = 0;
-	public const GENERATION_COPY = 1;
-	public const GENERATION_COPY_OF_COPY = 2;
-	public const GENERATION_TATTERED = 3;
-
-	public const TAG_GENERATION = "generation"; //TAG_Int
-	public const TAG_AUTHOR = "author"; //TAG_String
-	public const TAG_TITLE = "title"; //TAG_String
+	const GENERATION_ORIGINAL = 0;
+	const GENERATION_COPY = 1;
+	const GENERATION_COPY_OF_COPY = 2;
+	const GENERATION_TATTERED = 3;
 
 	public function __construct(int $meta = 0){
 		Item::__construct(self::WRITTEN_BOOK, $meta, "Written Book");
@@ -49,7 +48,10 @@ class WrittenBook extends WritableBook{
 	 * @return int
 	 */
 	public function getGeneration() : int{
-		return $this->getNamedTag()->getInt(self::TAG_GENERATION, -1);
+		if(!isset($this->getNamedTag()->generation)) {
+			return -1;
+		}
+		return $this->getNamedTag()->generation->getValue();
 	}
 
 	/**
@@ -62,7 +64,12 @@ class WrittenBook extends WritableBook{
 			throw new \InvalidArgumentException("Generation \"$generation\" is out of range");
 		}
 		$namedTag = $this->getNamedTag();
-		$namedTag->setInt(self::TAG_GENERATION, $generation);
+
+		if(isset($namedTag->generation)){
+			$namedTag->generation->setValue($generation);
+		}else{
+			$namedTag->generation = new IntTag("generation", $generation);
+		}
 		$this->setNamedTag($namedTag);
 	}
 
@@ -74,7 +81,10 @@ class WrittenBook extends WritableBook{
 	 * @return string
 	 */
 	public function getAuthor() : string{
-		return $this->getNamedTag()->getString(self::TAG_AUTHOR, "");
+		if(!isset($this->getNamedTag()->author)){
+			return "";
+		}
+		return $this->getNamedTag()->author->getValue();
 	}
 
 	/**
@@ -84,7 +94,11 @@ class WrittenBook extends WritableBook{
 	 */
 	public function setAuthor(string $authorName) : void{
 		$namedTag = $this->getNamedTag();
-		$namedTag->setString(self::TAG_AUTHOR, $authorName);
+		if(isset($namedTag->author)){
+			$namedTag->author->setValue($authorName);
+		}else{
+			$namedTag->author = new StringTag("author", $authorName);
+		}
 		$this->setNamedTag($namedTag);
 	}
 
@@ -94,7 +108,10 @@ class WrittenBook extends WritableBook{
 	 * @return string
 	 */
 	public function getTitle() : string{
-		return $this->getNamedTag()->getString(self::TAG_TITLE, "");
+		if(!isset($this->getNamedTag()->title)){
+			return "";
+		}
+		return $this->getNamedTag()->title->getValue();
 	}
 
 	/**
@@ -104,7 +121,11 @@ class WrittenBook extends WritableBook{
 	 */
 	public function setTitle(string $title) : void{
 		$namedTag = $this->getNamedTag();
-		$namedTag->setString(self::TAG_TITLE, $title);
+		if(isset($namedTag->title)){
+			$namedTag->title->setValue($title);
+		}else{
+			$namedTag->title = new StringTag("title", $title);
+		}
 		$this->setNamedTag($namedTag);
 	}
 }

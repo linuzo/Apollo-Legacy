@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\inventory\BigCraftingGrid;
 use pocketmine\item\Item;
+use pocketmine\item\Tool;
 use pocketmine\Player;
 
 class CraftingTable extends Solid{
@@ -44,12 +45,13 @@ class CraftingTable extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_AXE;
+		return Tool::TYPE_AXE;
 	}
 
 	public function onActivate(Item $item, Player $player = null) : bool{
 		if($player instanceof Player){
 			$player->setCraftingGrid(new BigCraftingGrid($player));
+			$player->craftingType = 1;
 		}
 
 		return true;

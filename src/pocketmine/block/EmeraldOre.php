@@ -25,7 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 
 class EmeraldOre extends Solid{
 
@@ -40,20 +40,20 @@ class EmeraldOre extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_IRON;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getHardness() : float{
 		return 3;
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
-		return [
-				ItemFactory::get(Item::EMERALD)
-		];
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_IRON){
+			return [
+				ItemFactory::get(Item::EMERALD, 0, 1)
+			];
+		}
+
+		return [];
 	}
 }

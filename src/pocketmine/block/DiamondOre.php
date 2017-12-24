@@ -25,7 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 
 class DiamondOre extends Solid{
 
@@ -44,16 +44,16 @@ class DiamondOre extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
+		return Tool::TYPE_PICKAXE;
 	}
 
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_IRON;
-	}
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_IRON){
+			return [
+				ItemFactory::get(Item::DIAMOND, 0, 1)
+			];
+		}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
-		return [
-			ItemFactory::get(Item::DIAMOND)
-		];
+		return [];
 	}
 }

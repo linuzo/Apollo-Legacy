@@ -33,6 +33,7 @@ use pocketmine\math\AxisAlignedBB;
 class Air extends Transparent{
 
 	protected $id = self::AIR;
+	protected $meta = 0;
 
 	public function __construct(int $meta = 0){
 		$this->meta = $meta;

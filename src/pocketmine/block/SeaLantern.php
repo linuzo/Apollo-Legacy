@@ -46,7 +46,7 @@ class SeaLantern extends Transparent{
 		return 15;
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
+	public function getDrops(Item $item) : array{
 		return [
 			ItemFactory::get(Item::PRISMARINE_CRYSTALS, 0, 3)
 		];

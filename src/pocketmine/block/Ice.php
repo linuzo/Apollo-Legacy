@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
+use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\Player;
 
@@ -52,7 +53,7 @@ class Ice extends Transparent{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function onBreak(Item $item, Player $player = null) : bool{
@@ -74,7 +75,7 @@ class Ice extends Transparent{
 		return false;
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
+	public function getDrops(Item $item) : array{
 		return [];
 	}
 }

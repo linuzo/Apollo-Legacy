@@ -25,7 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 
 class NetherQuartzOre extends Solid{
 
@@ -44,17 +44,17 @@ class NetherQuartzOre extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
+		return Tool::TYPE_PICKAXE;
 	}
 
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_WOODEN;
-	}
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+			return [
+				ItemFactory::get(Item::QUARTZ, 0, 1)
+			];
+		}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
-		return [
-			ItemFactory::get(Item::QUARTZ)
-		];
+		return [];
 	}
 
 }

@@ -24,8 +24,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 
-use pocketmine\item\TieredTool;
-
 class GlowingObsidian extends Solid{
 
 	protected $id = self::GLOWING_OBSIDIAN;
@@ -48,13 +46,5 @@ class GlowingObsidian extends Solid{
 
 	public function getBlastResistance() : float{
 		return 50;
-	}
-
-	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_DIAMOND;
 	}
 }

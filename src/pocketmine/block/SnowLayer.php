@@ -25,7 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
@@ -51,11 +51,7 @@ class SnowLayer extends Flowable{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_SHOVEL;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_WOODEN;
+		return Tool::TYPE_SHOVEL;
 	}
 
 	public function ticksRandomly() : bool{
@@ -91,9 +87,13 @@ class SnowLayer extends Flowable{
 		return false;
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
-		return [
-			ItemFactory::get(Item::SNOWBALL) //TODO: check layer count
-		];
+	public function getDrops(Item $item) : array{
+		if($item->isShovel() !== false){
+			return [
+				ItemFactory::get(Item::SNOWBALL, 0, 1) //TODO: check layer count
+			];
+		}
+
+		return [];
 	}
 }

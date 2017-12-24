@@ -25,16 +25,17 @@ namespace pocketmine\block;
 
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
+use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
 class Vine extends Flowable{
-	public const FLAG_SOUTH = 0x01;
-	public const FLAG_WEST = 0x02;
-	public const FLAG_NORTH = 0x04;
-	public const FLAG_EAST = 0x08;
+	const FLAG_SOUTH = 0x01;
+	const FLAG_WEST = 0x02;
+	const FLAG_NORTH = 0x04;
+	const FLAG_EAST = 0x08;
 
 	protected $id = self::VINE;
 
@@ -200,14 +201,14 @@ class Vine extends Flowable{
 	}
 
 	public function getDrops(Item $item) : array{
-		if($item->getBlockToolType() & BlockToolType::TYPE_SHEARS){
-			return $this->getDropsForCompatibleTool($item);
+		if($item->isShears()){
+			return parent::getDrops($item);
 		}
 
 		return [];
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_AXE;
+		return Tool::TYPE_AXE;
 	}
 }

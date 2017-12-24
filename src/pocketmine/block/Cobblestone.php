@@ -23,7 +23,8 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\item\TieredTool;
+use pocketmine\item\Item;
+use pocketmine\item\Tool;
 
 class Cobblestone extends Solid{
 
@@ -34,11 +35,7 @@ class Cobblestone extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_WOODEN;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getName() : string{
@@ -47,5 +44,13 @@ class Cobblestone extends Solid{
 
 	public function getHardness() : float{
 		return 2;
+	}
+
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+			return parent::getDrops($item);
+		}
+
+		return [];
 	}
 }

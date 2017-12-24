@@ -23,13 +23,15 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\item\Tool;
+
 class WoodenFence extends Fence{
-	public const FENCE_OAK = 0;
-	public const FENCE_SPRUCE = 1;
-	public const FENCE_BIRCH = 2;
-	public const FENCE_JUNGLE = 3;
-	public const FENCE_ACACIA = 4;
-	public const FENCE_DARKOAK = 5;
+	const FENCE_OAK = 0;
+	const FENCE_SPRUCE = 1;
+	const FENCE_BIRCH = 2;
+	const FENCE_JUNGLE = 3;
+	const FENCE_ACACIA = 4;
+	const FENCE_DARKOAK = 5;
 
 	protected $id = self::FENCE;
 
@@ -38,7 +40,7 @@ class WoodenFence extends Fence{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_AXE;
+		return Tool::TYPE_AXE;
 	}
 
 	public function getName() : string{

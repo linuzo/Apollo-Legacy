@@ -58,6 +58,17 @@ class ItemFrame extends Flowable{
 		return true;
 	}
 
+	public function onBreak(Item $item, Player $player = null) : bool{
+		$tile = $this->level->getTile($this);
+		if($tile instanceof TileItemFrame){
+			//TODO: add events
+			if(lcg_value() <= $tile->getItemDropChance() and $tile->getItem()->getId() !== Item::AIR){
+				$this->level->dropItem($tile->getBlock(), $tile->getItem());
+			}
+		}
+		return parent::onBreak($item, $player);
+	}
+
 	public function onUpdate(int $type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
 			$sides = [
@@ -75,7 +86,7 @@ class ItemFrame extends Flowable{
 	}
 
 	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
-		if($face === Vector3::SIDE_DOWN or $face === Vector3::SIDE_UP or !$blockClicked->isSolid()){
+		if($face === Vector3::SIDE_DOWN or $face === Vector3::SIDE_UP){
 			return false;
 		}
 
@@ -97,19 +108,5 @@ class ItemFrame extends Flowable{
 
 	public function getVariantBitmask() : int{
 		return 0;
-	}
-
-	public function getDropsForCompatibleTool(Item $item) : array{
-		$drops = parent::getDropsForCompatibleTool($item);
-
-		$tile = $this->level->getTile($this);
-		if($tile instanceof TileItemFrame){
-			$tileItem = $tile->getItem();
-			if(lcg_value() <= $tile->getItemDropChance() and !$tileItem->isNull()){
-				$drops[] = $tileItem;
-			}
-		}
-
-		return $drops;
 	}
 }

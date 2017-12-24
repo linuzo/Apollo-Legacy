@@ -23,13 +23,14 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\item\TieredTool;
+use pocketmine\item\Item;
+use pocketmine\item\Tool;
 
 class StoneBricks extends Solid{
-	public const NORMAL = 0;
-	public const MOSSY = 1;
-	public const CRACKED = 2;
-	public const CHISELED = 3;
+	const NORMAL = 0;
+	const MOSSY = 1;
+	const CRACKED = 2;
+	const CHISELED = 3;
 
 	protected $id = self::STONE_BRICKS;
 
@@ -42,11 +43,7 @@ class StoneBricks extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_WOODEN;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getName() : string{
@@ -58,4 +55,13 @@ class StoneBricks extends Solid{
 		];
 		return $names[$this->getVariant()] ?? "Unknown";
 	}
+
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+			return parent::getDrops($item);
+		}
+
+		return [];
+	}
+
 }

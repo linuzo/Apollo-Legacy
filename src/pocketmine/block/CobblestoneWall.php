@@ -23,13 +23,13 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 
 class CobblestoneWall extends Transparent{
-	public const NONE_MOSSY_WALL = 0;
-	public const MOSSY_WALL = 1;
+	const NONE_MOSSY_WALL = 0;
+	const MOSSY_WALL = 1;
 
 	protected $id = self::COBBLESTONE_WALL;
 
@@ -38,11 +38,7 @@ class CobblestoneWall extends Transparent{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_WOODEN;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getHardness() : float{

@@ -28,10 +28,8 @@ namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
-use pocketmine\block\BlockToolType;
 use pocketmine\entity\Entity;
 use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\NBT;
@@ -47,12 +45,12 @@ use pocketmine\utils\Binary;
 use pocketmine\utils\Config;
 
 class Item implements ItemIds, \JsonSerializable{
-	public const TAG_ENCH = "ench";
-	public const TAG_DISPLAY = "display";
-	public const TAG_BLOCK_ENTITY_TAG = "BlockEntityTag";
+	const TAG_ENCH = "ench";
+	const TAG_DISPLAY = "display";
+	const TAG_BLOCK_ENTITY_TAG = "BlockEntityTag";
 
-	public const TAG_DISPLAY_NAME = "Name";
-	public const TAG_DISPLAY_LORE = "Lore";
+	const TAG_DISPLAY_NAME = "Name";
+	const TAG_DISPLAY_LORE = "Lore";
 
 
 	/** @var NBT */
@@ -217,9 +215,9 @@ class Item implements ItemIds, \JsonSerializable{
 	 *
 	 * @param CompoundTag|string $tags
 	 *
-	 * @return Item
+	 * @return $this
 	 */
-	public function setCompoundTag($tags) : Item{
+	public function setCompoundTag($tags){
 		if($tags instanceof CompoundTag){
 			$this->setNamedTag($tags);
 		}else{
@@ -261,9 +259,9 @@ class Item implements ItemIds, \JsonSerializable{
 	/**
 	 * @param CompoundTag $compound
 	 *
-	 * @return Item
+	 * @return $this
 	 */
-	public function setCustomBlockData(CompoundTag $compound) : Item{
+	public function setCustomBlockData(CompoundTag $compound){
 		$tags = clone $compound;
 		$tags->setName(self::TAG_BLOCK_ENTITY_TAG);
 		$this->setNamedTagEntry($tags);
@@ -311,9 +309,9 @@ class Item implements ItemIds, \JsonSerializable{
 	/**
 	 * @param int $id
 	 *
-	 * @return EnchantmentInstance|null
+	 * @return Enchantment|null
 	 */
-	public function getEnchantment(int $id) : ?EnchantmentInstance{
+	public function getEnchantment(int $id) : ?Enchantment{
 		$ench = $this->getNamedTagEntry(self::TAG_ENCH);
 		if(!($ench instanceof ListTag)){
 			return null;
@@ -324,7 +322,8 @@ class Item implements ItemIds, \JsonSerializable{
 			if($entry->getShort("id") === $id){
 				$e = Enchantment::getEnchantment($entry->getShort("id"));
 				if($e !== null){
-					return new EnchantmentInstance($e, $entry->getShort("lvl"));
+					$e->setLevel($entry->getShort("lvl"));
+					return $e;
 				}
 			}
 		}
@@ -358,9 +357,9 @@ class Item implements ItemIds, \JsonSerializable{
 	}
 
 	/**
-	 * @param EnchantmentInstance $enchantment
+	 * @param Enchantment $enchantment
 	 */
-	public function addEnchantment(EnchantmentInstance $enchantment) : void{
+	public function addEnchantment(Enchantment $enchantment) : void{
 		$found = false;
 
 		$ench = $this->getNamedTagEntry(self::TAG_ENCH);
@@ -370,7 +369,7 @@ class Item implements ItemIds, \JsonSerializable{
 			/** @var CompoundTag $entry */
 			foreach($ench as $k => $entry){
 				if($entry->getShort("id") === $enchantment->getId()){
-					$ench[$k] = new CompoundTag("", [
+					$ench->{$k} = new CompoundTag("", [
 						new ShortTag("id", $enchantment->getId()),
 						new ShortTag("lvl", $enchantment->getLevel())
 					]);
@@ -381,7 +380,7 @@ class Item implements ItemIds, \JsonSerializable{
 		}
 
 		if(!$found){
-			$ench[count($ench)] = new CompoundTag("", [
+			$ench->{count($ench)} = new CompoundTag("", [
 				new ShortTag("id", $enchantment->getId()),
 				new ShortTag("lvl", $enchantment->getLevel())
 			]);
@@ -391,10 +390,10 @@ class Item implements ItemIds, \JsonSerializable{
 	}
 
 	/**
-	 * @return EnchantmentInstance[]
+	 * @return Enchantment[]
 	 */
 	public function getEnchantments() : array{
-		/** @var EnchantmentInstance[] $enchantments */
+		/** @var Enchantment[] $enchantments */
 		$enchantments = [];
 
 		$ench = $this->getNamedTagEntry(self::TAG_ENCH);
@@ -403,7 +402,8 @@ class Item implements ItemIds, \JsonSerializable{
 			foreach($ench as $entry){
 				$e = Enchantment::getEnchantment($entry->getShort("id"));
 				if($e !== null){
-					$enchantments[] = new EnchantmentInstance($e, $entry->getShort("lvl"));
+					$e->setLevel($entry->getShort("lvl"));
+					$enchantments[] = $e;
 				}
 			}
 		}
@@ -438,9 +438,9 @@ class Item implements ItemIds, \JsonSerializable{
 	/**
 	 * @param string $name
 	 *
-	 * @return Item
+	 * @return $this
 	 */
-	public function setCustomName(string $name) : Item{
+	public function setCustomName(string $name){
 		if($name === ""){
 			$this->clearCustomName();
 		}
@@ -458,9 +458,9 @@ class Item implements ItemIds, \JsonSerializable{
 	}
 
 	/**
-	 * @return Item
+	 * @return $this
 	 */
-	public function clearCustomName() : Item{
+	public function clearCustomName(){
 		$display = $this->getNamedTagEntry(self::TAG_DISPLAY);
 		if($display instanceof CompoundTag){
 			$display->removeTag(self::TAG_DISPLAY_NAME);
@@ -481,7 +481,9 @@ class Item implements ItemIds, \JsonSerializable{
 	public function getLore() : array{
 		$display = $this->getNamedTagEntry(self::TAG_DISPLAY);
 		if($display instanceof CompoundTag and ($lore = $display->getListTag(self::TAG_DISPLAY_LORE)) !== null){
-			return $lore->getAllValues();
+			return array_map(function(StringTag $tag) : string{
+				return $tag->getValue();
+			}, $lore->getValue());
 		}
 
 		return [];
@@ -490,9 +492,9 @@ class Item implements ItemIds, \JsonSerializable{
 	/**
 	 * @param string[] $lines
 	 *
-	 * @return Item
+	 * @return $this
 	 */
-	public function setLore(array $lines) : Item{
+	public function setLore(array $lines){
 		$display = $this->getNamedTagEntry(self::TAG_DISPLAY);
 		if(!($display instanceof CompoundTag)){
 			$display = new CompoundTag(self::TAG_DISPLAY, []);
@@ -512,18 +514,18 @@ class Item implements ItemIds, \JsonSerializable{
 	 * @return NamedTag|null
 	 */
 	public function getNamedTagEntry(string $name) : ?NamedTag{
-		return $this->getNamedTag()->getTag($name);
+		return $this->getNamedTag()->{$name} ?? null;
 	}
 
 	public function setNamedTagEntry(NamedTag $new) : void{
 		$tag = $this->getNamedTag();
-		$tag->setTag($new);
+		$tag->{$new->getName()} = $new;
 		$this->setNamedTag($tag);
 	}
 
 	public function removeNamedTagEntry(string $name) : void{
 		$tag = $this->getNamedTag();
-		$tag->removeTag($name);
+		unset($tag->{$name});
 		$this->setNamedTag($tag);
 	}
 
@@ -545,9 +547,9 @@ class Item implements ItemIds, \JsonSerializable{
 	 * Sets the Item's NBT from the supplied CompoundTag object.
 	 * @param CompoundTag $tag
 	 *
-	 * @return Item
+	 * @return $this
 	 */
-	public function setNamedTag(CompoundTag $tag) : Item{
+	public function setNamedTag(CompoundTag $tag){
 		if($tag->getCount() === 0){
 			return $this->clearNamedTag();
 		}
@@ -562,7 +564,7 @@ class Item implements ItemIds, \JsonSerializable{
 	 * Removes the Item's NBT.
 	 * @return Item
 	 */
-	public function clearNamedTag() : Item{
+	public function clearNamedTag(){
 		return $this->setCompoundTag("");
 	}
 
@@ -575,9 +577,9 @@ class Item implements ItemIds, \JsonSerializable{
 
 	/**
 	 * @param int $count
-	 * @return Item
+	 * @return $this
 	 */
-	public function setCount(int $count) : Item{
+	public function setCount(int $count){
 		$this->count = $count;
 
 		return $this;
@@ -622,6 +624,32 @@ class Item implements ItemIds, \JsonSerializable{
 	}
 
 	/**
+	 * Returns whether an entity can eat or drink this item.
+	 * @return bool
+	 */
+	public function canBeConsumed() : bool{
+		return false;
+	}
+
+	/**
+	 * Returns whether this item can be consumed by the supplied Entity.
+	 * @param Entity $entity
+	 *
+	 * @return bool
+	 */
+	public function canBeConsumedBy(Entity $entity) : bool{
+		return $this->canBeConsumed();
+	}
+
+	/**
+	 * Called when the item is consumed by an Entity.
+	 * @param Entity $entity
+	 */
+	public function onConsume(Entity $entity){
+
+	}
+
+	/**
 	 * Returns the block corresponding to this Item.
 	 * @return Block
 	 */
@@ -649,9 +677,9 @@ class Item implements ItemIds, \JsonSerializable{
 
 	/**
 	 * @param int $meta
-	 * @return Item
+	 * @return $this
 	 */
-	public function setDamage(int $meta) : Item{
+	public function setDamage(int $meta){
 		$this->meta = $meta !== -1 ? $meta & 0x7FFF : -1;
 
 		return $this;
@@ -716,29 +744,6 @@ class Item implements ItemIds, \JsonSerializable{
 	}
 
 	/**
-	 * Returns what type of block-breaking tool this is. Blocks requiring the same tool type as the item will break
-	 * faster (except for blocks requiring no tool, which break at the same speed regardless of the tool used)
-	 *
-	 * @return int
-	 */
-	public function getBlockToolType() : int{
-		return BlockToolType::TYPE_NONE;
-	}
-
-	/**
-	 * Returns the harvesting power that this tool has. This affects what blocks it can mine when the tool type matches
-	 * the mined block.
-	 * This should return 1 for non-tiered tools, and the tool tier for tiered tools.
-	 *
-	 * @see Block::getToolHarvestLevel()
-	 *
-	 * @return int
-	 */
-	public function getBlockToolHarvestLevel() : int{
-		return 0;
-	}
-
-	/**
 	 * Returns the maximum amount of damage this item can take before it breaks.
 	 *
 	 * @return int|bool
@@ -771,7 +776,7 @@ class Item implements ItemIds, \JsonSerializable{
 		return false;
 	}
 
-	public function getMiningEfficiency(Block $block) : float{
+	public function getDestroySpeed(Block $block, Player $player){
 		return 1;
 	}
 

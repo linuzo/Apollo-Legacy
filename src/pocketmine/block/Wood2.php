@@ -26,8 +26,8 @@ namespace pocketmine\block;
 
 class Wood2 extends Wood{
 
-	public const ACACIA = 0;
-	public const DARK_OAK = 1;
+	const ACACIA = 0;
+	const DARK_OAK = 1;
 
 	protected $id = self::WOOD2;
 

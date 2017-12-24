@@ -23,6 +23,8 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\item\Tool;
+
 class WoodenSlab extends Slab{
 
 	protected $id = self::WOODEN_SLAB;
@@ -48,7 +50,7 @@ class WoodenSlab extends Slab{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_AXE;
+		return Tool::TYPE_AXE;
 	}
 
 	public function getFuelTime() : int{

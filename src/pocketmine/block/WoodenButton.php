@@ -23,6 +23,8 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\item\Tool;
+
 class WoodenButton extends Button{
 
 	protected $id = self::WOODEN_BUTTON;
@@ -36,6 +38,6 @@ class WoodenButton extends Button{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_AXE;
+		return Tool::TYPE_AXE;
 	}
 }

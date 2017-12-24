@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
@@ -46,7 +47,7 @@ class Farmland extends Transparent{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_SHOVEL;
+		return Tool::TYPE_SHOVEL;
 	}
 
 	public function ticksRandomly() : bool{
@@ -107,9 +108,9 @@ class Farmland extends Transparent{
 		return false;
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
+	public function getDrops(Item $item) : array{
 		return [
-			ItemFactory::get(Item::DIRT)
+			ItemFactory::get(Item::DIRT, 0, 1)
 		];
 	}
 }

@@ -25,6 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\item\Tool;
 
 class Melon extends Transparent{
 
@@ -43,10 +44,10 @@ class Melon extends Transparent{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_AXE;
+		return Tool::TYPE_AXE;
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
+	public function getDrops(Item $item) : array{
 		return [
 			ItemFactory::get(Item::MELON_SLICE, 0, mt_rand(3, 7))
 		];

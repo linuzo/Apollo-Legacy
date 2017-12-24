@@ -25,7 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 
 class CoalOre extends Solid{
 
@@ -40,21 +40,21 @@ class CoalOre extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_WOODEN;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getName() : string{
 		return "Coal Ore";
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
-		return [
-			ItemFactory::get(Item::COAL)
-		];
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+			return [
+				ItemFactory::get(Item::COAL, 0, 1)
+			];
+		}
+
+		return [];
 	}
 
 }

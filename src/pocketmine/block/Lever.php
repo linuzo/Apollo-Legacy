@@ -34,8 +34,4 @@ class Lever extends Flowable{
 	public function getName() : string{
 		return "Lever";
 	}
-
-	public function getHardness() : float{
-		return 0.5;
-	}
 }

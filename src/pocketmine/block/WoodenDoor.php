@@ -23,6 +23,8 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\item\Tool;
+
 class WoodenDoor extends Door{
 
 	public function getHardness() : float{
@@ -30,6 +32,6 @@ class WoodenDoor extends Door{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_AXE;
+		return Tool::TYPE_AXE;
 	}
 }

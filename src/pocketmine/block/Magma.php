@@ -26,7 +26,8 @@ namespace pocketmine\block;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByBlockEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\item\TieredTool;
+use pocketmine\item\Item;
+use pocketmine\item\Tool;
 
 class Magma extends Solid{
 
@@ -45,11 +46,7 @@ class Magma extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_WOODEN;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getLightLevel() : int{
@@ -66,4 +63,13 @@ class Magma extends Solid{
 			$entity->attack($ev);
 		}
 	}
+
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_WOODEN){
+			return parent::getDrops($item);
+		}
+
+		return [];
+	}
+
 }

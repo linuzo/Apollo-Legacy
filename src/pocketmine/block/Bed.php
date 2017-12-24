@@ -35,8 +35,8 @@ use pocketmine\tile\Tile;
 use pocketmine\utils\TextFormat;
 
 class Bed extends Transparent{
-	public const BITFLAG_OCCUPIED = 0x04;
-	public const BITFLAG_HEAD = 0x08;
+	const BITFLAG_OCCUPIED = 0x04;
+	const BITFLAG_HEAD = 0x08;
 
 	protected $id = self::BED_BLOCK;
 
@@ -142,7 +142,7 @@ class Bed extends Transparent{
 
 				return true;
 			}elseif($player->distanceSquared($this) > 4 and $player->distanceSquared($other) > 4){
-				$player->sendMessage(new TranslationContainer(TextFormat::GRAY . "%tile.bed.tooFar"));
+				//MCPE doesn't have messages for bed too far away
 				return true;
 			}
 
@@ -199,16 +199,16 @@ class Bed extends Transparent{
 		return true;
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
+	public function getDrops(Item $item) : array{
 		if($this->isHeadPart()){
 			$tile = $this->getLevel()->getTile($this);
 			if($tile instanceof TileBed){
 				return [
-					ItemFactory::get($this->getItemId(), $tile->getColor())
+					ItemFactory::get($this->getItemId(), $tile->getColor(), 1)
 				];
 			}else{
 				return [
-					ItemFactory::get($this->getItemId(), 14) //Red
+					ItemFactory::get($this->getItemId(), 14, 1) //Red
 				];
 			}
 		}

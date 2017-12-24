@@ -25,7 +25,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 
 class LapisOre extends Solid{
 
@@ -40,21 +40,21 @@ class LapisOre extends Solid{
 	}
 
 	public function getToolType() : int{
-		return BlockToolType::TYPE_PICKAXE;
-	}
-
-	public function getToolHarvestLevel() : int{
-		return TieredTool::TIER_STONE;
+		return Tool::TYPE_PICKAXE;
 	}
 
 	public function getName() : string{
 		return "Lapis Lazuli Ore";
 	}
 
-	public function getDropsForCompatibleTool(Item $item) : array{
-		return [
-			ItemFactory::get(Item::DYE, 4, mt_rand(4, 8))
-		];
+	public function getDrops(Item $item) : array{
+		if($item->isPickaxe() >= Tool::TIER_STONE){
+			return [
+				ItemFactory::get(Item::DYE, 4, mt_rand(4, 8))
+			];
+		}
+
+		return [];
 	}
 
 }
