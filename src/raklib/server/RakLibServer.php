@@ -13,40 +13,49 @@
  *
  */
 
+declare(strict_types=1);
+
 namespace raklib\server;
 
 
+use raklib\RakLib;
+
 class RakLibServer extends \Thread{
+	/** @var int */
 	protected $port;
+	/** @var string */
 	protected $interface;
 	/** @var \ThreadedLogger */
 	protected $logger;
-	protected $loader;
 
-	public $loadPaths;
+	/** @var string */
+	protected $loaderPath;
 
-	protected $shutdown;
+	/** @var bool */
+	protected $shutdown = false;
 
 	/** @var \Threaded */
 	protected $externalQueue;
 	/** @var \Threaded */
 	protected $internalQueue;
 
+	/** @var string */
 	protected $mainPath;
 
 	/** @var int */
 	protected $serverId = 0;
 
+
 	/**
 	 * @param \ThreadedLogger $logger
-	 * @param \ClassLoader    $loader
+	 * @param string          $autoloaderPath Path to Composer autoloader
 	 * @param int             $port
 	 * @param string          $interface
 	 * @param bool            $autoStart
 	 *
 	 * @throws \Exception
 	 */
-	public function __construct(\ThreadedLogger $logger, \ClassLoader $loader, $port, $interface = "0.0.0.0", bool $autoStart = true){
+	public function __construct(\ThreadedLogger $logger, string $autoloaderPath, $port, $interface = "0.0.0.0", bool $autoStart = true){
 		$this->port = (int) $port;
 		if($port < 1 or $port > 65536){
 			throw new \Exception("Invalid port range");
@@ -57,12 +66,7 @@ class RakLibServer extends \Thread{
 		$this->serverId = mt_rand(0, PHP_INT_MAX);
 
 		$this->logger = $logger;
-		$this->loader = $loader;
-		$loadPaths = [];
-		$this->addDependency($loadPaths, new \ReflectionClass($logger));
-		$this->addDependency($loadPaths, new \ReflectionClass($loader));
-		$this->loadPaths = array_reverse($loadPaths);
-		$this->shutdown = false;
+		$this->loaderPath = $autoloaderPath;
 
 		$this->externalQueue = new \Threaded;
 		$this->internalQueue = new \Threaded;
@@ -75,20 +79,6 @@ class RakLibServer extends \Thread{
 
 		if($autoStart){
 			$this->start();
-		}
-	}
-
-	protected function addDependency(array &$loadPaths, \ReflectionClass $dep){
-		if($dep->getFileName() !== false){
-			$loadPaths[$dep->getName()] = $dep->getFileName();
-		}
-
-		if($dep->getParentClass() instanceof \ReflectionClass){
-			$this->addDependency($loadPaths, $dep->getParentClass());
-		}
-
-		foreach($dep->getInterfaces() as $interface){
-			$this->addDependency($loadPaths, $interface);
 		}
 	}
 
@@ -159,10 +149,11 @@ class RakLibServer extends \Thread{
 		}
 	}
 
-	public function errorHandler($errno, $errstr, $errfile, $errline, $context, $trace = null){
+	public function errorHandler($errno, $errstr, $errfile, $errline){
 		if(error_reporting() === 0){
 			return false;
 		}
+
 		$errorConversion = [
 			E_ERROR => "E_ERROR",
 			E_WARNING => "E_WARNING",
@@ -188,7 +179,7 @@ class RakLibServer extends \Thread{
 
 		$this->getLogger()->debug("An $errno error happened: \"$errstr\" in \"$errfile\" at line $errline");
 
-		foreach(($trace = $this->getTrace($trace === null ? 2 : 0, $trace)) as $i => $line){
+		foreach(($trace = $this->getTrace(2)) as $i => $line){
 			$this->getLogger()->debug($line);
 		}
 
@@ -231,18 +222,12 @@ class RakLibServer extends \Thread{
 
 	public function run(){
 		try{
-			//Load removed dependencies, can't use require_once()
-			foreach($this->loadPaths as $name => $path){
-				if(!class_exists($name, false) and !interface_exists($name, false)){
-					require($path);
-				}
-			}
-			$this->loader->register(true);
+			require $this->loaderPath;
 
 			gc_enable();
 			error_reporting(-1);
-			ini_set("display_errors", 1);
-			ini_set("display_startup_errors", 1);
+			ini_set("display_errors", '1');
+			ini_set("display_startup_errors", '1');
 
 			set_error_handler([$this, "errorHandler"], E_ALL);
 			register_shutdown_function([$this, "shutdownHandler"]);
