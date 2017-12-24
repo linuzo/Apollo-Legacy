@@ -28,12 +28,6 @@ namespace pocketmine\resourcepacks;
 interface ResourcePack{
 
 	/**
-	 * Returns the path to the resource pack. This might be a file or a directory, depending on the type of pack.
-	 * @return string
-	 */
-	public function getPath() : string;
-
-	/**
 	 * Returns the human-readable name of the resource pack
 	 * @return string
 	 */

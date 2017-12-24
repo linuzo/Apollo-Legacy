@@ -99,10 +99,6 @@ class ZippedResourcePack implements ResourcePack{
 		fclose($this->fileResource);
 	}
 
-	public function getPath() : string{
-		return $this->path;
-	}
-
 	public function getPackName() : string{
 		return $this->manifest->header->name;
 	}
