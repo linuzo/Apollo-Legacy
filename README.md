@@ -42,7 +42,7 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 - [ ] translate all things to english 
 
-- [ ] update generator
+- [X] update generator
 
 - [ ] add enchanting
 
