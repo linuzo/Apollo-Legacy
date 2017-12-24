@@ -19,30 +19,23 @@
  *
 */
 
-namespace darksystem\resourcepacks;
+declare(strict_types=1);
 
-class ResourcePackInfoEntry{
-	
-	protected $packId;
-	protected $version;
-	protected $packSize;
+namespace pocketmine\block;
 
-	public function __construct($packId, $version, $packSize = 0){
-		$this->packId = $packId;
-		$this->version = $version;
-		$this->packSize = $packSize;
+class NetherWartBlock extends Solid{
+
+	protected $id = Block::NETHER_WART_BLOCK;
+
+	public function __construct(int $meta = 0){
+		$this->meta = $meta;
 	}
 
-	public function getPackId(){
-		return $this->packId;
+	public function getName() : string{
+		return "Nether Wart Block";
 	}
 
-	public function getVersion(){
-		return $this->version;
+	public function getHardness() : float{
+		return 1;
 	}
-
-	public function getPackSize(){
-		return $this->packSize;
-	}
-
 }
