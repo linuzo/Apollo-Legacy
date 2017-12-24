@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,44 +15,45 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
 
+declare(strict_types=1);
+
 namespace pocketmine\block;
 
-use pocketmine\event\entity\EntityRegainHealthEvent;
+use pocketmine\entity\Effect;
+use pocketmine\entity\Living;
+use pocketmine\item\FoodSource;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class Cake extends Transparent{
+class Cake extends Transparent implements FoodSource{
 
 	protected $id = self::CAKE_BLOCK;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function canBeActivated(){
-		return true;
-	}
-
-	public function getHardness(){
+	public function getHardness() : float{
 		return 0.5;
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return "Cake Block";
 	}
 
-	protected function recalculateBoundingBox(){
+	protected function recalculateBoundingBox() : ?AxisAlignedBB{
 
-		$f = (1 + $this->getDamage() * 2) / 16;
+		$f = $this->getDamage() * 0.125; //1 slice width
 
 		return new AxisAlignedBB(
-			$this->x + $f,
+			$this->x + 0.0625 + $f,
 			$this->y,
 			$this->z + 0.0625,
 			$this->x + 1 - 0.0625,
@@ -61,10 +62,10 @@ class Cake extends Transparent{
 		);
 	}
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		$down = $this->getSide(0);
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+		$down = $this->getSide(Vector3::SIDE_DOWN);
 		if($down->getId() !== self::AIR){
-			$this->getLevel()->setBlock($block, $this, true, true);
+			$this->getLevel()->setBlock($blockReplace, $this, true, true);
 
 			return true;
 		}
@@ -72,11 +73,11 @@ class Cake extends Transparent{
 		return false;
 	}
 
-	public function onUpdate($type){
+	public function onUpdate(int $type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
-			if($this->getSide(0)->getId() === self::AIR){
-				$this->getLevel()->setBlock($this, new Air(), true);
-				
+			if($this->getSide(Vector3::SIDE_DOWN)->getId() === self::AIR){ //Replace with common break method
+				$this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), true);
+
 				return Level::BLOCK_UPDATE_NORMAL;
 			}
 		}
@@ -84,24 +85,51 @@ class Cake extends Transparent{
 		return false;
 	}
 
-	public function getDrops(Item $item){
+	public function getDropsForCompatibleTool(Item $item) : array{
 		return [];
 	}
 
-	public function onActivate(Item $item, Player $player = null) {
-		if ($player instanceof Player and $player->getHealth() < $player->getMaxHealth() and $player->getGamemode() == 0 or 2) {		
-			$ev = new EntityRegainHealthEvent($player, 3, EntityRegainHealthEvent::CAUSE_EATING);
-			$player->heal($ev->getAmount(), $ev);
-		}
-		++$this->meta;
-		$player->setFood($player->getFood());
-		if ($this->meta >= 0x06) {
-			$this->getLevel()->setBlock($this, new Air(), true);
-		} else {
-			$this->getLevel()->setBlock($this, $this, true);
+	public function onActivate(Item $item, Player $player = null) : bool{
+		if($player !== null){
+			$player->consumeObject($this);
+			return true;
 		}
 
+		return false;
+	}
+
+	public function getFoodRestore() : int{
+		return 2;
+	}
+
+	public function getSaturationRestore() : float{
+		return 0.4;
+	}
+
+	public function requiresHunger() : bool{
 		return true;
 	}
 
+	/**
+	 * @return Block
+	 */
+	public function getResidue(){
+		$clone = clone $this;
+		$clone->meta++;
+		if($clone->meta > 0x06){
+			$clone = BlockFactory::get(Block::AIR);
+		}
+		return $clone;
+	}
+
+	/**
+	 * @return Effect[]
+	 */
+	public function getAdditionalEffects() : array{
+		return [];
+	}
+
+	public function onConsume(Living $consumer) : void{
+		$this->level->setBlock($this, $this->getResidue());
+	}
 }

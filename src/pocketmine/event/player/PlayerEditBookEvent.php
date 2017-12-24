@@ -1,13 +1,25 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\player;
 
@@ -16,14 +28,13 @@ use pocketmine\item\WritableBook;
 use pocketmine\Player;
 
 class PlayerEditBookEvent extends PlayerEvent implements Cancellable{
-	
 	public static $handlerList = null;
 
-	const ACTION_REPLACE_PAGE = 0;
-	const ACTION_ADD_PAGE = 1;
-	const ACTION_DELETE_PAGE = 2;
-	const ACTION_SWAP_PAGES = 3;
-	const ACTION_SIGN_BOOK = 4;
+	public const ACTION_REPLACE_PAGE = 0;
+	public const ACTION_ADD_PAGE = 1;
+	public const ACTION_DELETE_PAGE = 2;
+	public const ACTION_SWAP_PAGES = 3;
+	public const ACTION_SIGN_BOOK = 4;
 
 	/** @var WritableBook */
 	private $oldBook;
@@ -34,7 +45,7 @@ class PlayerEditBookEvent extends PlayerEvent implements Cancellable{
 	/** @var int[] */
 	private $modifiedPages;
 
-	public function __construct(Player $player, WritableBook $oldBook, WritableBook $newBook, $action, $modifiedPages){
+	public function __construct(Player $player, WritableBook $oldBook, WritableBook $newBook, int $action, array $modifiedPages){
 		$this->player = $player;
 		$this->oldBook = $oldBook;
 		$this->newBook = $newBook;
@@ -47,7 +58,7 @@ class PlayerEditBookEvent extends PlayerEvent implements Cancellable{
 	 *
 	 * @return int
 	 */
-	public function getAction(){
+	public function getAction() : int{
 		return $this->action;
 	}
 
@@ -56,7 +67,7 @@ class PlayerEditBookEvent extends PlayerEvent implements Cancellable{
 	 *
 	 * @return WritableBook
 	 */
-	public function getOldBook(){
+	public function getOldBook() : WritableBook{
 		return $this->oldBook;
 	}
 
@@ -66,7 +77,7 @@ class PlayerEditBookEvent extends PlayerEvent implements Cancellable{
 	 *
 	 * @return WritableBook
 	 */
-	public function getNewBook(){
+	public function getNewBook() : WritableBook{
 		return $this->newBook;
 	}
 
@@ -75,7 +86,7 @@ class PlayerEditBookEvent extends PlayerEvent implements Cancellable{
 	 *
 	 * @param WritableBook $book
 	 */
-	public function setNewBook(WritableBook $book){
+	public function setNewBook(WritableBook $book) : void{
 		$this->newBook = $book;
 	}
 
@@ -84,8 +95,7 @@ class PlayerEditBookEvent extends PlayerEvent implements Cancellable{
 	 *
 	 * @return int[]
 	 */
-	public function getModifiedPages(){
+	public function getModifiedPages() : array{
 		return $this->modifiedPages;
 	}
-	
 }

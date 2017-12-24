@@ -1,120 +1,105 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\tile;
 
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
-use pocketmine\nbt\tag\IntTag;
+use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\FloatTag;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\nbt\NBT;
+use pocketmine\Player;
 
 class ItemFrame extends Spawnable{
-	
-	public $map_uuid = -1;
-	
+	public const TAG_ITEM_ROTATION = "ItemRotation";
+	public const TAG_ITEM_DROP_CHANCE = "ItemDropChance";
+	public const TAG_ITEM = "Item";
+
 	public function __construct(Level $level, CompoundTag $nbt){
-		if(!isset($nbt->ItemRotation)){
-			$nbt->ItemRotation = new ByteTag("ItemRotation", 0);
+		if(!$nbt->hasTag(self::TAG_ITEM_ROTATION, ByteTag::class)){
+			$nbt->setByte(self::TAG_ITEM_ROTATION, 0, true);
 		}
 
-		if(!isset($nbt->ItemDropChance)){
-			$nbt->ItemDropChance = new FloatTag("ItemDropChance", 1.0);
+		if(!$nbt->hasTag(self::TAG_ITEM_DROP_CHANCE, FloatTag::class)){
+			$nbt->setFloat(self::TAG_ITEM_DROP_CHANCE, 1.0, true);
 		}
 
 		parent::__construct($level, $nbt);
 	}
 
-	public function hasItem(){
-		return $this->getItem()->getId() !== Item::AIR;
+	public function hasItem() : bool{
+		return !$this->getItem()->isNull();
 	}
 
-	public function getItem(){
-		if(isset($this->namedtag->Item)){
-			return NBT::getItemHelper($this->namedtag->Item);
-		}else{
-			return Item::get(Item::AIR);
+	public function getItem() : Item{
+		$c = $this->namedtag->getCompoundTag(self::TAG_ITEM);
+		if($c !== null){
+			return Item::nbtDeserialize($c);
 		}
+
+		return ItemFactory::get(Item::AIR, 0, 0);
 	}
 
 	public function setItem(Item $item = null){
-		if($item !== null and $item->getId() !== Item::AIR){
-			$this->namedtag->Item = NBT::putItemHelper(-1, "Item");
-			//$this->namedtag->Item = $item->nbtSerialize(-1, "Item");
+		if($item !== null and !$item->isNull()){
+			$this->namedtag->setTag($item->nbtSerialize(-1, self::TAG_ITEM));
 		}else{
-			unset($this->namedtag->Item);
+			$this->namedtag->removeTag(self::TAG_ITEM);
 		}
-		
-		$this->onChanged();
-	}
-	
-	public function setMapID($mapId){
-		$this->map_uuid = $mapId;
-		$this->namedtag->Map_UUID = new StringTag("map_uuid", $mapId);
-		$this->onChanged();
-	}
-	
-	public function getMapID(){
-		return $this->map_uuid;
-	}
-	
-	public function getItemRotation(){
-		return $this->namedtag->ItemRotation->getValue();
-	}
-
-	public function setItemRotation($rotation){
-		$this->namedtag->ItemRotation->setValue($rotation);
 		$this->onChanged();
 	}
 
-	public function getItemDropChance(){
-		return $this->namedtag->ItemDropChance->getValue();
+	public function getItemRotation() : int{
+		return $this->namedtag->getByte(self::TAG_ITEM_ROTATION);
 	}
 
-	public function setItemDropChance($chance){
-		$this->namedtag->ItemDropChance->setValue($chance);
+	public function setItemRotation(int $rotation){
+		$this->namedtag->setByte(self::TAG_ITEM_ROTATION, $rotation);
 		$this->onChanged();
 	}
-	
-	public function addAdditionalSpawnData(CompoundTag $nbt){
-		$nbt->ItemDropChance = $this->namedtag->ItemDropChance;
-		$nbt->ItemRotation = $this->namedtag->ItemRotation;
+
+	public function getItemDropChance() : float{
+		return $this->namedtag->getFloat(self::TAG_ITEM_DROP_CHANCE);
+	}
+
+	public function setItemDropChance(float $chance){
+		$this->namedtag->setFloat(self::TAG_ITEM_DROP_CHANCE, $chance);
+		$this->onChanged();
+	}
+
+	public function addAdditionalSpawnData(CompoundTag $nbt) : void{
+		$nbt->setTag($this->namedtag->getTag(self::TAG_ITEM_DROP_CHANCE));
+		$nbt->setTag($this->namedtag->getTag(self::TAG_ITEM_ROTATION));
+
 		if($this->hasItem()){
-			$nbt->Item = $this->namedtag->Item;
+			$nbt->setTag($this->namedtag->getTag(self::TAG_ITEM));
 		}
 	}
-	
-	public function getSpawnCompound(){
-		$tag = new CompoundTag("", [
-			new StringTag("id", Tile::ITEM_FRAME),
-			new IntTag("x", (int) $this->x),
-			new IntTag("y", (int) $this->y),
-			new IntTag("z", (int) $this->z),
-			$this->namedtag->ItemDropChance,
-			$this->namedtag->ItemRotation,
-		]);
-		
-		if($this->hasItem()){
-			$tag->Item = $this->namedtag->Item;
-			if($this->getItem()->getId() === Item::FILLED_MAP){
-				if(isset($this->namedtag->Map_UUID)){
-					$tag->Map_UUID = $this->namedtag->Map_UUID;
-				}
-			}
-		}
-		
-		return $tag;
+
+	protected static function createAdditionalNBT(CompoundTag $nbt, Vector3 $pos, ?int $face = null, ?Item $item = null, ?Player $player = null) : void{
+		$nbt->setFloat(self::TAG_ITEM_DROP_CHANCE, 1.0);
+		$nbt->setByte(self::TAG_ITEM_ROTATION, 0);
 	}
-	
 }

@@ -2,11 +2,11 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____  
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
  * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,105 +15,92 @@
  *
  * @author PocketMine Team
  * @link http://www.pocketmine.net/
- * 
+ *
  *
 */
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\entity\Entity;
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
 use pocketmine\Player;
 
 class Ladder extends Transparent{
 
 	protected $id = self::LADDER;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return "Ladder";
 	}
 
-	public function hasEntityCollision(){
+	public function hasEntityCollision() : bool{
 		return true;
 	}
 
-	public function isSolid(){
+	public function isSolid() : bool{
 		return false;
 	}
 
-	public function getHardness(){
+	public function getHardness() : float{
 		return 0.4;
 	}
 
-	public function onEntityCollide(Entity $entity){
+	public function canClimb() : bool{
+		return true;
+	}
+
+	public function onEntityCollide(Entity $entity) : void{
 		$entity->resetFallDistance();
 		$entity->onGround = true;
 	}
 
-	protected function recalculateBoundingBox(){
+	protected function recalculateBoundingBox() : ?AxisAlignedBB{
+		$f = 0.1875;
 
-		$f = 0.125;
+		$minX = $minZ = 0;
+		$maxX = $maxZ = 1;
 
 		if($this->meta === 2){
-			return new AxisAlignedBB(
-				$this->x,
-				$this->y,
-				$this->z + 1 - $f,
-				$this->x + 1,
-				$this->y + 1,
-				$this->z + 1
-			);
+			$minZ = 1 - $f;
 		}elseif($this->meta === 3){
-			return new AxisAlignedBB(
-				$this->x,
-				$this->y,
-				$this->z,
-				$this->x + 1,
-				$this->y + 1,
-				$this->z + $f
-			);
+			$maxZ = $f;
 		}elseif($this->meta === 4){
-			return new AxisAlignedBB(
-				$this->x + 1 - $f,
-				$this->y,
-				$this->z,
-				$this->x + 1,
-				$this->y + 1,
-				$this->z + 1
-			);
+			$minX = 1 - $f;
 		}elseif($this->meta === 5){
-			return new AxisAlignedBB(
-				$this->x,
-				$this->y,
-				$this->z,
-				$this->x + $f,
-				$this->y + 1,
-				$this->z + 1
-			);
+			$maxX = $f;
 		}
 
-		return null;
+		return new AxisAlignedBB(
+			$this->x + $minX,
+			$this->y,
+			$this->z + $minZ,
+			$this->x + $maxX,
+			$this->y + 1,
+			$this->z + $maxZ
+		);
 	}
 
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		if($target->isTransparent() === false){
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+		if($blockClicked->isTransparent() === false){
 			$faces = [
 				2 => 2,
 				3 => 3,
 				4 => 4,
-				5 => 5,
+				5 => 5
 			];
 			if(isset($faces[$face])){
 				$this->meta = $faces[$face];
-				$this->getLevel()->setBlock($block, $this, true, true);
+				$this->getLevel()->setBlock($blockReplace, $this, true, true);
 
 				return true;
 			}
@@ -122,20 +109,22 @@ class Ladder extends Transparent{
 		return false;
 	}
 
-	public function onUpdate($type){
+	public function onUpdate(int $type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
+			if(!$this->getSide($this->meta ^ 0x01)->isSolid()){ //Replace with common break method
+				$this->level->useBreakOn($this);
+				return Level::BLOCK_UPDATE_NORMAL;
+			}
 		}
 
 		return false;
 	}
 
-	public function getToolType(){
-		return Tool::TYPE_AXE;
+	public function getToolType() : int{
+		return BlockToolType::TYPE_AXE;
 	}
 
-	public function getDrops(Item $item){
-		return [
-			[$this->id, 0, 1],
-		];
+	public function getVariantBitmask() : int{
+		return 0;
 	}
 }

@@ -1,32 +1,53 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\nbt\tag;
 
 use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\ListTag as TagEnum;
-use pocketmine\utils\Binary;
+
+#include <rules/NBT.h>
 
 class ListTag extends NamedTag implements \ArrayAccess, \Countable{
 
+	/** @var int */
 	private $tagType;
 
-	public function __construct($name = "", $value = []){
-		$this->name = $name;
-		foreach($value as $k => $v){
-			$this->{$k} = $v;
-		}
+	/**
+	 * ListTag constructor.
+	 *
+	 * @param string     $name
+	 * @param NamedTag[] $value
+	 * @param int        $tagType
+	 */
+	public function __construct(string $name = "", array $value = [], int $tagType = NBT::TAG_End){
+		parent::__construct($name, $value);
+		$this->tagType = $tagType;
 	}
 
-	public function &getValue(){
+	/**
+	 * @return NamedTag[]
+	 */
+	public function &getValue() : array{
 		$value = [];
 		foreach($this as $k => $v){
 			if($v instanceof Tag){
@@ -35,6 +56,25 @@ class ListTag extends NamedTag implements \ArrayAccess, \Countable{
 		}
 
 		return $value;
+	}
+
+	/**
+	 * @param NamedTag[] $value
+	 *
+	 * @throws \TypeError
+	 */
+	public function setValue($value) : void{
+		if(is_array($value)){
+			foreach($value as $name => $tag){
+				if($tag instanceof NamedTag){
+					$this->{$name} = $tag;
+				}else{
+					throw new \TypeError("ListTag members must be NamedTags, got " . gettype($tag) . " in given array");
+				}
+			}
+		}else{
+			throw new \TypeError("ListTag value must be NamedTag[], " . gettype($value) . " given");
+		}
 	}
 
 	public function getCount(){
@@ -48,10 +88,32 @@ class ListTag extends NamedTag implements \ArrayAccess, \Countable{
 		return $count;
 	}
 
+	public function getAllValues() : array{
+		$result = [];
+		foreach($this as $tag){
+			if(!($tag instanceof NamedTag)){
+				continue;
+			}
+
+			if($tag instanceof \ArrayAccess){
+				$result[] = $tag;
+			}else{
+				$result[] = $tag->getValue();
+			}
+		}
+
+		return $result;
+	}
+
 	public function offsetExists($offset){
 		return isset($this->{$offset});
 	}
 
+	/**
+	 * @param int $offset
+	 *
+	 * @return CompoundTag|ListTag|mixed
+	 */
 	public function offsetGet($offset){
 		if(isset($this->{$offset}) and $this->{$offset} instanceof Tag){
 			if($this->{$offset} instanceof \ArrayAccess){
@@ -77,131 +139,70 @@ class ListTag extends NamedTag implements \ArrayAccess, \Countable{
 	}
 
 	public function count($mode = COUNT_NORMAL){
-		for($i = 0; true; $i++){
-			if(!isset($this->{$i})){
-				return $i;
-			}
-			
-			if($mode === COUNT_RECURSIVE){
-				if($this->{$i} instanceof \Countable){
-					$i += count($this->{$i});
-				}
+		$count = 0;
+		for($i = 0; isset($this->{$i}); $i++){
+			if($mode === COUNT_RECURSIVE and $this->{$i} instanceof \Countable){
+				$count += count($this->{$i});
+			}else{
+				$count++;
 			}
 		}
 
-		return $i;
+		return $count;
 	}
 
-	public function getType(){
+	public function getType() : int{
 		return NBT::TAG_List;
 	}
 
-	public function setTagType($type){
+	public function setTagType(int $type){
 		$this->tagType = $type;
 	}
 
-	public function getTagType(){
+	public function getTagType() : int{
 		return $this->tagType;
 	}
 
-	public function read(NBT $nbt, $new = false){
+	public function read(NBT $nbt, bool $network = false) : void{
 		$this->value = [];
-		$this->tagType = ord($nbt->get(1));
-		$size = $new ? $nbt->getVarInt() : $nbt->getInt();
+		$this->tagType = $nbt->getByte();
+		$size = $nbt->getInt($network);
+
+		$tagBase = NBT::createTag($this->tagType);
 		for($i = 0; $i < $size and !$nbt->feof(); ++$i){
-			switch($this->tagType){
-				case NBT::TAG_Byte:
-					$tag = new ByteTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Short:
-					$tag = new ShortTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Int:
-					$tag = new IntTag("");
-					$tag->read($nbt, $new);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Long:
-					$tag = new LongTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Float:
-					$tag = new FloatTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Double:
-					$tag = new DoubleTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_ByteArray:
-					$tag = new ByteArrayTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_String:
-					$tag = new StringTag("");
-					$tag->read($nbt, $new);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_List:
-					$tag = new TagEnum("");
-					$tag->read($nbt, $new);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_Compound:
-					$tag = new CompoundTag("");
-					$tag->read($nbt, $new);
-					$this->{$i} = $tag;
-					break;
-				case NBT::TAG_IntArray:
-					$tag = new IntArrayTag("");
-					$tag->read($nbt);
-					$this->{$i} = $tag;
-					break;
-			}
+			$tag = clone $tagBase;
+			$tag->read($nbt, $network);
+			$this->{$i} = $tag;
 		}
 	}
 
-	public function write(NBT $nbt, $old = false){
-		if(!isset($this->tagType)){
-			$id = null;
+	public function write(NBT $nbt, bool $network = false) : void{
+		if($this->tagType === NBT::TAG_End){ //previously empty list, try detecting type from tag children
+			$id = NBT::TAG_End;
 			foreach($this as $tag){
-				if($tag instanceof Tag){
-					if(!isset($id)){
+				if($tag instanceof Tag and !($tag instanceof EndTag)){
+					if($id === NBT::TAG_End){
 						$id = $tag->getType();
 					}elseif($id !== $tag->getType()){
-						return false;
+						return; //TODO: throw exception?
 					}
 				}
 			}
-			
 			$this->tagType = $id;
 		}
-		
-		$nbt->buffer .= chr($this->tagType);
-		
+
+		$nbt->putByte($this->tagType);
+
+		/** @var Tag[] $tags */
 		$tags = [];
 		foreach($this as $tag){
 			if($tag instanceof Tag){
 				$tags[] = $tag;
 			}
 		}
-		
-		if($old){
-			$nbt->buffer .= $nbt->endianness === 1 ? pack("N", count($tags)) : pack("V", count($tags));
-		}else{
-			$nbt->putVarInt(count($tags));
-		}
-		
+		$nbt->putInt(count($tags), $network);
 		foreach($tags as $tag){
-			$tag->write($nbt, $old);
+			$tag->write($nbt, $network);
 		}
 	}
 
@@ -213,5 +214,13 @@ class ListTag extends NamedTag implements \ArrayAccess, \Countable{
 			}
 		}
 		return $str . "}";
+	}
+
+	public function __clone(){
+		foreach($this as $key => $tag){
+			if($tag instanceof Tag){
+				$this->{$key} = clone $tag;
+			}
+		}
 	}
 }

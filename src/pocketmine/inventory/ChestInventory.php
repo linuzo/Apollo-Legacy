@@ -17,67 +17,76 @@
  * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\inventory;
 
 use pocketmine\level\Level;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\TileEventPacket;
+use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\BlockEventPacket;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use pocketmine\network\mcpe\protocol\types\WindowTypes;
 use pocketmine\Player;
-use pocketmine\Server;
 use pocketmine\tile\Chest;
-use pocketmine\network\protocol\LevelSoundEventPacket;
 
 class ChestInventory extends ContainerInventory{
 
+	/** @var Chest */
+	protected $holder;
+
+	/**
+	 * @param Chest $tile
+	 */
 	public function __construct(Chest $tile){
-		parent::__construct($tile, InventoryType::get(InventoryType::CHEST));
+		parent::__construct($tile);
+	}
+
+	public function getNetworkType() : int{
+		return WindowTypes::CONTAINER;
+	}
+
+	public function getName() : string{
+		return "Chest";
+	}
+
+	public function getDefaultSize() : int{
+		return 27;
 	}
 
 	/**
+	 * This override is here for documentation and code completion purposes only.
 	 * @return Chest
 	 */
 	public function getHolder(){
 		return $this->holder;
 	}
 
-	public function onOpen(Player $who){
+	public function onOpen(Player $who) : void{
 		parent::onOpen($who);
 
-		if(count($this->getViewers()) === 1){
-			$pk = new TileEventPacket();
-			$pk->x = $this->getHolder()->getX();
-			$pk->y = $this->getHolder()->getY();
-			$pk->z = $this->getHolder()->getZ();
-			$pk->case1 = 1;
-			$pk->case2 = 2;
-			if(($level = $this->getHolder()->getLevel()) instanceof Level){
-				Server::broadcastPacket($level->getUsingChunk($this->getHolder()->getX() >> 4, $this->getHolder()->getZ() >> 4), $pk);
-			}
-			$position = [ 'x' => $this->holder->x, 'y' => $this->holder->y, 'z' => $this->holder->z ];
-			$who->sendSound(LevelSoundEventPacket::SOUND_CHEST_OPEN, $position);
+		if(count($this->getViewers()) === 1 and ($level = $this->getHolder()->getLevel()) instanceof Level){
+			$this->broadcastBlockEventPacket($this->getHolder(), true);
+			$level->broadcastLevelSoundEvent($this->getHolder()->add(0.5, 0.5, 0.5), LevelSoundEventPacket::SOUND_CHEST_OPEN);
 		}
-
-		$position = [ 'x' => $this->holder->x, 'y' => $this->holder->y, 'z' => $this->holder->z ];
-		$who->sendSound(LevelSoundEventPacket::SOUND_CHEST_OPEN, $position);
 	}
 
-	public function onClose(Player $who){
-		if(count($this->getViewers()) === 1){
-			$pk = new TileEventPacket();
-			$pk->x = $this->getHolder()->getX();
-			$pk->y = $this->getHolder()->getY();
-			$pk->z = $this->getHolder()->getZ();
-			$pk->case1 = 1;
-			$pk->case2 = 0;
-			if(($level = $this->getHolder()->getLevel()) instanceof Level){
-				Server::broadcastPacket($level->getUsingChunk($this->getHolder()->getX() >> 4, $this->getHolder()->getZ() >> 4), $pk);
-			}
+	public function onClose(Player $who) : void{
+		if(count($this->getViewers()) === 1 and ($level = $this->getHolder()->getLevel()) instanceof Level){
+			$this->broadcastBlockEventPacket($this->getHolder(), false);
+			$level->broadcastLevelSoundEvent($this->getHolder()->add(0.5, 0.5, 0.5), LevelSoundEventPacket::SOUND_CHEST_CLOSED);
 		}
 		parent::onClose($who);
-		$position = ['x' => $this->holder->x, 'y' => $this->holder->y, 'z' => $this->holder->z];
-		$who->sendSound(LevelSoundEventPacket::SOUND_CHEST_CLOSED, $position);
 	}
 
+	protected function broadcastBlockEventPacket(Vector3 $vector, bool $isOpen) : void{
+		$pk = new BlockEventPacket();
+		$pk->x = (int) $vector->x;
+		$pk->y = (int) $vector->y;
+		$pk->z = (int) $vector->z;
+		$pk->eventType = 1; //it's always 1 for a chest
+		$pk->eventData = $isOpen ? 1 : 0;
+		$this->getHolder()->getLevel()->addChunkPacket($this->getHolder()->getX() >> 4, $this->getHolder()->getZ() >> 4, $pk);
+	}
 }

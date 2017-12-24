@@ -75,16 +75,19 @@ class SlotChangeAction extends InventoryAction{
 	 * @return bool
 	 */
 	public function isValid(Player $source) : bool{
-		$check = $this->inventory->getItem($this->inventorySlot);
-		return $check->equalsExact($this->sourceItem);
+		return (
+			$this->inventory->slotExists($this->inventorySlot) and
+			$this->inventory->getItem($this->inventorySlot)->equalsExact($this->sourceItem)
+		);
 	}
 
 	/**
 	 * Adds this action's target inventory to the transaction's inventory list.
 	 *
 	 * @param InventoryTransaction $transaction
+	 *
 	 */
-	public function onAddToTransaction(InventoryTransaction $transaction){
+	public function onAddToTransaction(InventoryTransaction $transaction) : void{
 		$transaction->addInventory($this->inventory);
 	}
 
@@ -104,7 +107,7 @@ class SlotChangeAction extends InventoryAction{
 	 *
 	 * @param Player $source
 	 */
-	public function onExecuteSuccess(Player $source){
+	public function onExecuteSuccess(Player $source) : void{
 		$viewers = $this->inventory->getViewers();
 		unset($viewers[spl_object_hash($source)]);
 		$this->inventory->sendSlot($this->inventorySlot, $viewers);
@@ -115,7 +118,7 @@ class SlotChangeAction extends InventoryAction{
 	 *
 	 * @param Player $source
 	 */
-	public function onExecuteFail(Player $source){
+	public function onExecuteFail(Player $source) : void{
 		$this->inventory->sendSlot($this->inventorySlot, $source);
 	}
 }

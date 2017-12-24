@@ -1,27 +1,38 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
 
 namespace pocketmine\level\format\generic;
 
 use pocketmine\level\format\LevelProvider;
+use pocketmine\level\generator\Generator;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\LongTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\utils\LevelException;
 
 abstract class BaseLevelProvider implements LevelProvider{
-	
 	/** @var Level */
 	protected $level;
 	/** @var string */
@@ -35,7 +46,6 @@ abstract class BaseLevelProvider implements LevelProvider{
 		if(!file_exists($this->path)){
 			mkdir($this->path, 0777, true);
 		}
-		
 		$nbt = new NBT(NBT::BIG_ENDIAN);
 		$nbt->readCompressed(file_get_contents($this->getPath() . "level.dat"));
 		$levelData = $nbt->getData();
@@ -43,6 +53,14 @@ abstract class BaseLevelProvider implements LevelProvider{
 			$this->levelData = $levelData->Data;
 		}else{
 			throw new LevelException("Invalid level.dat");
+		}
+
+		if(!isset($this->levelData->generatorName)){
+			$this->levelData->generatorName = new StringTag("generatorName", Generator::getGenerator("DEFAULT"));
+		}
+
+		if(!isset($this->levelData->generatorOptions)){
+			$this->levelData->generatorOptions = new StringTag("generatorOptions", "");
 		}
 	}
 
@@ -58,7 +76,7 @@ abstract class BaseLevelProvider implements LevelProvider{
 		return $this->level;
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return $this->levelData["LevelName"];
 	}
 
@@ -75,11 +93,11 @@ abstract class BaseLevelProvider implements LevelProvider{
 	}
 
 	public function setSeed($value){
-		$this->levelData->RandomSeed = new IntTag("RandomSeed", (int) $value);
+		$this->levelData->RandomSeed = new LongTag("RandomSeed", (int) $value);
 	}
 
 	public function getSpawn(){
-		return new Vector3((float) $this->levelData["SpawnX"], (float) $this->levelData["SpawnY"], (float) $this->levelData["SpawnZ"]);
+		return new Vector3((float) $this->levelData["SpawnX"] + 0.5, (float) $this->levelData["SpawnY"], (float) $this->levelData["SpawnZ"] + 0.5);
 	}
 
 	public function setSpawn(Vector3 $pos){
@@ -91,7 +109,10 @@ abstract class BaseLevelProvider implements LevelProvider{
 	public function doGarbageCollection(){
 
 	}
-	
+
+	/**
+	 * @return CompoundTag
+	 */
 	public function getLevelData(){
 		return $this->levelData;
 	}
@@ -104,5 +125,6 @@ abstract class BaseLevelProvider implements LevelProvider{
 		$buffer = $nbt->writeCompressed();
 		file_put_contents($this->getPath() . "level.dat", $buffer);
 	}
-	
+
+
 }

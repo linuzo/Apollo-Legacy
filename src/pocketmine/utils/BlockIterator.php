@@ -1,13 +1,25 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\utils;
 
@@ -15,17 +27,23 @@ use pocketmine\block\Block;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 
+/**
+ * This class performs ray tracing and iterates along blocks on a line
+ */
 class BlockIterator implements \Iterator{
-	
+
+	/** @var Level */
 	private $level;
 	private $maxDistance;
 
-	private static $gridSize = 16777216;
+	private static $gridSize = 16777216; //1 << 24
 
 	private $end = false;
-	
+
+	/** @var \SplFixedArray<Block>[3] */
 	private $blockQueue;
 	private $currentBlock = 0;
+	/** @var Block */
 	private $currentBlockObject = null;
 	private $currentDistance = 0;
 	private $maxDistanceInt = 0;
@@ -161,15 +179,15 @@ class BlockIterator implements \Iterator{
 	}
 
 	private function getXFace(Vector3 $direction){
-		return (($direction->x) > 0) ? Vector3::SIDE_EAST : Vector3::SIDE_WEST;
+		return ($direction->x > 0) ? Vector3::SIDE_EAST : Vector3::SIDE_WEST;
 	}
 
 	private function getYFace(Vector3 $direction){
-		return (($direction->y) > 0) ? Vector3::SIDE_UP : Vector3::SIDE_DOWN;
+		return ($direction->y > 0) ? Vector3::SIDE_UP : Vector3::SIDE_DOWN;
 	}
 
 	private function getZFace(Vector3 $direction){
-		return (($direction->z) > 0) ? Vector3::SIDE_SOUTH : Vector3::SIDE_NORTH;
+		return ($direction->z > 0) ? Vector3::SIDE_SOUTH : Vector3::SIDE_NORTH;
 	}
 
 	private function getXLength(Vector3 $direction){
@@ -236,12 +254,16 @@ class BlockIterator implements \Iterator{
 	}
 
 	private function scan(){
-		if ($this->currentBlock >= 0 || $this->end) {
+		if($this->currentBlock >= 0){
 			return;
 		}
 
 		if($this->maxDistance !== 0 and $this->currentDistance > $this->maxDistanceInt){
 			$this->end = true;
+			return;
+		}
+
+		if($this->end){
 			return;
 		}
 

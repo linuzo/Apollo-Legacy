@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -14,19 +14,19 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\inventory;
 
-use pocketmine\event\Cancellable;
 use pocketmine\inventory\Inventory;
 use pocketmine\Player;
 
-class InventoryCloseEvent extends InventoryEvent implements Cancellable{
-	
+class InventoryCloseEvent extends InventoryEvent{
 	public static $handlerList = null;
 
 	/** @var Player */
@@ -38,14 +38,13 @@ class InventoryCloseEvent extends InventoryEvent implements Cancellable{
 	 */
 	public function __construct(Inventory $inventory, Player $who){
 		$this->who = $who;
-		
 		parent::__construct($inventory);
 	}
 
 	/**
 	 * @return Player
 	 */
-	public function getPlayer(){
+	public function getPlayer() : Player{
 		return $this->who;
 	}
 

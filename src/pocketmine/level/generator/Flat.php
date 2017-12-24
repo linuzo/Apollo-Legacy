@@ -1,17 +1,26 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____  
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \ 
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/ 
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_| 
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ * 
+ *
+*/
 
 namespace pocketmine\level\generator;
 
-use pocketmine\item\Item;
 use pocketmine\block\CoalOre;
 use pocketmine\block\DiamondOre;
 use pocketmine\block\Dirt;
@@ -20,8 +29,9 @@ use pocketmine\block\Gravel;
 use pocketmine\block\IronOre;
 use pocketmine\block\LapisOre;
 use pocketmine\block\RedstoneOre;
+use pocketmine\item\Item;
 use pocketmine\level\ChunkManager;
-use pocketmine\level\format\FullChunk;
+use pocketmine\level\format\Chunk as FullChunk;
 use pocketmine\level\generator\biome\Biome;
 use pocketmine\level\generator\populator\Ore;
 use pocketmine\level\generator\populator\Populator;
@@ -29,7 +39,6 @@ use pocketmine\math\Vector3;
 use pocketmine\utils\Random;
 
 class Flat extends Generator{
-	
 	/** @var ChunkManager */
 	private $level;
 	/** @var FullChunk */
@@ -38,14 +47,13 @@ class Flat extends Generator{
 	private $random;
 	/** @var Populator[] */
 	private $populators = [];
-	
 	private $structure, $chunks, $options, $floorLevel, $preset;
 
 	public function getSettings(){
 		return $this->options;
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return "flat";
 	}
 
@@ -59,7 +67,7 @@ class Flat extends Generator{
 			$ores = new Ore();
 			$ores->setOreTypes([
 				new object\OreType(new CoalOre(), 20, 16, 0, 128),
-				new object\OreType(new IronOre(), 20, 8, 0, 64),
+				new object\OreType(New IronOre(), 20, 8, 0, 64),
 				new object\OreType(new RedstoneOre(), 8, 7, 0, 16),
 				new object\OreType(new LapisOre(), 1, 6, 0, 32),
 				new object\OreType(new GoldOre(), 2, 8, 0, 32),
@@ -67,7 +75,6 @@ class Flat extends Generator{
 				new object\OreType(new Dirt(), 20, 32, 0, 128),
 				new object\OreType(new Gravel(), 10, 16, 0, 128),
 			]);
-			
 			$this->populators[] = $ores;
 		}
 
@@ -100,7 +107,8 @@ class Flat extends Generator{
 		for(; $y < 0xFF; ++$y){
 			$this->structure[$y] = [0, 0];
 		}
-		
+
+
 		$this->chunk = clone $this->level->getChunk($chunkX, $chunkZ);
 		$this->chunk->setGenerated();
 		$c = Biome::getBiome($biome)->getColor();
@@ -112,12 +120,13 @@ class Flat extends Generator{
 			for($X = 0; $X < 16; ++$X){
 				$this->chunk->setBiomeId($X, $Z, $biome);
 				$this->chunk->setBiomeColor($X, $Z, $R, $G, $B);
-				for($y = 0; $y < $this->level->getMaxY(); ++$y){
+				for($y = 0; $y < 128; ++$y){
 					$this->chunk->setBlock($X, $y, $Z, ...$this->structure[$y]);
 				}
 			}
 		}
-		
+
+
 		preg_match_all('#(([0-9a-z_]{1,})\(?([0-9a-z_ =:]{0,})\)?),?#', $options, $matches);
 		foreach($matches[2] as $i => $option){
 			$params = true;
@@ -131,7 +140,6 @@ class Flat extends Generator{
 					}
 				}
 			}
-			
 			$this->options[$option] = $params;
 		}
 	}
@@ -139,23 +147,25 @@ class Flat extends Generator{
 	public function init(ChunkManager $level, Random $random){
 		$this->level = $level;
 		$this->random = $random;
-		
-		/*if(isset($this->options["preset"]) and $this->options["preset"] != ""){
+
+		/*
+		  // Commented out : We want to delay this
+		if(isset($this->options["preset"]) and $this->options["preset"] != ""){
 			$this->parsePreset($this->options["preset"]);
 		}else{
 			$this->parsePreset($this->preset);
-		}*/
+		}
+		*/
 	}
 
 	public function generateChunk($chunkX, $chunkZ){
-		if($this->chunk === null) {
+		if($this->chunk === null){
 			if(isset($this->options["preset"]) and $this->options["preset"] != ""){
 				$this->parsePreset($this->options["preset"], $chunkX, $chunkZ);
 			}else{
 				$this->parsePreset($this->preset, $chunkX, $chunkZ);
 			}
 		}
-		
 		$chunk = clone $this->chunk;
 		$chunk->setX($chunkX);
 		$chunk->setZ($chunkZ);
@@ -167,10 +177,10 @@ class Flat extends Generator{
 		foreach($this->populators as $populator){
 			$populator->populate($this->level, $chunkX, $chunkZ, $this->random);
 		}
+
 	}
 
 	public function getSpawn(){
 		return new Vector3(128, $this->floorLevel, 128);
 	}
-	
 }

@@ -1,46 +1,57 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\network\rcon;
 
-use darksystem\Thread;
+use pocketmine\Thread;
 use pocketmine\utils\Binary;
-use pocketmine\utils\MainLogger;
 
 class RCONInstance extends Thread{
-	
 	public $stop;
 	public $cmd;
 	public $response;
-	
+	/** @var resource */
 	private $socket;
 	private $password;
 	private $maxClients;
 	private $waiting;
-	private $logger;
 
-	public $serverStatus;
-	
 	public function isWaiting(){
 		return $this->waiting === true;
 	}
-	
-	public function __construct($logger, $socket, $password, $maxClients = 50){
-		$this->logger = $logger;
+
+	/**
+	 * @param resource $socket
+	 * @param string   $password
+	 * @param int      $maxClients
+	 */
+	public function __construct($socket, string $password, int $maxClients = 50){
 		$this->stop = false;
 		$this->cmd = "";
 		$this->response = "";
 		$this->socket = $socket;
 		$this->password = $password;
-		$this->maxClients = (int) $maxClients;
+		$this->maxClients = $maxClients;
 		for($n = 0; $n < $this->maxClients; ++$n){
 			$this->{"client" . $n} = null;
 			$this->{"status" . $n} = 0;
@@ -49,18 +60,18 @@ class RCONInstance extends Thread{
 
 		$this->start();
 	}
-	
+
 	private function writePacket($client, $requestID, $packetType, $payload){
 		$pk = Binary::writeLInt((int) $requestID)
 			. Binary::writeLInt((int) $packetType)
 			. $payload
-			. "\x00\x00";
+			. "\x00\x00"; //Terminate payload and packet
 		return socket_write($client, Binary::writeLInt(strlen($pk)) . $pk);
 	}
-	
+
 	private function readPacket($client, &$size, &$requestID, &$packetType, &$payload){
 		socket_set_nonblock($client);
-		$d = @socket_read($client, 4);
+		$d = socket_read($client, 4);
 		if($this->stop === true){
 			return false;
 		}elseif($d === false){
@@ -75,7 +86,7 @@ class RCONInstance extends Thread{
 		}
 		$requestID = Binary::readLInt(socket_read($client, 4));
 		$packetType = Binary::readLInt(socket_read($client, 4));
-		$payload = rtrim(socket_read($client, $size + 2));
+		$payload = rtrim(socket_read($client, $size + 2)); //Strip two null bytes
 		return true;
 	}
 
@@ -84,6 +95,7 @@ class RCONInstance extends Thread{
 	}
 
 	public function run(){
+
 		while($this->stop !== true){
 			$this->synchronized(function(){
 				$this->wait(2000);
@@ -119,7 +131,6 @@ class RCONInstance extends Thread{
 							$this->{"status" . $n} = -1;
 							continue;
 						}
-						
 						$p = $this->readPacket($client, $size, $requestID, $packetType, $payload);
 						if($p === false){
 							$this->{"status" . $n} = -1;
@@ -127,31 +138,9 @@ class RCONInstance extends Thread{
 						}elseif($p === null){
 							continue;
 						}
-						
-						switch($packetType){
-							case 9:
-								if($this->{"status" . $n} !== 1){
-									$this->{"status" . $n} = -1;
-									continue;
-								}
-								$this->writePacket($client, $requestID, 0, RCON::PROTOCOL_VERSION);
-								$this->response = "";
 
-								if($payload == RCON::PROTOCOL_VERSION) $this->logger->setSendMsg(true); //GeniRCON output
-								break;
-							case 4:
-								if($this->{"status" . $n} !== 1){
-									$this->{"status" . $n} = -1;
-									continue;
-								}
-								$res = (array) [
-									"serverStatus" => unserialize($this->serverStatus),
-									"logger" => str_replace("\n", "\r\n", trim($this->logger->getMessages()))
-								];
-								$this->writePacket($client, $requestID, 0, serialize($res));
-								$this->response = "";
-								break;
-							case 3:
+						switch($packetType){
+							case 3: //Login
 								if($this->{"status" . $n} !== 0){
 									$this->{"status" . $n} = -1;
 									continue;
@@ -159,6 +148,11 @@ class RCONInstance extends Thread{
 								if($payload === $this->password){
 									socket_getpeername($client, $addr, $port);
 									$this->response = "[INFO] Successful Rcon connection from: /$addr:$port";
+									$this->synchronized(function(){
+										$this->waiting = true;
+										$this->wait();
+									});
+									$this->waiting = false;
 									$this->response = "";
 									$this->writePacket($client, $requestID, 2, "");
 									$this->{"status" . $n} = 1;
@@ -168,7 +162,7 @@ class RCONInstance extends Thread{
 									continue;
 								}
 								break;
-							case 2:
+							case 2: //Command
 								if($this->{"status" . $n} !== 1){
 									$this->{"status" . $n} = -1;
 									continue;
@@ -186,6 +180,7 @@ class RCONInstance extends Thread{
 								}
 								break;
 						}
+
 					}else{
 						@socket_set_option($client, SOL_SOCKET, SO_LINGER, ["l_onoff" => 1, "l_linger" => 1]);
 						@socket_shutdown($client, 2);
@@ -198,12 +193,11 @@ class RCONInstance extends Thread{
 				}
 			}
 		}
-		
 		unset($this->socket, $this->cmd, $this->response, $this->stop);
 		exit(0);
 	}
-	
-	public function getThreadName(){
+
+	public function getThreadName() : string{
 		return "RCON";
 	}
 }

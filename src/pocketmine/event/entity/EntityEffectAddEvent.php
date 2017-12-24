@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  *
  *  ____            _        _   __  __ _                  __  __ ____
  * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
@@ -14,39 +14,58 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\entity;
 
+use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
 
-use pocketmine\event\Cancellable;
-use pocketmine\entity\Effect;
-
-class EntityEffectAddEvent extends EntityEvent implements Cancellable{
-
+/**
+ * Called when an effect is added to an Entity.
+ */
+class EntityEffectAddEvent extends EntityEffectEvent{
 	public static $handlerList = null;
 
-	/** @var Effect */
-	protected $effect;
+	/** @var Effect|null */
+	private $oldEffect;
 
-	public function __construct(Entity $entity, Effect $effect){
-		$this->entity = $entity;
-		$this->effect = $effect;
+	/**
+	 * @param Entity      $entity
+	 * @param Effect      $effect
+	 * @param Effect|null $oldEffect
+	 */
+	public function __construct(Entity $entity, Effect $effect, Effect $oldEffect = null){
+		parent::__construct($entity, $effect);
+		$this->oldEffect = $oldEffect;
 	}
 
 	/**
-	 * @return Effect
+	 * Returns whether the effect addition will replace an existing effect already applied to the entity.
+	 *
+	 * @return bool
 	 */
-	public function getEffect(){
-		return $this->effect;
+	public function willModify() : bool{
+		return $this->hasOldEffect();
 	}
 
-	public function getName(){
-		return "EntityEffectAddEvent";
+	/**
+	 * @return bool
+	 */
+	public function hasOldEffect() : bool{
+		return $this->oldEffect instanceof Effect;
+	}
+
+	/**
+	 * @return Effect|null
+	 */
+	public function getOldEffect(){
+		return $this->oldEffect;
 	}
 
 }

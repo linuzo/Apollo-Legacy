@@ -1,25 +1,35 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
+use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\nbt\tag\IntTag;
-use pocketmine\nbt\tag\ListTag;
 use pocketmine\Player;
+use pocketmine\tile\Banner as TileBanner;
 use pocketmine\tile\Tile;
 
 class StandingBanner extends Transparent{
@@ -28,60 +38,48 @@ class StandingBanner extends Transparent{
 
 	protected $itemId = Item::BANNER;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function getHardness(){
+	public function getHardness() : float{
 		return 1;
 	}
 
-	public function isSolid(){
+	public function isSolid() : bool{
 		return false;
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return "Standing Banner";
 	}
 
-	protected function recalculateBoundingBox(){
+	protected function recalculateBoundingBox() : ?AxisAlignedBB{
 		return null;
 	}
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
 		if($face !== Vector3::SIDE_DOWN){
-			$nbt = new CompoundTag("", [
-				new StringTag("id", Tile::BANNER),
-				new IntTag("x", $blockReplace->x),
-				new IntTag("y", $blockReplace->y),
-				new IntTag("z", $blockReplace->z),
-				$item->getNamedTag()->Base ?? new IntTag("Base", $item->getDamage() & 0x0f),
-			]);
-
-			if($face === Vector3::SIDE_UP){
+			if($face === Vector3::SIDE_UP and $player !== null){
 				$this->meta = floor((($player->yaw + 180) * 16 / 360) + 0.5) & 0x0f;
 				$this->getLevel()->setBlock($blockReplace, $this, true);
 			}else{
 				$this->meta = $face;
-				$this->getLevel()->setBlock($blockReplace, new WallBanner($this->meta), true);
+				$this->getLevel()->setBlock($blockReplace, BlockFactory::get(Block::WALL_BANNER, $this->meta), true);
 			}
-			
-			if(isset($item->getNamedTag()->Patterns) and ($item->getNamedTag()->Patterns instanceof ListTag)){
-				$nbt->Patterns = $item->getNamedTag()->Patterns;
-			}
-			
-			Tile::createTile(Tile::BANNER, $this->getLevel(), $nbt);
-			
+
+			Tile::createTile(Tile::BANNER, $this->getLevel(), TileBanner::createNBT($this, $face, $item, $player));
 			return true;
 		}
 
 		return false;
 	}
 
-	public function onUpdate($type){
+	public function onUpdate(int $type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
 			if($this->getSide(Vector3::SIDE_DOWN)->getId() === self::AIR){
 				$this->getLevel()->useBreakOn($this);
+
 				return Level::BLOCK_UPDATE_NORMAL;
 			}
 		}
@@ -89,24 +87,22 @@ class StandingBanner extends Transparent{
 		return false;
 	}
 
-	public function getToolType(){
-		return Tool::TYPE_AXE;
+	public function getToolType() : int{
+		return BlockToolType::TYPE_AXE;
 	}
 
-	public function getVariantBitmask(){
+	public function getVariantBitmask() : int{
 		return 0;
 	}
 
-	public function getDrops(Item $item){
-		return [];
-	}
+	public function getDropsForCompatibleTool(Item $item) : array{
+		$tile = $this->level->getTile($this);
 
-	public function onBreak(Item $item, Player $player = null){
-		if(($tile = $this->level->getTile($this)) !== null) {
-			$this->level->dropItem($this, Item::get(Item::BANNER)->setNamedTag($tile->getCleanedNBT()));
+		$drop = ItemFactory::get(Item::BANNER, ($tile instanceof TileBanner ? $tile->getBaseColor() : 0));
+		if($tile instanceof TileBanner and ($patterns = $tile->namedtag->getListTag(TileBanner::TAG_PATTERNS)) !== null and $patterns->getCount() > 0){
+			$drop->setNamedTagEntry($patterns);
 		}
-		
-		return parent::onBreak($item, $player);
+
+		return [$drop];
 	}
-	
 }

@@ -21,7 +21,6 @@
 
 namespace pocketmine\level\generator\populator;
 
-use pocketmine\block\Block;
 use pocketmine\block\Glowstone;
 use pocketmine\level\ChunkManager;
 use pocketmine\level\generator\object\NetherOreTop as ObjectOre;

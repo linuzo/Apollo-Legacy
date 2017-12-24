@@ -1,135 +1,128 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\utils;
 
 use LogLevel;
-use pocketmine\Server;
-use darksystem\Thread;
-use darksystem\Worker;
-use pocketmine\Translate;
-use darksystem\ThemeManager;
-use pocketmine\utils\TextFormat as TF;
+use pocketmine\Thread;
+use pocketmine\Worker;
 
 class MainLogger extends \AttachableThreadedLogger{
-	
-	protected $logFile;
-	protected $logStream;
-	protected $shutdown;
-	protected $logDebug;
-	
-	public static $logger = null;
-	
-	public $shouldSendMsg = "";
-	public $shouldRecordMsg = false;
-	
-	private $logResource;
-	private $lastGet = 0;
-	
-	public function setSendMsg($b){
-		$this->shouldRecordMsg = $b;
-		$this->lastGet = time();
-	}
 
-	public function getMessages(){
-		$msg = $this->shouldSendMsg;
-		$this->shouldSendMsg = "";
-		$this->lastGet = time();
-		return $msg;
-	}
-	
-	public function __construct($logFile, $logDebug = false){
+	/** @var string */
+	protected $logFile;
+	/** @var \Threaded */
+	protected $logStream;
+	/** @var bool */
+	protected $shutdown;
+	/** @var bool */
+	protected $logDebug;
+	/** @var MainLogger */
+	public static $logger = null;
+
+	/**
+	 * @param string $logFile
+	 * @param bool $logDebug
+	 *
+	 * @throws \RuntimeException
+	 */
+	public function __construct(string $logFile, bool $logDebug = false){
+		parent::__construct();
 		if(static::$logger instanceof MainLogger){
-			throw new \RuntimeException("Sunucu Konsolu Zaten Oluşturulmuş!");
+			throw new \RuntimeException("MainLogger has been already created");
 		}
-		static::$logger = $this;
+		touch($logFile);
+		$this->logFile = $logFile;
+		$this->logDebug = $logDebug;
 		$this->logStream = new \Threaded;
 		$this->start();
 	}
-	
-	public static function getLogger(){
+
+	/**
+	 * @return MainLogger
+	 */
+	public static function getLogger() : MainLogger{
 		return static::$logger;
 	}
 
-	public function emergency($message){
-		if(Translate::checkTurkish() === "yes"){
-			$this->send($message, \LogLevel::EMERGENCY, "ACIL", TF::RED);
-		}else{
-			$this->send($message, \LogLevel::EMERGENCY, "EMERGENCY", TF::RED);
+	/**
+	 * Assigns the MainLogger instance to the {@link MainLogger#logger} static property.
+	 *
+	 * WARNING: Because static properties are thread-local, this MUST be called from the body of every Thread if you
+	 * want the logger to be accessible via {@link MainLogger#getLogger}.
+	 */
+	public function registerStatic(){
+		if(static::$logger === null){
+			static::$logger = $this;
 		}
+	}
+
+	public function emergency($message){
+		$this->send($message, \LogLevel::EMERGENCY, "EMERGENCY", TextFormat::RED);
 	}
 
 	public function alert($message){
-		if(Translate::checkTurkish() === "yes"){
-			$this->send($message, \LogLevel::ALERT, "IKAZ", TF::RED);
-		}else{
-			$this->send($message, \LogLevel::ALERT, "ALERT", TF::RED);
-		}
+		$this->send($message, \LogLevel::ALERT, "ALERT", TextFormat::RED);
 	}
 
 	public function critical($message){
-		if(Translate::checkTurkish() === "yes"){
-			$this->send($message, \LogLevel::CRITICAL, "KRITIK", TF::RED);
-		}else{
-			$this->send($message, \LogLevel::CRITICAL, "CRITICAL", TF::RED);
-		}
+		$this->send($message, \LogLevel::CRITICAL, "CRITICAL", TextFormat::RED);
 	}
 
 	public function error($message){
-		if(Translate::checkTurkish() === "yes"){
-			$this->send($message, \LogLevel::ERROR, "HATA", TF::RED);
-		}else{
-			$this->send($message, \LogLevel::ERROR, "ERROR", TF::RED);
-		}
+		$this->send($message, \LogLevel::ERROR, "ERROR", TextFormat::DARK_RED);
 	}
 
 	public function warning($message){
-		if(Translate::checkTurkish() === "yes"){
-			$this->send($message, \LogLevel::WARNING, "UYARI", TF::GOLD);
-		}else{
-			$this->send($message, \LogLevel::WARNING, "WARNING", TF::GOLD);
-		}
+		$this->send($message, \LogLevel::WARNING, "WARNING", TextFormat::YELLOW);
 	}
 
 	public function notice($message){
-		if(Translate::checkTurkish() === "yes"){
-			$this->send($message, \LogLevel::NOTICE, "BILDIRIM", TF::GRAY);
-		}else{
-			$this->send($message, \LogLevel::NOTICE, "NOTICE", TF::GRAY);
-		}
+		$this->send($message, \LogLevel::NOTICE, "NOTICE", TextFormat::AQUA);
 	}
 
 	public function info($message){
-		if(Translate::checkTurkish() === "yes"){
-			$this->send($message, \LogLevel::INFO, "BILGI", TF::YELLOW);
-		}else{
-			$this->send($message, \LogLevel::INFO, "INFO", TF::YELLOW);
-		}
+		$this->send($message, \LogLevel::INFO, "INFO", TextFormat::WHITE);
 	}
 
-	public function debug($message, $name = "ONARIM"){
-		if($this->logDebug === false){
-			return false;
+	public function debug($message, bool $force = false){
+		if($this->logDebug === false and !$force){
+			return;
 		}
-		if(Translate::checkTurkish() === "yes"){
-			$this->send($message, \LogLevel::DEBUG, $name, TF::GRAY);
-		}else{
-			$this->send($message, \LogLevel::DEBUG, "DEBUG", TF::GRAY);
-		}
-	}
-	
-	public function setLogDebug($logDebug){
-		$this->logDebug = (bool) $logDebug;
+		$this->send($message, \LogLevel::DEBUG, "DEBUG", TextFormat::GRAY);
 	}
 
+	/**
+	 * @param bool $logDebug
+	 */
+	public function setLogDebug(bool $logDebug){
+		$this->logDebug = $logDebug;
+	}
+
+	/**
+	 * @param \Throwable $e
+	 * @param array|null $trace
+	 */
 	public function logException(\Throwable $e, $trace = null){
 		if($trace === null){
 			$trace = $e->getTrace();
@@ -138,26 +131,7 @@ class MainLogger extends \AttachableThreadedLogger{
 		$errfile = $e->getFile();
 		$errno = $e->getCode();
 		$errline = $e->getLine();
-		if(Translate::checkTurkish() === "yes"){
-		$errorConversion = [
-			0 => "EXCEPTION",
-			E_ERROR => "E_HATA",
-			E_WARNING => "E_UYARI",
-			E_PARSE => "E_OKUMA",
-			E_NOTICE => "E_BILDIRIM",
-			E_CORE_ERROR => "E_CORE_HATASI",
-			E_CORE_WARNING => "E_CORE_UYARISI",
-			E_COMPILE_ERROR => "E_COMPILE_HATASI",
-			E_COMPILE_WARNING => "E_COMPILE_UYARISI",
-			E_USER_ERROR => "E_KULLANICI_HATASI",
-			E_USER_WARNING => "E_KULLANICI_UYARISI",
-			E_USER_NOTICE => "E_KULLANCI_BILDIRIMI",
-			E_STRICT => "E_STRICT",
-			E_RECOVERABLE_ERROR => "E_RECOVERABLE_HATA",
-			E_DEPRECATED => "E_DEPRECATED",
-			E_USER_DEPRECATED => "E_KULLANICI_DEPRECATED",
-		];
-		}else{
+
 		$errorConversion = [
 			0 => "EXCEPTION",
 			E_ERROR => "E_ERROR",
@@ -174,22 +148,19 @@ class MainLogger extends \AttachableThreadedLogger{
 			E_STRICT => "E_STRICT",
 			E_RECOVERABLE_ERROR => "E_RECOVERABLE_ERROR",
 			E_DEPRECATED => "E_DEPRECATED",
-			E_USER_DEPRECATED => "E_USER_DEPRECATED",
+			E_USER_DEPRECATED => "E_USER_DEPRECATED"
 		];
-		}
 		if($errno === 0){
 			$type = LogLevel::CRITICAL;
 		}else{
-			$type = ($errno === E_ERROR || $errno === E_USER_ERROR) ? LogLevel::ERROR : (($errno === E_USER_WARNING || $errno === E_WARNING) ? LogLevel::WARNING : LogLevel::NOTICE);
+			$type = ($errno === E_ERROR or $errno === E_USER_ERROR) ? LogLevel::ERROR : (($errno === E_USER_WARNING or $errno === E_WARNING) ? LogLevel::WARNING : LogLevel::NOTICE);
 		}
-		$errno = isset($errorConversion[$errno]) ? $errorConversion[$errno] : $errno;
-		if(($pos = strpos($errstr, "\n")) !== false){
-			$errstr = substr($errstr, 0, $pos);
-		}
+		$errno = $errorConversion[$errno] ?? $errno;
+		$errstr = preg_replace('/\s+/', ' ', trim($errstr));
 		$errfile = \pocketmine\cleanPath($errfile);
 		$this->log($type, get_class($e) . ": \"$errstr\" ($errno) in \"$errfile\" at line $errline");
-		foreach(@\pocketmine\getTrace(1, $trace) as $i => $line){
-			$this->debug($line);
+		foreach(\pocketmine\getTrace(0, $trace) as $i => $line){
+			$this->debug($line, true);
 		}
 	}
 
@@ -224,107 +195,65 @@ class MainLogger extends \AttachableThreadedLogger{
 
 	public function shutdown(){
 		$this->shutdown = true;
+		$this->notify();
 	}
 
 	protected function send($message, $level, $prefix, $color){
 		$now = time();
+
 		$thread = \Thread::getCurrentThread();
-		if($message == ""){
-			return false;
-		}
 		if($thread === null){
-			if(Translate::checkTurkish() === "yes"){
-				$threadName = "Sunucu İşlemi";
-			}else{
-				$threadName = "Server Thread";
-			}
-		}elseif($thread instanceof Thread || $thread instanceof Worker){
-			if(Translate::checkTurkish() === "yes"){
-				$threadName = $thread->getThreadName() . " İşlemi";
-			}else{
-				$threadName = $thread->getThreadName() . " Thread";
-			}
+			$threadName = "Server thread";
+		}elseif($thread instanceof Thread or $thread instanceof Worker){
+			$threadName = $thread->getThreadName() . " thread";
 		}else{
-			if(Translate::checkTurkish() === "yes"){
-				$threadName = (new \ReflectionClass($thread))->getShortName() . " İşlemi";
-			}else{
-				$threadName = (new \ReflectionClass($thread))->getShortName() . " Thread";
-			}
+			$threadName = (new \ReflectionClass($thread))->getShortName() . " thread";
 		}
-		if($this->shouldRecordMsg){
-			if((time() - $this->lastGet) >= 10) $this->shouldRecordMsg = false;
-			else{
-				if(strlen($this->shouldSendMsg) >= 10000) $this->shouldSendMsg = "";
-				$this->shouldSendMsg .= $color . "|" . $prefix . "|" . trim($message, "\r\n") . "\n";
-			}
-		}
-		$name = \pocketmine\NAME;
-		$easter = "LOL";
-		$message = TF::toANSI("§" . mt_rand(1, 9) . "<" . date("H:i:s", $now) . "> " . TF::BLUE . $name . " §l§" . mt_rand(1, 9) . "》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-		//Not works correctly
-		/*switch(Server::getInstance()->getTheme()){
-			case "darkness":
-			//Server::getInstance()->getThemeManager()->setTheme(Server::getInstance()->getThemeManager()->getDefaultTheme());
-			$message = TF::toANSI(TF::GREEN . "<" . date("H:i:s", $now) . "> " . TF::AQUA . $easter . " §l§6》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-			break;
-			case "classic":
-			$message = TF::toANSI(TF::AQUA . "<" . date("H:i:s", $now) . "> " . TF::BLUE . $name . " §l§6》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-			break;
-			case "dark":
-			$message = TF::toANSI(TF::GRAY . "<" . date("H:i:s", $now) . "> " . TF::BLUE . $name . " §l§3》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-			break;
-			case "light":
-			$message = TF::toANSI(TF::WHITE . "<" . date("H:i:s", $now) . "> " . TF::BLUE . $name . " §l§f》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-			break;
-			case "metal":
-			$message = TF::toANSI(TF::GRAY . "<" . date("H:i:s", $now) . "> " . TF::BLUE . $name . " §l§f》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-			break;
-			case "energy":
-			$message = TF::toANSI(TF::YELLOW . "<" . date("H:i:s", $now) . "> " . TF::BLUE . $name . " §l§6》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-			break;
-			case "uranium":
-			$message = TF::toANSI(TF::GREEN . "<" . date("H:i:s", $now) . "> " . TF::BLUE . $name . " §l§e》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-			break;
-			default;
-			$message = TF::toANSI(TF::AQUA . "<" . date("H:i:s", $now) . "> " . TF::BLUE . $name . " §l§6》§r " . $color . $prefix . ":" . TF::SPACE . $message . TF::RESET);
-			break;
-		}*/
-		$cleanMessage = TF::clean($message);
+
+		$message = TextFormat::toANSI(TextFormat::AQUA . "[" . date("H:i:s", $now) . "] " . TextFormat::RESET . $color . "[" . $threadName . "/" . $prefix . "]:" . " " . $message . TextFormat::RESET);
+		$cleanMessage = TextFormat::clean($message);
+
 		if(!Terminal::hasFormattingCodes()){
 			echo $cleanMessage . PHP_EOL;
 		}else{
 			echo $message . PHP_EOL;
 		}
-		if($this->attachment instanceof \ThreadedLoggerAttachment){
-			$this->attachment->call($level, $message);
+
+		foreach($this->attachments as $attachment){
+			if($attachment instanceof \ThreadedLoggerAttachment){
+				$attachment->call($level, $message);
+			}
 		}
-		$this->logStream[] = date("Y-m-d", $now) . TF::SPACE . $cleanMessage . "\n";
-		if($this->logStream->count() == 1){
-			$this->synchronized(function(){
-				$this->notify();
-			});
+
+		$this->logStream[] = date("Y-m-d", $now) . " " . $cleanMessage . PHP_EOL;
+	}
+
+	/**
+	 * @param resource $logResource
+	 */
+	private function writeLogStream($logResource){
+		while($this->logStream->count() > 0){
+			$chunk = $this->logStream->shift();
+			fwrite($logResource, $chunk);
 		}
-		return true;
 	}
-	
-	public function directSend($message){
-		$message = TF::toANSI($message);
-		$cleanMessage = TF::clean($message);
-		if(!Terminal::hasFormattingCodes()){
-			echo $cleanMessage . PHP_EOL;
-		}else{
-			echo $message . PHP_EOL;
-		}
-		return true;
-	}
-	
-	public static function clear(){
-		//echo chr(27) . chr(91) . "H" . chr(27) . chr(91) . "J";
-		//echo str_repeat(" \n", 40);
-	}
-	
+
 	public function run(){
 		$this->shutdown = false;
+		$logResource = fopen($this->logFile, "ab");
+		if(!is_resource($logResource)){
+			throw new \RuntimeException("Couldn't open log file");
+		}
+
+		while($this->shutdown === false){
+			$this->writeLogStream($logResource);
+			$this->synchronized(function(){
+				$this->wait(25000);
+			});
+		}
+
+		$this->writeLogStream($logResource);
+
+		fclose($logResource);
 	}
-	
 }

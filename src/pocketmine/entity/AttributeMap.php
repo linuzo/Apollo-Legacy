@@ -1,35 +1,58 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\entity;
 
 class AttributeMap implements \ArrayAccess{
-	
+	/** @var Attribute[] */
 	private $attributes = [];
 
 	public function addAttribute(Attribute $attribute){
 		$this->attributes[$attribute->getId()] = $attribute;
 	}
-	
-	public function getAttribute($id){
+
+	/**
+	 * @param int $id
+	 *
+	 * @return Attribute|null
+	 */
+	public function getAttribute(int $id){
 		return $this->attributes[$id] ?? null;
 	}
 
-	public function getAll(){
+	/**
+	 * @return Attribute[]
+	 */
+	public function getAll() : array{
 		return $this->attributes;
 	}
-	
-	public function needSend(){
-		return array_filter($this->attributes, function (Attribute $attribute){
-			return $attribute->isSyncable() && $attribute->isDesynchronized();
+
+	/**
+	 * @return Attribute[]
+	 */
+	public function needSend() : array{
+		return array_filter($this->attributes, function(Attribute $attribute){
+			return $attribute->isSyncable() and $attribute->isDesynchronized();
 		});
 	}
 
@@ -48,5 +71,4 @@ class AttributeMap implements \ArrayAccess{
 	public function offsetUnset($offset){
 		throw new \RuntimeException("Could not unset an attribute from an attribute map");
 	}
-	
 }

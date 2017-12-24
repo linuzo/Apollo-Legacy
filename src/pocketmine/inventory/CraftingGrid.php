@@ -31,8 +31,12 @@ class CraftingGrid extends BaseInventory{
 		parent::__construct($holder);
 	}
 
+	public function getGridWidth() : int{
+		return 2;
+	}
+
 	public function getDefaultSize() : int{
-		return 4;
+		return $this->getGridWidth() ** 2;
 	}
 
 	public function setSize(int $size){
@@ -43,11 +47,11 @@ class CraftingGrid extends BaseInventory{
 		return "Crafting";
 	}
 
-	public function sendSlot(int $index, $target){
+	public function sendSlot(int $index, $target) : void{
 		//we can't send a slot of a client-sided inventory window
 	}
 
-	public function sendContents($target) {
-		//we can't send the contents of a client-sided inventory window
+	public function sendContents($target) : void{
+		//no way to do this
 	}
 }

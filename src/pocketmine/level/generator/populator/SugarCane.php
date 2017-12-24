@@ -15,7 +15,7 @@
  * (at your option) any later version.
  *
  * @author iTX Technologies
- * @link https://mcper.cn
+ * @link https://itxtech.org
  *
  */
 
@@ -25,58 +25,81 @@ use pocketmine\block\Block;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
 
-class Sugarcane extends Populator{
+class Sugarcane extends Populator {
 	/** @var ChunkManager */
 	private $level;
 	private $randomAmount;
 	private $baseAmount;
 
+	/**
+	 * @param $amount
+	 */
 	public function setRandomAmount($amount){
 		$this->randomAmount = $amount;
 	}
 
+	/**
+	 * @param $amount
+	 */
 	public function setBaseAmount($amount){
 		$this->baseAmount = $amount;
 	}
 
+	/**
+	 * @param ChunkManager $level
+	 * @param              $chunkX
+	 * @param              $chunkZ
+	 * @param Random       $random
+	 *
+	 * @return mixed|void
+	 */
 	public function populate(ChunkManager $level, $chunkX, $chunkZ, Random $random){
 		$this->level = $level;
 		$amount = $random->nextRange(0, $this->randomAmount + 1) + $this->baseAmount;
 		for($i = 0; $i < $amount; ++$i){
 			$x = $random->nextRange($chunkX * 16, $chunkX * 16 + 15);
 			$z = $random->nextRange($chunkZ * 16, $chunkZ * 16 + 15);
+
 			$y = $this->getHighestWorkableBlock($x, $z);
-
-			if($y !== -1 and $this->canSugarcaneStay($x, $y, $z)){
-				$this->level->setBlockIdAt($x, $y, $z, Block::SUGARCANE_BLOCK);
-				$this->level->setBlockDataAt($x, $y, $z, 1);
+			$tallRand = $random->nextRange(0, 17);
+			$yMax = $y + 2 + (int) ($tallRand > 10) + (int) ($tallRand > 15);
+			if($y !== -1){
+				for(; $y < 127 and $y < $yMax; $y++){
+					if($this->canSugarcaneStay($x, $y, $z)){
+						$this->level->setBlockIdAt($x, $y, $z, Block::SUGARCANE_BLOCK);
+						$this->level->setBlockDataAt($x, $y, $z, 1);
+					}
+				}
 			}
 		}
 	}
 
-	private function findWater($x, $y, $z){
-		$count = 0;
-		for($i = $x - 4; $i < ($x + 4); $i++){
-			for($j = $z - 4; $j < ($z + 4); $j++){
-				$b = $this->level->getBlockIdAt($i, $y, $j);
-				//echo "$i $y $j $b $count \n";
-				if($b === Block::WATER or $b === Block::STILL_WATER){
-					$count++;
-				}
-				if($count > 10){
-					return true;
-				}
-			}
-		}
-		return ($count > 10);
-	}
-
+	/**
+	 * @param $x
+	 * @param $y
+	 * @param $z
+	 *
+	 * @return bool
+	 */
 	private function canSugarcaneStay($x, $y, $z){
 		$b = $this->level->getBlockIdAt($x, $y, $z);
 		$below = $this->level->getBlockIdAt($x, $y - 1, $z);
-		return ($b === Block::AIR) and ($below === Block::SAND or $below === Block::GRASS) and $this->findWater($x, $y - 1, $z);
+		$water = false;
+		foreach([$this->level->getBlockIdAt($x + 1, $y - 1, $z), $this->level->getBlockIdAt($x - 1, $y - 1, $z), $this->level->getBlockIdAt($x, $y - 1, $z + 1), $this->level->getBlockIdAt($x, $y - 1, $z - 1)] as $adjacent){
+			if($adjacent === Block::WATER or $adjacent === Block::STILL_WATER){
+				$water = true;
+				break;
+			}
+		}
+		return ($b === Block::AIR) and ((($below === Block::SAND or $below === Block::GRASS) and $water) or ($below === Block::SUGARCANE_BLOCK));
 	}
 
+	/**
+	 * @param $x
+	 * @param $z
+	 *
+	 * @return int
+	 */
 	private function getHighestWorkableBlock($x, $z){
 		for($y = 127; $y >= 0; --$y){
 			$b = $this->level->getBlockIdAt($x, $y, $z);

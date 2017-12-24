@@ -1,21 +1,32 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\permission;
 
 use pocketmine\plugin\Plugin;
-use pocketmine\utils\PluginException;
+use pocketmine\plugin\PluginException;
 
 class PermissionAttachment{
-	
 	/** @var PermissionRemovedExecutor */
 	private $removed = null;
 
@@ -48,7 +59,7 @@ class PermissionAttachment{
 	/**
 	 * @return Plugin
 	 */
-	public function getPlugin(){
+	public function getPlugin() : Plugin{
 		return $this->plugin;
 	}
 
@@ -60,7 +71,7 @@ class PermissionAttachment{
 	}
 
 	/**
-	 * @return PermissionRemovedExecutor
+	 * @return PermissionRemovedExecutor|null
 	 */
 	public function getRemovalCallback(){
 		return $this->removed;
@@ -69,20 +80,17 @@ class PermissionAttachment{
 	/**
 	 * @return Permissible
 	 */
-	public function getPermissible(){
+	public function getPermissible() : Permissible{
 		return $this->permissible;
 	}
 
 	/**
 	 * @return bool[]
 	 */
-	public function getPermissions(){
+	public function getPermissions() : array{
 		return $this->permissions;
 	}
 
-	/**
-	 * @return bool[]
-	 */
 	public function clearPermissions(){
 		$this->permissions = [];
 		$this->permissible->recalculatePermissions();
@@ -112,13 +120,13 @@ class PermissionAttachment{
 	 * @param string|Permission $name
 	 * @param bool              $value
 	 */
-	public function setPermission($name, $value){
+	public function setPermission($name, bool $value){
 		$name = $name instanceof Permission ? $name->getName() : $name;
 		if(isset($this->permissions[$name])){
 			if($this->permissions[$name] === $value){
 				return;
 			}
-			unset($this->permissions[$name]);
+			unset($this->permissions[$name]); //Fixes children getting overwritten
 		}
 		$this->permissions[$name] = $value;
 		$this->permissible->recalculatePermissions();

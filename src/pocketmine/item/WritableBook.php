@@ -1,23 +1,40 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\item;
 
-use pocketmine\nbt\tag\Compound;
-use pocketmine\nbt\tag\Enum;
+use pocketmine\nbt\NBT;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 
 class WritableBook extends Item{
 
-	public function __construct($meta = 0){
+	public const TAG_PAGES = "pages"; //TAG_List<TAG_Compound>
+	public const TAG_PAGE_TEXT = "text"; //TAG_String
+	public const TAG_PAGE_PHOTONAME = "photoname"; //TAG_String - TODO
+
+	public function __construct(int $meta = 0){
 		parent::__construct(self::WRITABLE_BOOK, $meta, "Book & Quill");
 	}
 
@@ -28,8 +45,8 @@ class WritableBook extends Item{
 	 *
 	 * @return bool
 	 */
-	public function pageExists($pageId){
-		return isset($this->getNamedTag()->pages->{$pageId});
+	public function pageExists(int $pageId) : bool{
+		return isset($this->getPages()[$pageId]);
 	}
 
 	/**
@@ -39,12 +56,18 @@ class WritableBook extends Item{
 	 *
 	 * @return string|null
 	 */
-	public function getPageText($pageId){
-		if(!$this->pageExists($pageId)){
+	public function getPageText(int $pageId) : ?string{
+		$pages = $this->getNamedTag()->getListTag(self::TAG_PAGES);
+		if($pages === null){
 			return null;
 		}
-		
-		return $this->getNamedTag()->pages->{$pageId}->text->getValue();
+
+		$page = $pages[$pageId] ?? null;
+		if($page instanceof CompoundTag){
+			return $page->getString(self::TAG_PAGE_TEXT, "");
+		}
+
+		return null;
 	}
 
 	/**
@@ -55,7 +78,7 @@ class WritableBook extends Item{
 	 *
 	 * @return bool indicating whether the page was created or not.
 	 */
-	public function setPageText($pageId, $pageText){
+	public function setPageText(int $pageId, string $pageText) : bool{
 		$created = false;
 		if(!$this->pageExists($pageId)){
 			$this->addPage($pageId);
@@ -63,7 +86,11 @@ class WritableBook extends Item{
 		}
 
 		$namedTag = $this->getNamedTag();
-		$namedTag->pages->{$pageId}->text->setValue($pageText);
+		/** @var CompoundTag[]|ListTag $pages */
+		$pages = $namedTag->getListTag(self::TAG_PAGES);
+		assert($pages instanceof ListTag);
+		$pages[$pageId]->setString(self::TAG_PAGE_TEXT, $pageText);
+
 		$this->setNamedTag($namedTag);
 
 		return $created;
@@ -75,26 +102,23 @@ class WritableBook extends Item{
 	 *
 	 * @param int $pageId
 	 */
-	public function addPage($pageId){
+	public function addPage(int $pageId) : void{
 		if($pageId < 0){
 			throw new \InvalidArgumentException("Page number \"$pageId\" is out of range");
 		}
-		$namedTag = $this->getCorrectedNamedTag();
 
-		if(!isset($namedTag->pages) or !($namedTag->pages instanceof Enum)){
-			$namedTag->pages = new Enum("pages", []);
-		}
+		$pages = $this->getPages();
 
 		for($id = 0; $id <= $pageId; $id++){
-			if(!$this->pageExists($id)){
-				$namedTag->pages->{$id} = new Compound("", [
-					new StringTag("text", ""),
-					new StringTag("photoname", "")
+			if(!isset($pages[$id])){
+				$pages[$id] = new CompoundTag("", [
+					new StringTag(self::TAG_PAGE_TEXT, ""),
+					new StringTag(self::TAG_PAGE_PHOTONAME, "")
 				]);
 			}
 		}
 
-		$this->setNamedTag($namedTag);
+		$this->setPages($pages);
 	}
 
 	/**
@@ -104,15 +128,11 @@ class WritableBook extends Item{
 	 *
 	 * @return bool indicating success
 	 */
-	public function deletePage($pageId){
-		if(!$this->pageExists($pageId)){
-			return false;
-		}
+	public function deletePage(int $pageId) : bool{
+		$pages = $this->getPages();
+		unset($pages[$pageId]);
 
-		$namedTag = $this->getNamedTag();
-		unset($namedTag->pages->{$pageId});
-		$this->pushPages($pageId, $namedTag);
-		$this->setNamedTag($namedTag);
+		$this->setPages(array_values($pages));
 
 		return true;
 	}
@@ -125,17 +145,18 @@ class WritableBook extends Item{
 	 *
 	 * @return bool indicating success
 	 */
-	public function insertPage($pageId, $pageText = ""){
-		$namedTag = $this->getCorrectedNamedTag();
-		if(!isset($namedTag->pages) or !($namedTag->pages instanceof Enum)){
-			$namedTag->pages = new Enum("pages", []);
-		}
-		
-		$this->pushPages($pageId, $namedTag, false);
+	public function insertPage(int $pageId, string $pageText = "") : bool{
+		$pages = $this->getPages();
 
-		$namedTag->pages->{$pageId}->text->setValue($pageText);
-		$this->setNamedTag($namedTag);
-		
+		$this->setPages(array_merge(
+			array_slice($pages, 0, $pageId),
+			[new CompoundTag("", [
+				new StringTag(self::TAG_PAGE_TEXT, $pageText),
+				new StringTag(self::TAG_PAGE_PHOTONAME, "")
+			])],
+			array_slice($pages, $pageId)
+		));
+
 		return true;
 	}
 
@@ -147,7 +168,7 @@ class WritableBook extends Item{
 	 *
 	 * @return bool indicating success
 	 */
-	public function swapPages($pageId1, $pageId2){
+	public function swapPages(int $pageId1, int $pageId2) : bool{
 		if(!$this->pageExists($pageId1) or !$this->pageExists($pageId2)){
 			return false;
 		}
@@ -156,61 +177,35 @@ class WritableBook extends Item{
 		$pageContents2 = $this->getPageText($pageId2);
 		$this->setPageText($pageId1, $pageContents2);
 		$this->setPageText($pageId2, $pageContents1);
-		
+
 		return true;
 	}
 
-	/**
-	 * @return Compound
-	 */
-	protected function getCorrectedNamedTag(){
-		return $this->getNamedTag() ?? new Compound();
-	}
-
-	public function getMaxStackSize(){
+	public function getMaxStackSize() : int{
 		return 1;
-	}
-
-	/**
-	 * @param int         $pageId
-	 * @param Compound $namedTag
-	 * @param bool        $downwards
-	 *
-	 * @return bool
-	 */
-	private function pushPages($pageId, Compound $namedTag, $downwards = true){
-		if(empty($this->getPages())){
-			return false;
-		}
-
-		$pages = $this->getPages();
-		$type = $downwards ? -1 : 1;
-		foreach($pages as $key => $page){
-			if(($key <= $pageId and $downwards) or ($key < $pageId and !$downwards)){
-				continue;
-			}
-
-			if($downwards){
-				unset($namedTag->pages->{$key});
-			}
-			$namedTag->pages->{$key + $type} = clone $page;
-		}
-		return true;
 	}
 
 	/**
 	 * Returns an array containing all pages of this book.
 	 *
-	 * @return Compound[]
+	 * @return CompoundTag[]
 	 */
-	public function getPages(){
-		$namedTag = $this->getCorrectedNamedTag();
-		if(!isset($namedTag->pages)){
+	public function getPages() : array{
+		$pages = $this->getNamedTag()->getListTag(self::TAG_PAGES);
+		if($pages === null){
 			return [];
 		}
 
-		return array_filter((array) $namedTag->pages, function($key){
-			return is_numeric($key);
-		}, ARRAY_FILTER_USE_KEY);
+		return $pages->getValue();
+	}
+
+	/**
+	 *
+	 * @param CompoundTag[] $pages
+	 */
+	public function setPages(array $pages) : void{
+		$nbt = $this->getNamedTag();
+		$nbt->setTag(new ListTag(self::TAG_PAGES, $pages, NBT::TAG_Compound));
+		$this->setNamedTag($nbt);
 	}
 }

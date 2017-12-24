@@ -32,7 +32,7 @@ abstract class EntityInventory extends BaseInventory{
 	/** @var Entity */
 	protected $holder;
 
-	protected function doSetItemEvents(int $index, Item $newItem) :Item{
+	protected function doSetItemEvents(int $index, Item $newItem) : ?Item{
 		Server::getInstance()->getPluginManager()->callEvent($ev = new EntityInventoryChangeEvent($this->getHolder(), $this->getItem($index), $newItem, $index));
 		if($ev->isCancelled()){
 			return null;

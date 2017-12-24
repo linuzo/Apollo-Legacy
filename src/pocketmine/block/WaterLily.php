@@ -1,13 +1,25 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
@@ -21,48 +33,33 @@ class WaterLily extends Flowable{
 
 	protected $id = self::WATER_LILY;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function isSolid(){
-		return false;
-	}
-
-	public function getName(){
+	public function getName() : string{
 		return "Lily Pad";
 	}
 
-	public function getHardness(){
+	public function getHardness() : float{
 		return 0.6;
 	}
 
-	public function canPassThrough(){
-		return true;
-	}
-	
-	public function getBoundingBox(){
-		if($this->boundingBox === null){
-			$this->boundingBox = $this->recalculateBoundingBox();
-		}
-		return $this->boundingBox;
-	}
-
-	protected function recalculateBoundingBox(){
+	protected function recalculateBoundingBox() : ?AxisAlignedBB{
 		return new AxisAlignedBB(
-			$this->x,
+			$this->x + 0.0625,
 			$this->y,
-			$this->z,
-			$this->x + 1,
-			$this->y + 1,
-			$this->z + 1
+			$this->z + 0.0625,
+			$this->x + 0.9375,
+			$this->y + 0.015625,
+			$this->z + 0.9375
 		);
 	}
 
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		if($target instanceof Water){
-			$up = $target->getSide(Vector3::SIDE_UP);
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+		if($blockClicked instanceof Water){
+			$up = $blockClicked->getSide(Vector3::SIDE_UP);
 			if($up->getId() === Block::AIR){
 				$this->getLevel()->setBlock($up, $this, true, true);
 				return true;
@@ -72,9 +69,9 @@ class WaterLily extends Flowable{
 		return false;
 	}
 
-	public function onUpdate($type){
+	public function onUpdate(int $type){
 		if($type === Level::BLOCK_UPDATE_NORMAL){
-			if(!($this->getSide(0) instanceof Water)){
+			if(!($this->getSide(Vector3::SIDE_DOWN) instanceof Water)){
 				$this->getLevel()->useBreakOn($this);
 				return Level::BLOCK_UPDATE_NORMAL;
 			}
@@ -83,9 +80,7 @@ class WaterLily extends Flowable{
 		return false;
 	}
 
-	public function getDrops(Item $item){
-		return [
-			[$this->id, 0, 1]
-		];
+	public function getVariantBitmask() : int{
+		return 0;
 	}
 }

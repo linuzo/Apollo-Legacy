@@ -1,171 +1,114 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\tile;
 
 use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
 use pocketmine\event\inventory\FurnaceBurnEvent;
 use pocketmine\event\inventory\FurnaceSmeltEvent;
 use pocketmine\inventory\FurnaceInventory;
 use pocketmine\inventory\FurnaceRecipe;
 use pocketmine\inventory\InventoryHolder;
 use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
-use pocketmine\level\format\FullChunk;
+use pocketmine\math\Vector3;
 use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\ShortTag;
-use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\Network;
-use pocketmine\network\protocol\ContainerSetDataPacket;
+use pocketmine\network\mcpe\protocol\ContainerSetDataPacket;
+use pocketmine\Player;
 
-class Furnace extends Tile implements InventoryHolder, Container, Nameable{
-	
+class Furnace extends Spawnable implements InventoryHolder, Container, Nameable{
+	use NameableTrait, ContainerTrait;
+
+	public const TAG_BURN_TIME = "BurnTime";
+	public const TAG_COOK_TIME = "CookTime";
+	public const TAG_MAX_TIME = "MaxTime";
+	public const TAG_BURN_TICKS = "BurnTicks";
+
 	/** @var FurnaceInventory */
 	protected $inventory;
 
 	public function __construct(Level $level, CompoundTag $nbt){
+		if(!$nbt->hasTag(self::TAG_BURN_TIME, ShortTag::class) or $nbt->getShort(self::TAG_BURN_TIME) < 0){
+			$nbt->setShort(self::TAG_BURN_TIME, 0, true);
+		}
+
+		if(
+			!$nbt->hasTag(self::TAG_COOK_TIME, ShortTag::class) or
+			$nbt->getShort(self::TAG_COOK_TIME) < 0 or
+			($nbt->getShort(self::TAG_BURN_TIME) === 0 and $nbt->getShort(self::TAG_COOK_TIME) > 0)
+		){
+			$nbt->setShort(self::TAG_COOK_TIME, 0, true);
+		}
+
+		if(!$nbt->hasTag(self::TAG_MAX_TIME, ShortTag::class)){
+			$nbt->setShort(self::TAG_MAX_TIME, $nbt->getShort(self::TAG_BURN_TIME), true);
+			$nbt->removeTag(self::TAG_BURN_TICKS);
+		}
+
+		if(!$nbt->getTag(self::TAG_BURN_TICKS, ShortTag::class)){
+			$nbt->setShort(self::TAG_BURN_TICKS, 0, true);
+		}
+
 		parent::__construct($level, $nbt);
 		$this->inventory = new FurnaceInventory($this);
+		$this->loadItems();
 
-		if(!isset($this->namedtag->Items) or !($this->namedtag->Items instanceof ListTag)){
-			$this->namedtag->Items = new ListTag("Items", []);
-			$this->namedtag->Items->setTagType(NBT::TAG_Compound);
-		}
-
-		for($i = 0; $i < $this->getSize(); ++$i){
-			$this->inventory->setItem($i, $this->getItem($i));
-		}
-
-		if(!isset($this->namedtag->BurnTime) or $this->namedtag["BurnTime"] < 0){
-			$this->namedtag->BurnTime = new ShortTag("BurnTime", 0);
-		}
-		
-		if(!isset($this->namedtag->CookTime) or $this->namedtag["CookTime"] < 0 or ($this->namedtag["BurnTime"] === 0 and $this->namedtag["CookTime"] > 0)){
-			$this->namedtag->CookTime = new ShortTag("CookTime", 0);
-		}
-		
-		if(!isset($this->namedtag->MaxTime)){
-			$this->namedtag->MaxTime = new ShortTag("BurnTime", $this->namedtag["BurnTime"]);
-			$this->namedtag->BurnTicks = new ShortTag("BurnTicks", 0);
-		}
-		
-		if($this->namedtag["BurnTime"] > 0){
+		if($this->namedtag->getShort(self::TAG_BURN_TIME) > 0){
 			$this->scheduleUpdate();
 		}
 	}
 
-	public function getName(){
-		return isset($this->namedtag->CustomName) ? $this->namedtag->CustomName->getValue() : "Furnace";
+	/**
+	 * @return string
+	 */
+	public function getDefaultName() : string{
+		return "Furnace";
 	}
 
-	public function hasName(){
-		return isset($this->namedtag->CustomName);
-	}
-
-	public function setName($str){
-		if($str === ""){
-			unset($this->namedtag->CustomName);
-			return;
-		}
-
-		$this->namedtag->CustomName = new StringTag("CustomName", $str);
-	}
-
-	public function close(){
+	public function close() : void{
 		if($this->closed === false){
-			foreach($this->getInventory()->getViewers() as $player){
-				$player->removeWindow($this->getInventory());
-			}
-			
+			$this->inventory->removeAllViewers(true);
+			$this->inventory = null;
+
 			parent::close();
 		}
 	}
 
-	public function saveNBT(){
-		$this->namedtag->Items = new ListTag("Items", []);
-		$this->namedtag->Items->setTagType(NBT::TAG_Compound);
-		for($index = 0; $index < $this->getSize(); ++$index){
-			$this->setItem($index, $this->inventory->getItem($index));
-		}
+	public function saveNBT() : void{
+		parent::saveNBT();
+		$this->saveItems();
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getSize(){
+	public function getSize() : int{
 		return 3;
-	}
-
-	/**
-	 * @param $index
-	 *
-	 * @return int
-	 */
-	protected function getSlotIndex($index){
-		foreach($this->namedtag->Items as $i => $slot){
-			if($slot["Slot"] === $index){
-				return $i;
-			}
-		}
-
-		return -1;
-	}
-
-	/**
-	 * This method should not be used by plugins, use the Inventory
-	 *
-	 * @param int $index
-	 *
-	 * @return Item
-	 */
-	public function getItem($index){
-		$i = $this->getSlotIndex($index);
-		if($i < 0){
-			return Item::get(Item::AIR, 0, 0);
-		}else{
-			return NBT::getItemHelper($this->namedtag->Items[$i]);
-		}
-	}
-
-	/**
-	 * This method should not be used by plugins, use the Inventory
-	 *
-	 * @param int  $index
-	 * @param Item $item
-	 *
-	 * @return bool
-	 */
-	public function setItem($index, Item $item){
-		$i = $this->getSlotIndex($index);
-
-		$d = NBT::putItemHelper($item, $index);
-
-		if($item->getId() === Item::AIR or $item->getCount() <= 0){
-			if($i >= 0){
-				unset($this->namedtag->Items[$i]);
-			}
-		}elseif($i < 0){
-			for($i = 0; $i <= $this->getSize(); ++$i){
-				if(!isset($this->namedtag->Items[$i])){
-					break;
-				}
-			}
-			$this->namedtag->Items[$i] = $d;
-		}else{
-			$this->namedtag->Items[$i] = $d;
-		}
-
-		return true;
 	}
 
 	/**
@@ -175,6 +118,13 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 		return $this->inventory;
 	}
 
+	/**
+	 * @return FurnaceInventory
+	 */
+	public function getRealInventory(){
+		return $this->getInventory();
+	}
+
 	protected function checkFuel(Item $fuel){
 		$this->server->getPluginManager()->callEvent($ev = new FurnaceBurnEvent($this, $fuel, $fuel->getFuelTime()));
 
@@ -182,104 +132,110 @@ class Furnace extends Tile implements InventoryHolder, Container, Nameable{
 			return;
 		}
 
-		$this->namedtag->MaxTime = new ShortTag("MaxTime", $ev->getBurnTime());
-		$this->namedtag->BurnTime = new ShortTag("BurnTime", $ev->getBurnTime());
-		$this->namedtag->BurnTicks = new ShortTag("BurnTicks", 0);
-		if($this->getBlock()->getId() === Item::FURNACE){
-			$this->getLevel()->setBlock($this, Block::get(Item::BURNING_FURNACE, $this->getBlock()->getDamage()), true);
+		$this->namedtag->setShort(self::TAG_MAX_TIME, $ev->getBurnTime());
+		$this->namedtag->setShort(self::TAG_BURN_TIME, $ev->getBurnTime());
+		$this->namedtag->setShort(self::TAG_BURN_TICKS, 0);
+		if($this->getBlock()->getId() === Block::FURNACE){
+			$this->getLevel()->setBlock($this, BlockFactory::get(Block::BURNING_FURNACE, $this->getBlock()->getDamage()), true);
 		}
 
-		if($this->namedtag["BurnTime"] > 0 and $ev->isBurning()){
-			$fuel->setCount($fuel->getCount() - 1);
-			if($fuel->getCount() === 0){
-				$fuel = Item::get(Item::AIR, 0, 0);
-			}
-			
+		if($this->namedtag->getShort(self::TAG_BURN_TIME) > 0 and $ev->isBurning()){
+			$fuel->pop();
 			$this->inventory->setFuel($fuel);
 		}
 	}
 
-	public function onUpdate(){
+	public function onUpdate() : bool{
 		if($this->closed === true){
 			return false;
 		}
-		
+
+		$this->timings->startTiming();
+
 		$ret = false;
 
 		$fuel = $this->inventory->getFuel();
 		$raw = $this->inventory->getSmelting();
 		$product = $this->inventory->getResult();
 		$smelt = $this->server->getCraftingManager()->matchFurnaceRecipe($raw);
-		$canSmelt = ($smelt instanceof FurnaceRecipe and $raw->getCount() > 0 and (($smelt->getResult()->equals($product) and $product->getCount() < $product->getMaxStackSize()) or $product->getId() === Item::AIR));
+		$canSmelt = ($smelt instanceof FurnaceRecipe and $raw->getCount() > 0 and (($smelt->getResult()->equals($product) and $product->getCount() < $product->getMaxStackSize()) or $product->isNull()));
 
-		if($this->namedtag["BurnTime"] <= 0 and $canSmelt and $fuel->getFuelTime() !== null and $fuel->getCount() > 0){
+		if($this->namedtag->getShort(self::TAG_BURN_TIME) <= 0 and $canSmelt and $fuel->getFuelTime() > 0 and $fuel->getCount() > 0){
 			$this->checkFuel($fuel);
 		}
 
-		if($this->namedtag["BurnTime"] > 0){
-			$this->namedtag->BurnTime = new ShortTag("BurnTime", $this->namedtag["BurnTime"] - 1);
-			$this->namedtag->BurnTicks = new ShortTag("BurnTicks", ceil(($this->namedtag["BurnTime"] / $this->namedtag["MaxTime"] * 200)));
+		if($this->namedtag->getShort(self::TAG_BURN_TIME) > 0){
+			$this->namedtag->setShort(self::TAG_BURN_TIME, $this->namedtag->getShort(self::TAG_BURN_TIME) - 1);
+			$this->namedtag->setShort(self::TAG_BURN_TICKS, (int) ceil($this->namedtag->getShort(self::TAG_BURN_TIME) / $this->namedtag->getShort(self::TAG_MAX_TIME) * 200));
 
 			if($smelt instanceof FurnaceRecipe and $canSmelt){
-				$this->namedtag->CookTime = new ShortTag("CookTime", $this->namedtag["CookTime"] + 1);
-				if($this->namedtag["CookTime"] >= 200){ //10 seconds
-					$product = Item::get($smelt->getResult()->getId(), $smelt->getResult()->getDamage(), $product->getCount() + 1);
+				$this->namedtag->setShort(self::TAG_COOK_TIME, $this->namedtag->getShort(self::TAG_COOK_TIME) + 1);
+				if($this->namedtag->getShort(self::TAG_COOK_TIME) >= 200){ //10 seconds
+					$product = ItemFactory::get($smelt->getResult()->getId(), $smelt->getResult()->getDamage(), $product->getCount() + 1);
 
 					$this->server->getPluginManager()->callEvent($ev = new FurnaceSmeltEvent($this, $raw, $product));
 
 					if(!$ev->isCancelled()){
 						$this->inventory->setResult($ev->getResult());
-						$raw->setCount($raw->getCount() - 1);
-						if($raw->getCount() === 0){
-							$raw = Item::get(Item::AIR, 0, 0);
-						}
-						
+						$raw->pop();
 						$this->inventory->setSmelting($raw);
 					}
 
-					$this->namedtag->CookTime = new ShortTag("CookTime", $this->namedtag["CookTime"] - 200);
+					$this->namedtag->setShort(self::TAG_COOK_TIME, $this->namedtag->getShort(self::TAG_COOK_TIME) - 200);
 				}
-			}elseif($this->namedtag["BurnTime"] <= 0){
-				$this->namedtag->BurnTime = new ShortTag("BurnTime", 0);
-				$this->namedtag->CookTime = new ShortTag("CookTime", 0);
-				$this->namedtag->BurnTicks = new ShortTag("BurnTicks", 0);
+			}elseif($this->namedtag->getShort(self::TAG_BURN_TIME) <= 0){
+				$this->namedtag->setShort(self::TAG_BURN_TIME, 0);
+				$this->namedtag->setShort(self::TAG_COOK_TIME, 0);
+				$this->namedtag->setShort(self::TAG_BURN_TICKS, 0);
 			}else{
-				$this->namedtag->CookTime = new ShortTag("CookTime", 0);
+				$this->namedtag->setShort(self::TAG_COOK_TIME, 0);
 			}
-			
 			$ret = true;
 		}else{
-			if($this->getBlock()->getId() === Item::BURNING_FURNACE){
-				$this->getLevel()->setBlock($this, Block::get(Item::FURNACE, $this->getBlock()->getDamage()), true);
+			if($this->getBlock()->getId() === Block::BURNING_FURNACE){
+				$this->getLevel()->setBlock($this, BlockFactory::get(Block::FURNACE, $this->getBlock()->getDamage()), true);
 			}
-			
-			$this->namedtag->BurnTime = new ShortTag("BurnTime", 0);
-			$this->namedtag->CookTime = new ShortTag("CookTime", 0);
-			$this->namedtag->BurnTicks = new ShortTag("BurnTicks", 0);
+			$this->namedtag->setShort(self::TAG_BURN_TIME, 0);
+			$this->namedtag->setShort(self::TAG_COOK_TIME, 0);
+			$this->namedtag->setShort(self::TAG_BURN_TICKS, 0);
 		}
 
 		foreach($this->getInventory()->getViewers() as $player){
 			$windowId = $player->getWindowId($this->getInventory());
 			if($windowId > 0){
 				$pk = new ContainerSetDataPacket();
-				$pk->windowid = $windowId;
-				$pk->property = 0; //Smelting
-				$pk->value = floor($this->namedtag["CookTime"]);
+				$pk->windowId = $windowId;
+				$pk->property = ContainerSetDataPacket::PROPERTY_FURNACE_TICK_COUNT; //Smelting
+				$pk->value = $this->namedtag->getShort(self::TAG_COOK_TIME);
 				$player->dataPacket($pk);
 
 				$pk = new ContainerSetDataPacket();
-				$pk->windowid = $windowId;
-				$pk->property = 1; //Fire icon
-				$pk->value = $this->namedtag["BurnTicks"];
+				$pk->windowId = $windowId;
+				$pk->property = ContainerSetDataPacket::PROPERTY_FURNACE_LIT_TIME;
+				$pk->value = $this->namedtag->getShort(self::TAG_BURN_TICKS);
 				$player->dataPacket($pk);
 			}
 		}
 
-		$this->lastUpdate = microtime(true);
-
-		//$this->timings->stopTiming();
+		$this->timings->stopTiming();
 
 		return $ret;
 	}
-	
+
+	public function addAdditionalSpawnData(CompoundTag $nbt) : void{
+		$nbt->setTag($this->namedtag->getTag(self::TAG_BURN_TIME));
+		$nbt->setTag($this->namedtag->getTag(self::TAG_COOK_TIME));
+
+		if($this->hasName()){
+			$nbt->setTag($this->namedtag->getTag("CustomName"));
+		}
+	}
+
+	protected static function createAdditionalNBT(CompoundTag $nbt, Vector3 $pos, ?int $face = null, ?Item $item = null, ?Player $player = null) : void{
+		$nbt->setTag(new ListTag("Items", [], NBT::TAG_Compound));
+
+		if($item !== null and $item->hasCustomName()){
+			$nbt->setString("CustomName", $item->getCustomName());
+		}
+	}
 }

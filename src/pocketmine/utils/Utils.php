@@ -1,27 +1,47 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
+
+/**
+ * Various Utilities used around the code
+ */
 
 namespace pocketmine\utils;
 
 use pocketmine\ThreadManager;
 
+/**
+ * Big collection of functions
+ */
 class Utils{
-	
 	public static $online = true;
 	public static $ip = false;
 	public static $os;
-	
+	/** @var UUID|null */
 	private static $serverUniqueId = null;
 
 	/**
+	 * Generates an unique identifier to a callable
+	 *
 	 * @param callable $variable
 	 *
 	 * @return string
@@ -35,40 +55,18 @@ class Utils{
 	}
 
 	/**
-	 * @deprecated
-	 */
-	public static function randomUUID(){
-		return Utils::toUUID(Binary::writeInt(time()) . Binary::writeShort(getmypid()) . Binary::writeShort(getmyuid()) . Binary::writeInt(mt_rand(-0x7fffffff, 0x7fffffff)) . Binary::writeInt(mt_rand(-0x7fffffff, 0x7fffffff)), 2);
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public static function dataToUUID(...$params){
-		return Utils::toUUID(hash("md5", implode($params), true), 3);
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public static function toUUID($data, $version = 2, $fixed = "8"){
-		if(strlen($data) !== 16){
-			throw new \InvalidArgumentException("Data must be 16 bytes");
-		}
-
-		$hex = bin2hex($data);
-		
-		return substr($hex, 0, 8) . "-" . substr($hex, 8, 4) . "-" . hexdec($version) . substr($hex, 13, 3) . "-" . $fixed{0} . substr($hex, 17, 3) . "-" . substr($hex, 20, 12);
-	}
-
-	/**
-	 * @param string $extra
+	 * Gets this machine / server instance unique ID
+	 * Returns a hash, the first 32 characters (or 16 if raw)
+	 * will be an identifier that won't change frequently.
+	 * The rest of the hash will change depending on other factors.
+	 *
+	 * @param string $extra optional, additional data to identify the machine
 	 *
 	 * @return UUID
 	 */
-	public static function getMachineUniqueId($extra = ""){
-		if(Utils::$serverUniqueId !== null and $extra === ""){
-			return Utils::$serverUniqueId;
+	public static function getMachineUniqueId(string $extra = "") : UUID{
+		if(self::$serverUniqueId !== null and $extra === ""){
+			return self::$serverUniqueId;
 		}
 
 		$machine = php_uname("a");
@@ -85,14 +83,13 @@ class Utils{
 						unset($matches[1][$i]);
 					}
 				}
-				
-				$machine .= implode(" ", $matches[1]);
+				$machine .= implode(" ", $matches[1]); //Mac Addresses
 			}
 		}elseif($os === "linux"){
 			if(file_exists("/etc/machine-id")){
 				$machine .= file_get_contents("/etc/machine-id");
 			}else{
-				@exec("ifconfig", $mac);
+				@exec("ifconfig 2>/dev/null", $mac);
 				$mac = implode("\n", $mac);
 				if(preg_match_all("#HWaddr[ \t]{1,}([0-9a-f:]{17})#", $mac, $matches)){
 					foreach($matches[1] as $i => $v){
@@ -100,8 +97,7 @@ class Utils{
 							unset($matches[1][$i]);
 						}
 					}
-					
-					$machine .= implode(" ", $matches[1]);
+					$machine .= implode(" ", $matches[1]); //Mac Addresses
 				}
 			}
 		}elseif($os === "android"){
@@ -109,7 +105,6 @@ class Utils{
 		}elseif($os === "mac"){
 			$machine .= `system_profiler SPHardwareDataType | grep UUID`;
 		}
-		
 		$data = $machine . PHP_MAXPATHLEN;
 		$data .= PHP_INT_MAX;
 		$data .= PHP_INT_SIZE;
@@ -121,91 +116,112 @@ class Utils{
 		$uuid = UUID::fromData($machine, $data);
 
 		if($extra === ""){
-			Utils::$serverUniqueId = $uuid;
+			self::$serverUniqueId = $uuid;
 		}
 
 		return $uuid;
 	}
 
 	/**
-	 * @param bool $force
+	 * Gets the External IP using an external service, it is cached
 	 *
-	 * @return string
+	 * @param bool $force default false, force IP check even when cached
+	 *
+	 * @return string|bool
 	 */
-	public static function getIP($force = false){
+	public static function getIP(bool $force = false){
 		if(Utils::$online === false){
 			return false;
 		}elseif(Utils::$ip !== false and $force !== true){
 			return Utils::$ip;
 		}
-		$ip = trim(strip_tags(Utils::getURL("http://checkip.dyndns.org/")));
-		if(preg_match('#Current IP Address\: ([0-9a-fA-F\:\.]*)#', $ip, $matches) > 0){
-			Utils::$ip = $matches[1];
-		}else{
-			$ip = Utils::getURL("http://www.checkip.org/");
-			if(preg_match('#">([0-9a-fA-F\:\.]*)</span>#', $ip, $matches) > 0){
-				Utils::$ip = $matches[1];
-			}else{
-				$ip = Utils::getURL("http://checkmyip.org/");
-				if(preg_match('#Your IP address is ([0-9a-fA-F\:\.]*)#', $ip, $matches) > 0){
-					Utils::$ip = $matches[1];
-				}else{
-					$ip = trim(Utils::getURL("http://ifconfig.me/ip"));
-					if($ip != ""){
-						Utils::$ip = $ip;
-					}else{
-						return false;
-					}
-				}
+
+		do{
+			$ip = Utils::getURL("http://api.ipify.org/");
+			if($ip !== false){
+				Utils::$ip = $ip;
+				break;
 			}
-		}
+
+			$ip = Utils::getURL("http://checkip.dyndns.org/");
+			if($ip !== false and preg_match('#Current IP Address\: ([0-9a-fA-F\:\.]*)#', trim(strip_tags($ip)), $matches) > 0){
+				Utils::$ip = $matches[1];
+				break;
+			}
+
+			$ip = Utils::getURL("http://www.checkip.org/");
+			if($ip !== false and preg_match('#">([0-9a-fA-F\:\.]*)</span>#', $ip, $matches) > 0){
+				Utils::$ip = $matches[1];
+				break;
+			}
+
+			$ip = Utils::getURL("http://checkmyip.org/");
+			if($ip !== false and preg_match('#Your IP address is ([0-9a-fA-F\:\.]*)#', $ip, $matches) > 0){
+				Utils::$ip = $matches[1];
+				break;
+			}
+
+			$ip = Utils::getURL("http://ifconfig.me/ip");
+			if($ip !== false and trim($ip) != ""){
+				Utils::$ip = trim($ip);
+				break;
+			}
+
+			return false;
+
+		}while(false);
 
 		return Utils::$ip;
-
 	}
 
 	/**
+	 * Returns the current Operating System
+	 * Windows => win
+	 * MacOS => mac
+	 * iOS => ios
+	 * Android => android
+	 * Linux => Linux
+	 * BSD => bsd
+	 * Other => other
+	 *
+	 * @param bool $recalculate
+	 *
 	 * @return string
 	 */
-	public static function getOS($recalculate = false){
-		if(Utils::$os === null or $recalculate){
+	public static function getOS(bool $recalculate = false) : string{
+		if(self::$os === null or $recalculate){
 			$uname = php_uname("s");
-			if(strpos($uname, "Darwin") !== false){
+			if(stripos($uname, "Darwin") !== false){
 				if(strpos(php_uname("m"), "iP") === 0){
-					Utils::$os = "ios";
+					self::$os = "ios";
 				}else{
-					Utils::$os = "mac";
+					self::$os = "mac";
 				}
-			}elseif(strpos($uname, "Win") !== false or $uname === "Msys"){
-				Utils::$os = "win";
-			}elseif(strpos($uname, "Linux") !== false){
+			}elseif(stripos($uname, "Win") !== false or $uname === "Msys"){
+				self::$os = "win";
+			}elseif(stripos($uname, "Linux") !== false){
 				if(@file_exists("/system/build.prop")){
-					Utils::$os = "android";
+					self::$os = "android";
 				}else{
-					Utils::$os = "linux";
+					self::$os = "linux";
 				}
-			}elseif(strpos($uname, "BSD") !== false or $uname === "DragonFly"){
-				Utils::$os = "bsd";
+			}elseif(stripos($uname, "BSD") !== false or $uname === "DragonFly"){
+				self::$os = "bsd";
 			}else{
-				Utils::$os = "other";
+				self::$os = "other";
 			}
 		}
-		
-		return Utils::$os;
+
+		return self::$os;
 	}
-	
-	public static function checkMod($player){
-		//if(@file_exists("/sdcard/Android/data/net.zhuoweizhang.mcpelauncher/cache/http/journal")){
-		//if($player->gameId !== "MINECRAFTPE"){
-			//return true;
-		//}
-		
-		return false;
-	}
-	
-	public static function getRealMemoryUsage(){
+
+	/**
+	 * @return int[]
+	 */
+	public static function getRealMemoryUsage() : array{
 		$stack = 0;
 		$heap = 0;
+
 		if(Utils::getOS() === "linux" or Utils::getOS() === "android"){
 			$mappings = file("/proc/self/maps");
 			foreach($mappings as $line){
@@ -222,7 +238,12 @@ class Utils{
 		return [$heap, $stack];
 	}
 
-	public static function getMemoryUsage($advanced = false){
+	/**
+	 * @param bool $advanced
+	 *
+	 * @return int[]|int
+	 */
+	public static function getMemoryUsage(bool $advanced = false){
 		$reserved = memory_get_usage();
 		$VmSize = null;
 		$VmRSS = null;
@@ -236,7 +257,9 @@ class Utils{
 				$VmSize = $matches[1] * 1024;
 			}
 		}
-		
+
+		//TODO: more OS
+
 		if($VmRSS === null){
 			$VmRSS = memory_get_usage();
 		}
@@ -252,17 +275,22 @@ class Utils{
 		return [$reserved, $VmRSS, $VmSize];
 	}
 
-	public static function getThreadCount(){
+	public static function getThreadCount() : int{
 		if(Utils::getOS() === "linux" or Utils::getOS() === "android"){
 			if(preg_match("/Threads:[ \t]+([0-9]+)/", file_get_contents("/proc/self/status"), $matches) > 0){
 				return (int) $matches[1];
 			}
 		}
-		
-		return count(ThreadManager::getInstance()->getAll()) + 3;
+		//TODO: more OS
+
+		return count(ThreadManager::getInstance()->getAll()) + 3; //RakLib + MainLogger + Main Thread
 	}
 
-	public static function getCoreCount($recalculate = false){
+	/**
+	 * @param bool $recalculate
+	 * @return int
+	 */
+	public static function getCoreCount(bool $recalculate = false) : int{
 		static $processors = 0;
 
 		if($processors > 0 and !$recalculate){
@@ -289,22 +317,22 @@ class Utils{
 			case "bsd":
 			case "mac":
 				$processors = (int) `sysctl -n hw.ncpu`;
-				$processors = (int) `sysctl -n hw.ncpu`;
 				break;
 			case "win":
 				$processors = (int) getenv("NUMBER_OF_PROCESSORS");
 				break;
 		}
-		
 		return $processors;
 	}
 
 	/**
+	 * Returns a prettified hexdump
+	 *
 	 * @param string $bin
 	 *
 	 * @return string
 	 */
-	public static function hexDump($bin){
+	public static function hexdump(string $bin) : string{
 		$output = "";
 		$bin = str_split($bin, 16);
 		foreach($bin as $counter => $line){
@@ -318,11 +346,13 @@ class Utils{
 
 
 	/**
-	 * @param $str
+	 * Returns a string that can be printed, replaces non-printable characters
+	 *
+	 * @param mixed $str
 	 *
 	 * @return string
 	 */
-	public static function printable($str){
+	public static function printable($str) : string{
 		if(!is_string($str)){
 			return gettype($str);
 		}
@@ -330,211 +360,187 @@ class Utils{
 		return preg_replace('#([^\x20-\x7E])#', '.', $str);
 	}
 
+	/*
+	public static function angle3D($pos1, $pos2){
+		$X = $pos1["x"] - $pos2["x"];
+		$Z = $pos1["z"] - $pos2["z"];
+		$dXZ = sqrt(pow($X, 2) + pow($Z, 2));
+		$Y = $pos1["y"] - $pos2["y"];
+		$hAngle = rad2deg(atan2($Z, $X) - M_PI_2);
+		$vAngle = rad2deg(-atan2($Y, $dXZ));
+
+		return array("yaw" => $hAngle, "pitch" => $vAngle);
+	}*/
+
 	/**
-	 * @param int    $length
-	 * @param bool   $secure
-	 * @param bool   $raw
-	 * @param string $startEntropy
-	 * @param int    &$rounds
-	 * @param int    &$drop
+	 * GETs an URL using cURL
+	 * NOTE: This is a blocking operation and can take a significant amount of time. It is inadvisable to use this method on the main thread.
 	 *
-	 * @return string
-	 */
-	public static function getRandomBytes($length = 16, $secure = true, $raw = true, $startEntropy = "", &$rounds = 0, &$drop = 0){
-		static $lastRandom = "";
-		$output = "";
-		$length = abs((int) $length);
-		$secureValue = "";
-		$rounds = 0;
-		$drop = 0;
-		while(!isset($output{$length - 1})){
-			$weakEntropy = [
-				is_array($startEntropy) ? implode($startEntropy) : $startEntropy,
-				__DIR__,
-				PHP_OS,
-				microtime(),
-				(string) lcg_value(),
-				(string) PHP_MAXPATHLEN,
-				PHP_SAPI,
-				(string) PHP_INT_MAX . "." . PHP_INT_SIZE,
-				serialize($_SERVER),
-				get_current_user(),
-				(string) memory_get_usage() . "." . memory_get_peak_usage(),
-				php_uname(),
-				phpversion(),
-				zend_version(),
-				(string) getmypid(),
-				(string) getmyuid(),
-				(string) mt_rand(),
-				(string) getmyinode(),
-				(string) getmygid(),
-				(string) rand(),
-				function_exists("zend_thread_id") ? ((string) zend_thread_id()) : microtime(),
-				function_exists("getrusage") ? implode(getrusage()) : microtime(),
-				function_exists("sys_getloadavg") ? implode(sys_getloadavg()) : microtime(),
-				serialize(get_loaded_extensions()),
-				sys_get_temp_dir(),
-				(string) disk_free_space("."),
-				(string) disk_total_space("."),
-				uniqid(microtime(), true),
-				file_exists("/proc/cpuinfo") ? file_get_contents("/proc/cpuinfo") : microtime(),
-			];
-
-			shuffle($weakEntropy);
-			$value = hash("sha512", implode($weakEntropy), true);
-			$lastRandom .= $value;
-			foreach($weakEntropy as $k => $c){
-				$value ^= hash("sha256", $c . microtime() . $k, true) . hash("sha256", mt_rand() . microtime() . $k . $c, true);
-				$value ^= hash("sha512", ((string) lcg_value()) . $c . microtime() . $k, true);
-			}
-			
-			unset($weakEntropy);
-
-			if($secure === true){
-				if(file_exists("/dev/urandom")){
-					$fp = fopen("/dev/urandom", "rb");
-					$systemRandom = fread($fp, 64);
-					fclose($fp);
-				}else{
-					$systemRandom = str_repeat("\x00", 64);
-				}
-
-				$strongEntropyValues = [
-					is_array($startEntropy) ? hash("sha512", $startEntropy[($rounds + $drop) % count($startEntropy)], true) : hash("sha512", $startEntropy, true), //Get a random index of the startEntropy, or just read it
-					$systemRandom,
-					function_exists("openssl_random_pseudo_bytes") ? openssl_random_pseudo_bytes(64) : str_repeat("\x00", 64),
-					function_exists("mcrypt_create_iv") ? mcrypt_create_iv(64, MCRYPT_DEV_URANDOM) : str_repeat("\x00", 64),
-					$value,
-				];
-				
-				$strongEntropy = array_pop($strongEntropyValues);
-				foreach($strongEntropyValues as $value){
-					$strongEntropy = $strongEntropy ^ $value;
-				}
-				
-				$value = "";
-				$bitcnt = 0;
-				for($j = 0; $j < 64; ++$j){
-					$a = ord($strongEntropy{$j});
-					for($i = 0; $i < 8; $i += 2){
-						$b = ($a & (1 << $i)) > 0 ? 1 : 0;
-						if($b != (($a & (1 << ($i + 1))) > 0 ? 1 : 0)){
-							$secureValue |= $b << $bitcnt;
-							if($bitcnt == 7){
-								$value .= chr($secureValue);
-								$secureValue = 0;
-								$bitcnt = 0;
-							}else{
-								++$bitcnt;
-							}
-							++$drop;
-						}else{
-							$drop += 2;
-						}
-					}
-				}
-			}
-			
-			$output .= substr($value, 0, min($length - strlen($output), $length));
-			unset($value);
-			++$rounds;
-		}
-		
-		$lastRandom = hash("sha512", $lastRandom, true);
-
-		return $raw === false ? bin2hex($output) : $output;
-	}
-	
-	/**
-	 * @param     $page
-	 * @param int $timeout default 10
-	 * @param array $extraHeaders
+	 * @param string  $page
+	 * @param int     $timeout default 10
+	 * @param array   $extraHeaders
+	 * @param string  &$err    Will be set to the output of curl_error(). Use this to retrieve errors that occured during the operation.
+	 * @param array[] &$headers
+	 * @param int     &$httpCode
 	 *
-	 * @return bool|mixed
+	 * @return bool|mixed false if an error occurred, mixed data if successful.
 	 */
-	public static function getURL($page, $timeout = 10, array $extraHeaders = []){
-		if(!Utils::$online){
+	public static function getURL(string $page, int $timeout = 10, array $extraHeaders = [], &$err = null, &$headers = null, &$httpCode = null){
+		try{
+			list($ret, $headers, $httpCode) = self::simpleCurl($page, $timeout, $extraHeaders);
+			return $ret;
+		}catch(\RuntimeException $ex){
+			$err = $ex->getMessage();
 			return false;
 		}
-
-		$ch = curl_init($page);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge(["User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0 DarkSystem"], $extraHeaders));
-		curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-		curl_setopt($ch, CURLOPT_FORBID_REUSE, 1);
-		curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, (int) $timeout);
-		curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
-		$ret = curl_exec($ch);
-		curl_close($ch);
-
-		return $ret;
 	}
 
 	/**
-	 * @param              $page
+	 * POSTs data to an URL
+	 * NOTE: This is a blocking operation and can take a significant amount of time. It is inadvisable to use this method on the main thread.
+	 *
+	 * @param string       $page
 	 * @param array|string $args
 	 * @param int          $timeout
-	 * @param array $extraHeaders
+	 * @param array        $extraHeaders
+	 * @param string       &$err Will be set to the output of curl_error(). Use this to retrieve errors that occured during the operation.
+	 * @param array[]      &$headers
+	 * @param int          &$httpCode
 	 *
-	 * @return bool|mixed
+	 * @return bool|mixed false if an error occurred, mixed data if successful.
 	 */
-	public static function postURL($page, $args, $timeout = 10, array $extraHeaders = []){
-		if(Utils::$online === false){
+	public static function postURL(string $page, $args, int $timeout = 10, array $extraHeaders = [], &$err = null, &$headers = null, &$httpCode = null){
+		try{
+			list($ret, $headers, $httpCode) = self::simpleCurl($page, $timeout, $extraHeaders, [
+				CURLOPT_POST => 1,
+				CURLOPT_POSTFIELDS => $args
+			]);
+			return $ret;
+		}catch(\RuntimeException $ex){
+			$err = $ex->getMessage();
 			return false;
 		}
 
-		$ch = curl_init($page);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-		curl_setopt($ch, CURLOPT_FORBID_REUSE, 1);
-		curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
-		curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge(["User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0 DarkSystem"], $extraHeaders));
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, (int) $timeout);
-		curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
-		$ret = curl_exec($ch);
-		curl_close($ch);
-
-		return $ret;
 	}
-	
-	/** 
-	 * @param string $page
-	 * @param array|string $args
-	 * @param int $timeout
-	 * @param array $extraHeaders
-	 * @return boolean
+
+	/**
+	 * General cURL shorthand function.
+	 * NOTE: This is a blocking operation and can take a significant amount of time. It is inadvisable to use this method on the main thread.
+	 *
+	 * @param string        $page
+	 * @param float|int     $timeout      The maximum connect timeout and timeout in seconds, correct to ms.
+	 * @param string[]      $extraHeaders extra headers to send as a plain string array
+	 * @param array         $extraOpts    extra CURLOPT_* to set as an [opt => value] map
+	 * @param callable|null $onSuccess    function to be called if there is no error. Accepts a resource argument as the cURL handle.
+	 *
+	 * @return array a plain array of three [result body : string, headers : array[], HTTP response code : int]. Headers are grouped by requests with strtolower(header name) as keys and header value as values
+	 *
+	 * @throws \RuntimeException if a cURL error occurs
 	 */
-	public static function putURL($page, $args, $timeout = 10, array $extraHeaders = []) {
+	public static function simpleCurl(string $page, $timeout = 10, array $extraHeaders = [], array $extraOpts = [], callable $onSuccess = null){
 		if(Utils::$online === false){
-			return false;
+			throw new \RuntimeException("Server is offline");
 		}
 
 		$ch = curl_init($page);
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-		curl_setopt($ch, CURLOPT_FORBID_REUSE, 1);
-		curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
-		curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge(["User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0 DarkSystem"], $extraHeaders));
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, (int) $timeout);
-		curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
-		$ret = curl_exec($ch);
-		curl_close($ch);
 
-		return $ret;
+		curl_setopt_array($ch, $extraOpts + [
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => 2,
+			CURLOPT_FORBID_REUSE => 1,
+			CURLOPT_FRESH_CONNECT => 1,
+			CURLOPT_AUTOREFERER => true,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_CONNECTTIMEOUT_MS => (int) ($timeout * 1000),
+			CURLOPT_TIMEOUT_MS => (int) ($timeout * 1000),
+			CURLOPT_HTTPHEADER => array_merge(["User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0 " . \pocketmine\NAME], $extraHeaders),
+			CURLOPT_HEADER => true
+		]);
+		try{
+			$raw = curl_exec($ch);
+			$error = curl_error($ch);
+			if($error !== ""){
+				throw new \RuntimeException($error);
+			}
+			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			$headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+			$rawHeaders = substr($raw, 0, $headerSize);
+			$body = substr($raw, $headerSize);
+			$headers = [];
+			foreach(explode("\r\n\r\n", $rawHeaders) as $rawHeaderGroup){
+				$headerGroup = [];
+				foreach(explode("\r\n", $rawHeaderGroup) as $line){
+					$nameValue = explode(":", $line, 2);
+					if(isset($nameValue[1])){
+						$headerGroup[trim(strtolower($nameValue[0]))] = trim($nameValue[1]);
+					}
+				}
+				$headers[] = $headerGroup;
+			}
+			if($onSuccess !== null){
+				$onSuccess($ch);
+			}
+			return [$body, $headers, $httpCode];
+		}finally{
+			curl_close($ch);
+		}
 	}
 
+	public static function javaStringHash(string $string) : int{
+		$hash = 0;
+		for($i = 0, $len = strlen($string); $i < $len; $i++){
+			$ord = ord($string{$i});
+			if($ord & 0x80){
+				$ord -= 0x100;
+			}
+			$hash = 31 * $hash + $ord;
+			while($hash > 0x7FFFFFFF){
+				$hash -= 0x100000000;
+			}
+			while($hash < -0x80000000){
+				$hash += 0x100000000;
+			}
+			$hash &= 0xFFFFFFFF;
+		}
+		return $hash;
+	}
+
+
+	/**
+	 * @param string      $command Command to execute
+	 * @param string|null &$stdout Reference parameter to write stdout to
+	 * @param string|null &$stderr Reference parameter to write stderr to
+	 *
+	 * @return int process exit code
+	 */
+	public static function execute(string $command, string &$stdout = null, string &$stderr = null) : int{
+		$process = proc_open($command, [
+			["pipe", "r"],
+			["pipe", "w"],
+			["pipe", "w"]
+		], $pipes);
+
+		if($process === false){
+			$stderr = "Failed to open process";
+			$stdout = "";
+
+			return -1;
+		}
+
+		$stdout = stream_get_contents($pipes[1]);
+		$stderr = stream_get_contents($pipes[2]);
+
+		foreach($pipes as $p){
+			fclose($p);
+		}
+
+		return proc_close($process);
+	}
+
+	public static function decodeJWT(string $token) : array{
+		list($headB64, $payloadB64, $sigB64) = explode(".", $token);
+
+		return json_decode(base64_decode(strtr($payloadB64, '-_', '+/'), true), true);
+	}
 }

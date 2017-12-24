@@ -1,13 +1,23 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
 
 namespace pocketmine\level\format;
 
@@ -114,6 +124,23 @@ interface FullChunk{
 	 * @param int $y 0-127
 	 * @param int $z 0-15
 	 *
+	 * @return int (16-bit)
+	 */
+	public function getBlockExtraData($x, $y, $z);
+
+	/**
+	 * @param int $x    0-15
+	 * @param int $y    0-127
+	 * @param int $z    0-15
+	 * @param int $data (16-bit)
+	 */
+	public function setBlockExtraData($x, $y, $z, $data);
+
+	/**
+	 * @param int $x 0-15
+	 * @param int $y 0-127
+	 * @param int $z 0-15
+	 *
 	 * @return int 0-15
 	 */
 	public function getBlockSkyLight($x, $y, $z);
@@ -166,6 +193,10 @@ interface FullChunk{
 	 */
 	public function setHeightMap($x, $z, $value);
 
+	public function recalculateHeightMap();
+
+	public function populateSkyLight();
+
 	/**
 	 * @param int $x 0-15
 	 * @param int $z 0-15
@@ -205,6 +236,10 @@ interface FullChunk{
 	 * @param int $B 0-255
 	 */
 	public function setBiomeColor($x, $z, $R, $G, $B);
+
+	public function isLightPopulated();
+
+	public function setLightPopulated($value = 1);
 
 	public function isPopulated();
 
@@ -302,6 +337,8 @@ interface FullChunk{
 
 	public function toBinary();
 
+	public function toFastBinary();
+
 	/**
 	 * @return boolean
 	 */
@@ -319,11 +356,22 @@ interface FullChunk{
 	 * @return FullChunk
 	 */
 	public static function fromBinary($data, LevelProvider $provider = null);
-	
+
+	/**
+	 * @param string        $data
+	 * @param LevelProvider $provider
+	 *
+	 * @return FullChunk
+	 */
+	public static function fromFastBinary($data, LevelProvider $provider = null);
+
+	/**
+	 * @param int           $chunkX
+	 * @param int           $chunkZ
+	 * @param LevelProvider $provider
+	 *
+	 * @return FullChunk
+	 */
 	public static function getEmptyChunk($chunkX, $chunkZ, LevelProvider $provider = null);
-	
-	public function recalculateHeightMap();
-	
-	public function populateSkyLight();
 
 }

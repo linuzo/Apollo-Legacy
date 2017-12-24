@@ -1,140 +1,97 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
 use pocketmine\item\Item;
-use pocketmine\item\Tool;
-use pocketmine\nbt\NBT;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\ListTag;
-use pocketmine\nbt\tag\IntTag;
+use pocketmine\item\TieredTool;
+use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\Player;
-use pocketmine\tile\Furnace;
+use pocketmine\tile\Furnace as TileFurnace;
 use pocketmine\tile\Tile;
-use pocketmine\network\protocol\UpdateBlockPacket;
 
 class BurningFurnace extends Solid{
 
 	protected $id = self::BURNING_FURNACE;
 
-	public function __construct($meta = 0){
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	public function getName(){
+	public function getName() : string{
 		return "Burning Furnace";
 	}
 
-	public function canBeActivated(){
-		return true;
-	}
-
-	public function getHardness(){
+	public function getHardness() : float{
 		return 3.5;
 	}
 
-	public function getToolType(){
-		return Tool::TYPE_PICKAXE;
+	public function getToolType() : int{
+		return BlockToolType::TYPE_PICKAXE;
 	}
 
-	public function getLightLevel(){
-		return 8;
+	public function getToolHarvestLevel() : int{
+		return TieredTool::TIER_WOODEN;
 	}
 
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
+	public function getLightLevel() : int{
+		return 13;
+	}
+
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
 		$faces = [
 			0 => 4,
 			1 => 2,
 			2 => 5,
-			3 => 3,
+			3 => 3
 		];
-		
 		$this->meta = $faces[$player instanceof Player ? $player->getDirection() : 0];
-		$this->getLevel()->setBlock($block, $this, true, true);
-		$nbt = new CompoundTag("", [
-			new ListTag("Items", []),
-			new StringTag("id", Tile::FURNACE),
-			new IntTag("x", $this->x),
-			new IntTag("y", $this->y),
-			new IntTag("z", $this->z)
-		]);
-		
-		$nbt->Items->setTagType(NBT::TAG_Compound);
+		$this->getLevel()->setBlock($blockReplace, $this, true, true);
 
-		if($item->hasCustomName()){
-			$nbt->CustomName = new StringTag("CustomName", $item->getCustomName());
-		}
+		Tile::createTile(Tile::FURNACE, $this->getLevel(), TileFurnace::createNBT($this, $face, $item, $player));
 
-		if($item->hasCustomBlockData()){
-			foreach($item->getCustomBlockData() as $key => $v){
-				$nbt->{$key} = $v;
-			}
-		}
-
-		Tile::createTile("Furnace", $this->getLevel(), $nbt);
-		
 		return true;
 	}
 
-	public function onBreak(Item $item){
-		$this->getLevel()->setBlock($this, new Air(), true, true);
-		return true;
-	}
-
-	public function onActivate(Item $item, Player $player = null){
+	public function onActivate(Item $item, Player $player = null) : bool{
 		if($player instanceof Player){
-			$pk = new UpdateBlockPacket();
-			$pk->records[] = [$this->x, $this->z, $this->y, 0, 0, UpdateBlockPacket::FLAG_ALL];
-			$player->dataPacket($pk);
-			$pk = new UpdateBlockPacket();
-			$pk->records[] = [$this->x, $this->z, $this->y, $this->getId(), $this->getDamage(), UpdateBlockPacket::FLAG_ALL];
-			$player->dataPacket($pk);		
-			$t = $this->getLevel()->getTile($this);
-			$furnace = false;
-			if($t instanceof Furnace){
-				$furnace = $t;
-			}else{
-				$nbt = new CompoundTag("", [
-					new ListTag("Items", []),
-					new StringTag("id", Tile::FURNACE),
-					new IntTag("x", $this->x),
-					new IntTag("y", $this->y),
-					new IntTag("z", $this->z)
-				]);
-				
-				$nbt->Items->setTagType(NBT::TAG_Compound);
-				$furnace = Tile::createTile("Furnace", $this->getLevel(), $nbt);
+			$furnace = $this->getLevel()->getTile($this);
+			if(!($furnace instanceof TileFurnace)){
+				$furnace = Tile::createTile(Tile::FURNACE, $this->getLevel(), TileFurnace::createNBT($this));
 			}
 
-			if(isset($furnace->namedtag->Lock) and $furnace->namedtag->Lock instanceof String){
-				$furnaceName = $furnace->namedtag->Lock->getValue();
-				if(!empty($furnaceName) && $furnaceName !== $item->getCustomName()){
-					return true;
-				}
+			if($furnace->namedtag->hasTag("Lock", StringTag::class) and $furnace->namedtag->getString("Lock") !== $item->getCustomName()){
+				return true;
 			}
-			
+
 			$player->addWindow($furnace->getInventory());
 		}
 
 		return true;
 	}
 
-	public function getDrops(Item $item){
-		$drops = [];
-		if($item->isPickaxe() >= 1){
-			$drops[] = [Item::FURNACE, 0, 1];
-		}
-
-		return $drops;
+	public function getVariantBitmask() : int{
+		return 0;
 	}
 }

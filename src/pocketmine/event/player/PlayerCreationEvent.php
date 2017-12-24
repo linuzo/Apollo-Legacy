@@ -14,10 +14,12 @@
  * (at your option) any later version.
  *
  * @author PocketMine Team
- * @link   http://www.pocketmine.net/
+ * @link http://www.pocketmine.net/
  *
  *
- */
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\event\player;
 
@@ -25,8 +27,10 @@ use pocketmine\event\Event;
 use pocketmine\network\SourceInterface;
 use pocketmine\Player;
 
+/**
+ * Allows the creation of players overriding the base Player class
+ */
 class PlayerCreationEvent extends Event{
-	
 	public static $handlerList = null;
 
 	/** @var SourceInterface */
@@ -40,7 +44,6 @@ class PlayerCreationEvent extends Event{
 
 	/** @var Player::class */
 	private $baseClass;
-	
 	/** @var Player::class */
 	private $playerClass;
 
@@ -52,7 +55,7 @@ class PlayerCreationEvent extends Event{
 	 * @param string          $address
 	 * @param int             $port
 	 */
-	public function __construct(SourceInterface $interface, $baseClass, $playerClass, $clientId, $address, $port){
+	public function __construct(SourceInterface $interface, $baseClass, $playerClass, $clientId, string $address, int $port){
 		$this->interface = $interface;
 		$this->clientId = $clientId;
 		$this->address = $address;
@@ -74,21 +77,21 @@ class PlayerCreationEvent extends Event{
 	/**
 	 * @return SourceInterface
 	 */
-	public function getInterface(){
+	public function getInterface() : SourceInterface{
 		return $this->interface;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getAddress(){
+	public function getAddress() : string{
 		return $this->address;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getPort(){
+	public function getPort() : int{
 		return $this->port;
 	}
 

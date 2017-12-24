@@ -19,7 +19,11 @@
  *
 */
 
-namespace pocketmine\level\generator\object;
+/**
+ * All the different object classes used in populators
+ */
+namespace pocketmine\level\generator\Object;
+
 
 abstract class PopulatorObject{
 

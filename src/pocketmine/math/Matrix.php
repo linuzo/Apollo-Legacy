@@ -1,18 +1,30 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\math;
 
+
 class Matrix implements \ArrayAccess{
-	
 	private $matrix = [];
 	private $rows = 0;
 	private $columns = 0;
@@ -43,25 +55,25 @@ class Matrix implements \ArrayAccess{
 		for($r = 0; $r < $this->rows; ++$r){
 			$this->matrix[$r] = [];
 			for($c = 0; $c < $this->columns; ++$c){
-				$this->matrix[$r][$c] = isset($m[$r][$c]) ? $m[$r][$c] : 0;
+				$this->matrix[$r][$c] = $m[$r][$c] ?? 0;
 			}
 		}
 	}
 
 	public function getRows(){
-		return ($this->rows);
+		return $this->rows;
 	}
 
 	public function getColumns(){
-		return ($this->columns);
+		return $this->columns;
 	}
 
 	public function setElement($row, $column, $value){
 		if($row > $this->rows or $row < 0 or $column > $this->columns or $column < 0){
 			return false;
 		}
-		
 		$this->matrix[(int) $row][(int) $column] = $value;
+
 		return true;
 	}
 
@@ -81,7 +93,6 @@ class Matrix implements \ArrayAccess{
 		if($this->rows !== $matrix->getRows() or $this->columns !== $matrix->getColumns()){
 			return false;
 		}
-		
 		$result = new Matrix($this->rows, $this->columns);
 		for($r = 0; $r < $this->rows; ++$r){
 			for($c = 0; $c < $this->columns; ++$c){
@@ -96,7 +107,6 @@ class Matrix implements \ArrayAccess{
 		if($this->rows !== $matrix->getRows() or $this->columns !== $matrix->getColumns()){
 			return false;
 		}
-		
 		$result = clone $this;
 		for($r = 0; $r < $this->rows; ++$r){
 			for($c = 0; $c < $this->columns; ++$c){
@@ -117,7 +127,8 @@ class Matrix implements \ArrayAccess{
 
 		return $result;
 	}
-	
+
+
 	public function divideScalar($number){
 		$result = clone $this;
 		for($r = 0; $r < $this->rows; ++$r){
@@ -139,12 +150,12 @@ class Matrix implements \ArrayAccess{
 
 		return $result;
 	}
-	
+
+	//Naive Matrix product, O(n^3)
 	public function product(Matrix $matrix){
 		if($this->columns !== $matrix->getRows()){
 			return false;
 		}
-		
 		$c = $matrix->getColumns();
 		$result = new Matrix($this->rows, $c);
 		for($i = 0; $i < $this->rows; ++$i){
@@ -153,19 +164,19 @@ class Matrix implements \ArrayAccess{
 				for($k = 0; $k < $this->columns; ++$k){
 					$sum += $this->matrix[$i][$k] * $matrix->getElement($k, $j);
 				}
-				
 				$result->setElement($i, $j, $sum);
 			}
 		}
 
 		return $result;
 	}
-	
+
+
+	//Computation of the determinant of 2x2 and 3x3 matrices
 	public function determinant(){
 		if($this->isSquare() !== true){
 			return false;
 		}
-		
 		switch($this->rows){
 			case 1:
 				return 0;
@@ -177,7 +188,8 @@ class Matrix implements \ArrayAccess{
 
 		return false;
 	}
-	
+
+
 	public function __toString(){
 		$s = "";
 		for($r = 0; $r < $this->rows; ++$r){

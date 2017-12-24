@@ -30,7 +30,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
 
 class MoveEntityPacket extends DataPacket{
-	const NETWORK_ID = ProtocolInfo::MOVE_ENTITY_PACKET;
+	public const NETWORK_ID = ProtocolInfo::MOVE_ENTITY_PACKET;
 
 	/** @var int */
 	public $entityRuntimeId;
@@ -58,7 +58,6 @@ class MoveEntityPacket extends DataPacket{
 	}
 
 	protected function encodePayload(){
-		if(isset($this->x)) $this->position = new Vector3($this->x, $this->y, $this->z);
 		$this->putEntityRuntimeId($this->entityRuntimeId);
 		$this->putVector3Obj($this->position);
 		$this->putByteRotation($this->pitch);

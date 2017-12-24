@@ -1,13 +1,23 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
 
 namespace pocketmine\level\format\mcregion;
 
@@ -26,7 +36,8 @@ use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryStream;
 
 class Chunk extends BaseFullChunk{
-	
+
+	/** @var CompoundTag */
 	protected $nbt;
 
 	public function __construct($level, CompoundTag $nbt = null){
@@ -35,7 +46,7 @@ class Chunk extends BaseFullChunk{
 			$this->nbt = new CompoundTag("Level", []);
 			return;
 		}
-
+		
 		$this->nbt = $nbt;
 
 		if(isset($this->nbt->Entities) and $this->nbt->Entities instanceof ListTag){
@@ -59,11 +70,12 @@ class Chunk extends BaseFullChunk{
 			$this->nbt->TileTicks->setTagType(NBT::TAG_Compound);
 		}
 
-		$this->nbt->BiomeColors = new IntArrayTag("BiomeColors", array_fill(0, 256, Binary::readInt("\x00\x85\xb2\x4a")));
+		if(!isset($this->nbt->BiomeColors) or !($this->nbt->BiomeColors instanceof IntArrayTag)){
+			$this->nbt->BiomeColors = new IntArrayTag("BiomeColors", array_fill(0, 256, 0));
+		}
 
 		if(!isset($this->nbt->HeightMap) or !($this->nbt->HeightMap instanceof IntArrayTag)){
 			$this->nbt->HeightMap = new IntArrayTag("HeightMap", array_fill(0, 256, 0));
-			$this->incorrectHeightMap = true;
 		}
 
 		if(!isset($this->nbt->Blocks)){
@@ -85,12 +97,17 @@ class Chunk extends BaseFullChunk{
 			$count = $stream->getInt();
 			for($i = 0; $i < $count; ++$i){
 				$key = $stream->getInt();
-				$extraData[$key] = $stream->getShort(false);
+				$extraData[$key] = $stream->getShort();
 			}
 		}
 
-		parent::__construct($level, $this->nbt["xPos"], $this->nbt["zPos"], $this->nbt->Blocks->getValue(), $this->nbt->Data->getValue(), $this->nbt->SkyLight->getValue(), $this->nbt->BlockLight->getValue(), $this->nbt->BiomeColors->getValue(), $this->nbt->HeightMap->getValue(), $this->nbt->Entities->getValue(), $this->nbt->TileEntities->getValue());
-		
+		parent::__construct($level, $this->nbt["xPos"], $this->nbt["zPos"], $this->nbt->Blocks->getValue(), $this->nbt->Data->getValue(), $this->nbt->SkyLight->getValue(), $this->nbt->BlockLight->getValue(), $this->nbt->BiomeColors->getValue(), $this->nbt->HeightMap->getValue(), $this->nbt->Entities->getValue(), $this->nbt->TileEntities->getValue(), $extraData);
+
+		if(isset($this->nbt->Biomes)){
+			$this->checkOldBiomes($this->nbt->Biomes->getValue());
+			unset($this->nbt->Biomes);
+		}
+
 		unset($this->nbt->Blocks);
 		unset($this->nbt->Data);
 		unset($this->nbt->SkyLight);
@@ -101,7 +118,8 @@ class Chunk extends BaseFullChunk{
 	}
 
 	public function getBlockId($x, $y, $z){
-		return ord($this->blocks{($x << 11) | ($z << 7) | $y});
+		if(isset($this->blocks{($x << 11) | ($z << 7) | $y})) return ord($this->blocks{($x << 11) | ($z << 7) | $y});
+		else return 0;
 	}
 
 	public function setBlockId($x, $y, $z, $id){
@@ -236,6 +254,15 @@ class Chunk extends BaseFullChunk{
 		return substr($this->blockLight, ($x << 10) + ($z << 6), 64);
 	}
 
+	public function isLightPopulated(){
+		return $this->nbt["LightPopulated"] > 0;
+	}
+
+	public function setLightPopulated($value = 1){
+		$this->nbt->LightPopulated = new ByteTag("LightPopulated", $value ? 1 : 0);
+		$this->hasChanged = true;
+	}
+
 	/**
 	 * @return bool
 	 */
@@ -247,7 +274,8 @@ class Chunk extends BaseFullChunk{
 	 * @param int $value
 	 */
 	public function setPopulated($value = 1){
-		$this->nbt->TerrainPopulated = new ByteTag("TerrainPopulated", $value);
+		$this->nbt->TerrainPopulated = new ByteTag("TerrainPopulated", $value ? 1 : 0);
+		$this->hasChanged = true;
 	}
 
 	/**
@@ -266,7 +294,8 @@ class Chunk extends BaseFullChunk{
 	 * @param int $value
 	 */
 	public function setGenerated($value = 1){
-		$this->nbt->TerrainGenerated = new ByteTag("TerrainGenerated", $value);
+		$this->nbt->TerrainGenerated = new ByteTag("TerrainGenerated", (int) $value);
+		$this->hasChanged = true;
 	}
 
 	/**
@@ -287,16 +316,18 @@ class Chunk extends BaseFullChunk{
 			}
 
 			return new Chunk($provider instanceof LevelProvider ? $provider : McRegion::class, $chunk->Level);
-		}catch(\Exception $e){
+		}catch(\Throwable $e){
 			return null;
 		}
 	}
-
+	
 	public static function fromFastBinary($data, LevelProvider $provider = null){
+
 		try{
 			$offset = 0;
 
 			$chunk = new Chunk($provider instanceof LevelProvider ? $provider : McRegion::class, null);
+			$chunk->provider = $provider;
 			$chunk->x = Binary::readInt(substr($data, $offset, 4));
 			$offset += 4;
 			$chunk->z = Binary::readInt(substr($data, $offset, 4));
@@ -323,11 +354,11 @@ class Chunk extends BaseFullChunk{
 			$chunk->nbt->LightPopulated = new ByteTag("LightPopulated", ($flags >> 2) & 0b1);
 
 			return $chunk;
-		}catch(\Exception $e){
+		}catch(\Throwable $e){
 			return null;
 		}
 	}
-
+	
 	public function toFastBinary(){
 		return
 			Binary::writeInt($this->x) .
@@ -338,7 +369,7 @@ class Chunk extends BaseFullChunk{
 			$this->getBlockLightArray() .
 			pack("C*", ...$this->getHeightMapArray()) .
 			pack("N*", ...$this->getBiomeColorArray()) .
-			chr(($this->isPopulated() ? 1 << 1 : 0) + ($this->isGenerated() ? 1 : 0));
+			chr(($this->isLightPopulated() ? 1 << 2 : 0) + ($this->isPopulated() ? 1 << 1 : 0) + ($this->isGenerated() ? 1 : 0));
 	}
 
 	public function toBinary(){
@@ -361,7 +392,7 @@ class Chunk extends BaseFullChunk{
 		$entities = [];
 
 		foreach($this->getEntities() as $entity){
-			if(!($entity instanceof Player) && !$entity->closed){
+			if(!($entity instanceof Player) and !$entity->closed){
 				$entity->saveNBT();
 				$entities[] = $entity->namedtag;
 			}
@@ -369,7 +400,8 @@ class Chunk extends BaseFullChunk{
 
 		$nbt->Entities = new ListTag("Entities", $entities);
 		$nbt->Entities->setTagType(NBT::TAG_Compound);
-		
+
+
 		$tiles = [];
 		foreach($this->getTiles() as $tile){
 			$tile->saveNBT();
@@ -421,7 +453,7 @@ class Chunk extends BaseFullChunk{
 			$chunk->blockLight = $chunk->data;
 
 			$chunk->heightMap = array_fill(0, 256, 0);
-			$chunk->biomeColors = array_fill(0, 256, Binary::readInt("\x00\x85\xb2\x4a"));
+			$chunk->biomeColors = array_fill(0, 256, 0);
 
 			$chunk->nbt->V = new ByteTag("V", 1);
 			$chunk->nbt->InhabitedTime = new LongTag("InhabitedTime", 0);
@@ -430,18 +462,8 @@ class Chunk extends BaseFullChunk{
 			$chunk->nbt->LightPopulated = new ByteTag("LightPopulated", 0);
 
 			return $chunk;
-		}catch(\Exception $e){
+		}catch(\Throwable $e){
 			return null;
 		}
 	}
-	
-	public function isLightPopulated(){
-		return true; //TODO
-	}
-	
-	public function setLightPopulated($value = 1){
-		$this->nbt->LightPopulated = new ByteTag("LightPopulated", $value ? 1 : 0);
-		$this->hasChanged = true;
-	}
-	
 }

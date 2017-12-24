@@ -31,11 +31,11 @@ class CreativeInventoryAction extends InventoryAction{
 	/**
 	 * Player put an item into the creative window to destroy it.
 	 */
-	const TYPE_DELETE_ITEM = 0;
+	public const TYPE_DELETE_ITEM = 0;
 	/**
 	 * Player took an item from the creative window.
 	 */
-	const TYPE_CREATE_ITEM = 1;
+	public const TYPE_CREATE_ITEM = 1;
 
 	protected $actionType;
 
@@ -74,11 +74,11 @@ class CreativeInventoryAction extends InventoryAction{
 		return true;
 	}
 
-	public function onExecuteSuccess(Player $source){
+	public function onExecuteSuccess(Player $source) : void{
 
 	}
 
-	public function onExecuteFail(Player $source){
+	public function onExecuteFail(Player $source) : void{
 
 	}
 

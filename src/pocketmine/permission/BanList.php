@@ -1,13 +1,25 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\permission;
 
@@ -28,28 +40,39 @@ class BanList{
 	/**
 	 * @param string $file
 	 */
-	public function __construct($file){
+	public function __construct(string $file){
 		$this->file = $file;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isEnabled(){
+	public function isEnabled() : bool{
 		return $this->enabled === true;
 	}
 
 	/**
 	 * @param bool $flag
 	 */
-	public function setEnabled($flag){
-		$this->enabled = (bool) $flag;
+	public function setEnabled(bool $flag){
+		$this->enabled = $flag;
+	}
+
+	/**
+	 * @param string $name
+	 *
+	 * @return BanEntry|null
+	 */
+	public function getEntry(string $name) : ?BanEntry{
+		$this->removeExpired();
+
+		return $this->list[strtolower($name)] ?? null;
 	}
 
 	/**
 	 * @return BanEntry[]
 	 */
-	public function getEntries(){
+	public function getEntries() : array{
 		$this->removeExpired();
 
 		return $this->list;
@@ -60,7 +83,7 @@ class BanList{
 	 *
 	 * @return bool
 	 */
-	public function isBanned($name){
+	public function isBanned(string $name) : bool{
 		$name = strtolower($name);
 		if(!$this->isEnabled()){
 			return false;
@@ -87,11 +110,11 @@ class BanList{
 	 *
 	 * @return BanEntry
 	 */
-	public function addBan($target, $reason = null, $expires = null, $source = null){
+	public function addBan(string $target, string $reason = null, \DateTime $expires = null, string $source = null) : BanEntry{
 		$entry = new BanEntry($target);
-		$entry->setSource($source != null ? $source : $entry->getSource());
+		$entry->setSource($source ?? $entry->getSource());
 		$entry->setExpires($expires);
-		$entry->setReason($reason != null ? $reason : $entry->getReason());
+		$entry->setReason($reason ?? $entry->getReason());
 
 		$this->list[$entry->getName()] = $entry;
 		$this->save();
@@ -102,7 +125,7 @@ class BanList{
 	/**
 	 * @param string $name
 	 */
-	public function remove($name){
+	public function remove(string $name){
 		$name = strtolower($name);
 		if(isset($this->list[$name])){
 			unset($this->list[$name]);
@@ -136,12 +159,15 @@ class BanList{
 		}
 	}
 
-	public function save($flag = true){
+	/**
+	 * @param bool $flag
+	 */
+	public function save(bool $flag = true){
 		$this->removeExpired();
 		$fp = @fopen($this->file, "w");
 		if(is_resource($fp)){
 			if($flag === true){
-				fwrite($fp, "# Updated " . strftime("%x %H:%M", time()) . " by " . Server::getInstance()->getName() . " " . Server::getInstance()->getDarkSystemVersion() . "\n");
+				fwrite($fp, "# Updated " . strftime("%x %H:%M", time()) . " by " . Server::getInstance()->getName() . " " . Server::getInstance()->getPocketMineVersion() . "\n");
 				fwrite($fp, "# victim name | ban date | banned by | banned until | reason\n\n");
 			}
 
@@ -153,4 +179,5 @@ class BanList{
 			MainLogger::getLogger()->error("Could not save ban list");
 		}
 	}
+
 }

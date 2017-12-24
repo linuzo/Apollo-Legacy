@@ -30,23 +30,23 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
 
 class MovePlayerPacket extends DataPacket{
-	const NETWORK_ID = ProtocolInfo::MOVE_PLAYER_PACKET;
+	public const NETWORK_ID = ProtocolInfo::MOVE_PLAYER_PACKET;
 
-	const MODE_NORMAL = 0;
-	const MODE_RESET = 1;
-	const MODE_TELEPORT = 2;
-	const MODE_PITCH = 3; //facepalm Mojang
+	public const MODE_NORMAL = 0;
+	public const MODE_RESET = 1;
+	public const MODE_TELEPORT = 2;
+	public const MODE_PITCH = 3; //facepalm Mojang
 
 	/** @var int */
 	public $entityRuntimeId;
 	/** @var Vector3 */
 	public $position;
 	/** @var float */
+	public $pitch;
+	/** @var float */
 	public $yaw;
 	/** @var float */
-	public $bodyYaw;
-	/** @var float */
-	public $pitch;
+	public $headYaw;
 	/** @var int */
 	public $mode = self::MODE_NORMAL;
 	/** @var bool */
@@ -63,7 +63,7 @@ class MovePlayerPacket extends DataPacket{
 		$this->position = $this->getVector3Obj();
 		$this->pitch = $this->getLFloat();
 		$this->yaw = $this->getLFloat();
-		$this->bodyYaw = $this->getLFloat();
+		$this->headYaw = $this->getLFloat();
 		$this->mode = $this->getByte();
 		$this->onGround = $this->getBool();
 		$this->ridingEid = $this->getEntityRuntimeId();
@@ -74,12 +74,11 @@ class MovePlayerPacket extends DataPacket{
 	}
 
 	protected function encodePayload(){
-		if(isset($this->x)) $this->position = new Vector3($this->x, $this->y, $this->z);
 		$this->putEntityRuntimeId($this->entityRuntimeId);
 		$this->putVector3Obj($this->position);
 		$this->putLFloat($this->pitch);
 		$this->putLFloat($this->yaw);
-		$this->putLFloat($this->bodyYaw); //TODO
+		$this->putLFloat($this->headYaw); //TODO
 		$this->putByte($this->mode);
 		$this->putBool($this->onGround);
 		$this->putEntityRuntimeId($this->ridingEid);

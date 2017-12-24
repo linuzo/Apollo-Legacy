@@ -22,8 +22,9 @@
 namespace pocketmine\level\generator\object;
 
 use pocketmine\block\Block;
+//use pocketmine\level\generator\object\Object;
 
-class OreType{
+class OreType {
 	public $material, $clusterCount, $clusterSize, $maxHeight, $minHeight;
 
 	public function __construct(Block $material, $clusterCount, $clusterSize, $minHeight, $maxHeight){

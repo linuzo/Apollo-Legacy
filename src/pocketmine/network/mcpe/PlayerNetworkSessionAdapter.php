@@ -30,6 +30,7 @@ use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
 use pocketmine\network\mcpe\protocol\BlockEntityDataPacket;
 use pocketmine\network\mcpe\protocol\BlockPickRequestPacket;
+use pocketmine\network\mcpe\protocol\BookEditPacket;
 use pocketmine\network\mcpe\protocol\BossEventPacket;
 use pocketmine\network\mcpe\protocol\ClientToServerHandshakePacket;
 use pocketmine\network\mcpe\protocol\CommandBlockUpdatePacket;
@@ -82,7 +83,7 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 		$timings->startTiming();
 
 		$packet->decode();
-		if(!$packet->feof()){
+		if(!$packet->feof() and !$packet->mayHaveUnreadBytes()){
 			$remains = substr($packet->buffer, $packet->offset);
 			$this->server->getLogger()->debug("Still " . strlen($remains) . " bytes unread in " . $packet->getName() . ": 0x" . bin2hex($remains));
 		}
@@ -91,6 +92,7 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 		if(!$ev->isCancelled() and !$packet->handle($this)){
 			$this->server->getLogger()->debug("Unhandled " . $packet->getName() . " received from " . $this->player->getName() . ": 0x" . bin2hex($packet->buffer));
 		}
+
 		$timings->stopTiming();
 	}
 
@@ -99,7 +101,7 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 	}
 
 	public function handleClientToServerHandshake(ClientToServerHandshakePacket $packet) : bool{
-		return $this->player->handleClientToServerHandshake($packet);
+		return false; //TODO
 	}
 
 	public function handleResourcePackClientResponse(ResourcePackClientResponsePacket $packet) : bool{
@@ -127,7 +129,7 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 	}
 
 	public function handleInventoryTransaction(InventoryTransactionPacket $packet) : bool{
-		return $this->player->handleInventoryTransaction($packet);
+		return $this->player->handleInventoryTransaction($packet); //TODO
 	}
 
 	public function handleMobEquipment(MobEquipmentPacket $packet) : bool{
@@ -167,11 +169,11 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 	}
 
 	public function handlePlayerHotbar(PlayerHotbarPacket $packet) : bool{
-		return $this->player->handlePlayerHotbar($packet);
+		return true; //this packet is useless
 	}
 
 	public function handleCraftingEvent(CraftingEventPacket $packet) : bool{
-		return $this->player->handleCraftingEvent($packet);
+		return true; //this is a broken useless packet, so we don't use it
 	}
 
 	public function handleAdventureSettings(AdventureSettingsPacket $packet) : bool{
@@ -183,7 +185,7 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 	}
 
 	public function handlePlayerInput(PlayerInputPacket $packet) : bool{
-		return $this->player->handlePlayerInput($packet);
+		return false; //TODO
 	}
 
 	public function handleSetPlayerGameType(SetPlayerGameTypePacket $packet) : bool{
@@ -191,11 +193,11 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 	}
 
 	public function handleSpawnExperienceOrb(SpawnExperienceOrbPacket $packet) : bool{
-		return $this->player->handleSpawnExperienceOrb($packet);
+		return false; //TODO
 	}
 
 	public function handleMapInfoRequest(MapInfoRequestPacket $packet) : bool{
-		return $this->player->handleMapInfoRequest($packet);
+		return false; //TODO
 	}
 
 	public function handleRequestChunkRadius(RequestChunkRadiusPacket $packet) : bool{
@@ -207,11 +209,11 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 	}
 
 	public function handleBossEvent(BossEventPacket $packet) : bool{
-		return $this->player->handleBossEvent($packet);
+		return false; //TODO
 	}
 
 	public function handleShowCredits(ShowCreditsPacket $packet) : bool{
-		return $this->player->handleShowCredits($packet);
+		return false; //TODO: handle resume
 	}
 
 	public function handleCommandRequest(CommandRequestPacket $packet) : bool{
@@ -219,7 +221,7 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 	}
 
 	public function handleCommandBlockUpdate(CommandBlockUpdatePacket $packet) : bool{
-		return $this->player->handleCommandBlockUpdate($packet);
+		return false; //TODO
 	}
 
 	public function handleResourcePackChunkRequest(ResourcePackChunkRequestPacket $packet) : bool{
@@ -227,7 +229,11 @@ class PlayerNetworkSessionAdapter extends NetworkSession{
 	}
 
 	public function handlePlayerSkin(PlayerSkinPacket $packet) : bool{
-		return false; //TODO
+		return $this->player->changeSkin($packet->skin, $packet->newSkinName, $packet->oldSkinName);
+	}
+
+	public function handleBookEdit(BookEditPacket $packet) : bool{
+		return $this->player->handleBookEdit($packet);
 	}
 
 	public function handleModalFormResponse(ModalFormResponsePacket $packet) : bool{

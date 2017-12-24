@@ -30,13 +30,15 @@ use pocketmine\entity\Entity;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\network\mcpe\protocol\types\CommandOriginData;
+use pocketmine\network\mcpe\protocol\types\EntityLink;
 use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
 
 
 abstract class DataPacket extends BinaryStream{
 
-	const NETWORK_ID = 0;
+	public const NETWORK_ID = 0;
 
 	/** @var bool */
 	public $isEncoded = false;
@@ -59,6 +61,14 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	public function canBeSentBeforeLogin() : bool{
+		return false;
+	}
+
+	/**
+	 * Returns whether the packet may legally have unread bytes left in the buffer.
+	 * @return bool
+	 */
+	public function mayHaveUnreadBytes() : bool{
 		return false;
 	}
 
@@ -506,20 +516,50 @@ abstract class DataPacket extends BinaryStream{
 	}
 
 	/**
-	 * @return array
+	 * @return EntityLink
 	 */
-	protected function getEntityLink() : array{
-		return [$this->getEntityUniqueId(), $this->getEntityUniqueId(), $this->getByte(), $this->getByte()];
+	protected function getEntityLink() : EntityLink{
+		$link = new EntityLink();
+
+		$link->fromEntityUniqueId = $this->getEntityUniqueId();
+		$link->toEntityUniqueId = $this->getEntityUniqueId();
+		$link->type = $this->getByte();
+		$link->bool1 = $this->getBool();
+
+		return $link;
 	}
 
 	/**
-	 * @param array $link
+	 * @param EntityLink $link
 	 */
-	protected function putEntityLink(array $link){
-		$this->putEntityUniqueId($link[0]);
-		$this->putEntityUniqueId($link[1]);
-		$this->putByte($link[2]);
-		$this->putByte($link[3]);
+	protected function putEntityLink(EntityLink $link){
+		$this->putEntityUniqueId($link->fromEntityUniqueId);
+		$this->putEntityUniqueId($link->toEntityUniqueId);
+		$this->putByte($link->type);
+		$this->putBool($link->bool1);
+	}
 
+	protected function getCommandOriginData() : CommandOriginData{
+		$result = new CommandOriginData();
+
+		$result->type = $this->getUnsignedVarInt();
+		$result->uuid = $this->getUUID();
+		$result->requestId = $this->getString();
+
+		if($result->type === CommandOriginData::ORIGIN_DEV_CONSOLE or $result->type === CommandOriginData::ORIGIN_TEST){
+			$result->varlong1 = $this->getVarLong();
+		}
+
+		return $result;
+	}
+
+	protected function putCommandOriginData(CommandOriginData $data) : void{
+		$this->putUnsignedVarInt($data->type);
+		$this->putUUID($data->uuid);
+		$this->putString($data->requestId);
+
+		if($data->type === CommandOriginData::ORIGIN_DEV_CONSOLE or $data->type === CommandOriginData::ORIGIN_TEST){
+			$this->putVarLong($data->varlong1);
+		}
 	}
 }

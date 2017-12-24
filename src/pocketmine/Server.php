@@ -1,135 +1,141 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
 
+declare(strict_types=1);
+
+/**
+ * PocketMine-MP is the Minecraft: PE multiplayer server software
+ * Homepage: http://www.pocketmine.net/
+ */
 namespace pocketmine;
 
-use darksystem\Registerer;
-use darksystem\CrashReport;
-use darksystem\DarkSystem;
-use pocketmine\block\Block;
-use darksystem\PacketManager;
-use darksystem\StringTranslator;
-use darksystem\ThemeManager;
-use darksystem\darkbot\DarkBot;
-use darksystem\multicore\CoreStarter;
-use darksystem\crossplatform\CrossPlatform;
-use pocketmine\inventory\customUI\CustomUI;
-use darksystem\darkbot\command\SpawnDarkBotCommand;
+use pocketmine\block\BlockFactory;
 use pocketmine\command\CommandReader;
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
 use pocketmine\command\PluginIdentifiableCommand;
 use pocketmine\command\SimpleCommandMap;
-use pocketmine\entity\{Entity, Attribute, Effect, Arrow, Item as DroppedItem};
+use pocketmine\entity\Attribute;
+use pocketmine\entity\Effect;
+use pocketmine\entity\Entity;
+use pocketmine\entity\Skin;
 use pocketmine\event\HandlerList;
 use pocketmine\event\level\LevelInitEvent;
 use pocketmine\event\level\LevelLoadEvent;
 use pocketmine\event\player\PlayerDataSaveEvent;
 use pocketmine\event\server\QueryRegenerateEvent;
 use pocketmine\event\server\ServerCommandEvent;
+use pocketmine\event\TextContainer;
 use pocketmine\event\Timings;
 use pocketmine\event\TimingsHandler;
+use pocketmine\event\TranslationContainer;
 use pocketmine\inventory\CraftingManager;
-use pocketmine\inventory\InventoryType;
 use pocketmine\inventory\Recipe;
-use pocketmine\inventory\ShapedRecipe;
-use pocketmine\inventory\ShapelessRecipe;
-use pocketmine\item\enchantment\{Enchantment, EnchantmentLevelTable};
-use pocketmine\item\Item;
-use darksystem\language\Language;
-use pocketmine\level\format\anvil\Anvil;
-use pocketmine\level\format\mcregion\McRegion;
-use pocketmine\level\format\LevelProviderManager;
+use pocketmine\item\enchantment\Enchantment;
+use pocketmine\item\ItemFactory;
+use pocketmine\lang\BaseLang;
+use pocketmine\level\format\io\leveldb\LevelDB;
+use pocketmine\level\format\io\LevelProvider;
+use pocketmine\level\format\io\LevelProviderManager;
+use pocketmine\level\format\io\region\Anvil;
+use pocketmine\level\format\io\region\McRegion;
+use pocketmine\level\format\io\region\PMAnvil;
+use pocketmine\level\generator\biome\Biome;
+use pocketmine\level\generator\Flat;
+use pocketmine\level\generator\Generator;
+use pocketmine\level\generator\hell\Nether;
+use pocketmine\level\generator\normal\Normal;
 use pocketmine\level\Level;
-use darksystem\metadata\EntityMetadataStore;
-use darksystem\metadata\LevelMetadataStore;
-use darksystem\metadata\PlayerMetadataStore;
+use pocketmine\level\LevelException;
+use pocketmine\metadata\EntityMetadataStore;
+use pocketmine\metadata\LevelMetadataStore;
+use pocketmine\metadata\PlayerMetadataStore;
 use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\FloatTag;
 use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\LongTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-use pocketmine\network\Network;
 use pocketmine\network\CompressBatchedTask;
-use pocketmine\network\protocol\Info as ProtocolInfo;
-use pocketmine\network\protocol\BatchPacket;
-use pocketmine\network\protocol\CraftingDataPacket;
-use pocketmine\network\protocol\DataPacket;
-use pocketmine\network\protocol\PlayerListPacket;
+use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\PlayerListPacket;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
+use pocketmine\network\mcpe\RakLibInterface;
+use pocketmine\network\Network;
 use pocketmine\network\query\QueryHandler;
-use pocketmine\network\RakNetInterface;
 use pocketmine\network\rcon\RCON;
-use pocketmine\network\SourceInterface;
+use pocketmine\network\upnp\UPnP;
 use pocketmine\permission\BanList;
 use pocketmine\permission\DefaultPermissions;
 use pocketmine\plugin\PharPluginLoader;
-use pocketmine\plugin\FolderPluginLoader;
-use pocketmine\plugin\ScriptPluginLoader;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginLoadOrder;
 use pocketmine\plugin\PluginManager;
-use darksystem\resourcepacks\ResourcePackManager;
-use darksystem\behaviorpacks\BehaviorPackManager;
-use pocketmine\scheduler\ServerScheduler;
+use pocketmine\plugin\ScriptPluginLoader;
+use pocketmine\resourcepacks\ResourcePackManager;
 use pocketmine\scheduler\FileWriteTask;
+use pocketmine\scheduler\SendUsageTask;
+use pocketmine\scheduler\ServerScheduler;
 use pocketmine\tile\Tile;
+use pocketmine\updater\AutoUpdater;
 use pocketmine\utils\Binary;
-use pocketmine\utils\Cache;
 use pocketmine\utils\Config;
-use pocketmine\utils\LevelException;
 use pocketmine\utils\MainLogger;
-use pocketmine\utils\MetadataConvertor;
-use pocketmine\utils\MySQLManager;
-use pocketmine\utils\ServerException;
 use pocketmine\utils\Terminal;
-use pocketmine\utils\TextFormat as TF;
-use pocketmine\utils\TextWrapper;
+use pocketmine\utils\TextFormat;
 use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
-use pocketmine\level\generator\biome\Biome;
-use pocketmine\level\generator\nether\Nether;
-use pocketmine\level\generator\ender\Ender;
-use pocketmine\level\generator\normal\Normal;
-use pocketmine\level\generator\normal\Normal2;
-use pocketmine\level\generator\Generator;
-//use pocketmine\level\generator\Void;
-use pocketmine\level\generator\Flat;
-use pocketmine\entity\animal\walking\{Chicken, Cow, Mooshroom, Ocelot, Pig, Rabbit, Sheep};
-use pocketmine\entity\monster\flying\{Blaze, Ghast};
-use pocketmine\entity\monster\walking\{CaveSpider, Creeper, Enderman, IronGolem, PigZombie, Silverfish, Skeleton, SnowGolem, Spider, Wolf, Zombie, ZombieVillager};
-use pocketmine\entity\projectile\FireBall;
 
-class Server extends DarkSystem{
-	
+/**
+ * apollo stuff here
+ */
+ 
+ use pocketmine\level\generator\normal\Normal2;
+
+/**
+ * The class that manages everything
+ */
+class Server{
+	const BROADCAST_CHANNEL_ADMINISTRATIVE = "pocketmine.broadcast.admin";
+	const BROADCAST_CHANNEL_USERS = "pocketmine.broadcast.user";
+
 	/** @var Server */
 	private static $instance = null;
-	
+
+	/** @var \Threaded */
+	private static $sleeper = null;
+
 	/** @var BanList */
 	private $banByName = null;
 
 	/** @var BanList */
 	private $banByIP = null;
-	
-	/** @var BanList */
-	private $banByCID = null;
-	
-	/** @var BanList */
-	private $banByUUID = null;
-	
+
 	/** @var Config */
 	private $operators = null;
 
@@ -140,41 +146,66 @@ class Server extends DarkSystem{
 	private $isRunning = true;
 
 	private $hasStopped = false;
-	
-	private $pluginMgr = null;
-	
+
+	/** @var PluginManager */
+	private $pluginManager = null;
+
+	private $profilingTickRate = 20;
+
+	/** @var AutoUpdater */
+	private $updater = null;
+
+	/** @var ServerScheduler */
 	private $scheduler = null;
-	
-	private $generationMgr = null;
-	
-	private $tickCounter;
+
+	/**
+	 * Counts the ticks since the server start
+	 *
+	 * @var int
+	 */
+	private $tickCounter = 0;
 	private $nextTick = 0;
-	private $tickAverage = [20, 20, 20, 20, 20];
-	private $useAverage = [20, 20, 20, 20, 20];
-	
-	private $knsol;
-	
+	private $tickAverage = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20];
+	private $useAverage = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	private $currentTPS = 20;
+	private $currentUse = 0;
+
+	/** @var bool */
+	private $doTitleTick = true;
+
+	private $sendUsageTicker = 0;
+
+	private $dispatchSignals = false;
+
+	/** @var \AttachableThreadedLogger */
+	private $logger;
+
+	/** @var MemoryManager */
+	private $memoryManager;
+
+	/** @var CommandReader */
 	private $console = null;
-	private $consoleThreaded;
-	
-	private $cmdMap = null;
-	
-	private $craftingMgr;
+
+	/** @var SimpleCommandMap */
+	private $commandMap = null;
+
+	/** @var CraftingManager */
+	private $craftingManager;
+
+	/** @var ResourcePackManager */
+	private $resourceManager;
 
 	/** @var ConsoleCommandSender */
 	private $consoleSender;
 
 	/** @var int */
-	private $maxPlayers = 25;
+	private $maxPlayers;
+
+	/** @var bool */
+	private $onlineMode = true;
 
 	/** @var bool */
 	private $autoSave;
-	
-	/** @var bool */
-	private $autoGenerate;
-	
-	/** @var bool */
-	private $savePlayerData;
 
 	/** @var RCON */
 	private $rcon;
@@ -193,44 +224,53 @@ class Server extends DarkSystem{
 
 	private $networkCompressionAsync = true;
 	public $networkCompressionLevel = 7;
-	
+
+	private $autoTickRate = true;
+	private $autoTickRateLimit = 20;
+	private $alwaysTickPlayers = false;
+	private $baseTickRate = 1;
+
 	private $autoSaveTicker = 0;
 	private $autoSaveTicks = 6000;
-	
-	private $language;
-	
-	private $forceLanguage = true;
-	
+
+	/** @var BaseLang */
+	private $baseLang;
+
+	private $forceLanguage = false;
+
 	private $serverID;
-	
+
 	private $autoloader;
 	private $filePath;
 	private $dataPath;
 	private $pluginPath;
-	
+
+	private $uniquePlayers = [];
+
 	/** @var QueryHandler */
 	private $queryHandler;
 
 	/** @var QueryRegenerateEvent */
-	private $queryRegenerator = null;
+	private $queryRegenerateTask = null;
 
 	/** @var Config */
 	private $properties;
-	
+
 	private $propertyCache = [];
-	
-	/** @var Config */
-	private $config;
 
 	/** @var Config */
-	private $softConfig;
+	private $config;
 
 	/** @var Player[] */
 	private $players = [];
 
 	/** @var Player[] */
+	private $loggedInPlayers = [];
+
+	/** @var Player[] */
 	private $playerList = [];
 
+	/** @var string[] */
 	private $identifiers = [];
 
 	/** @var Level[] */
@@ -239,243 +279,258 @@ class Server extends DarkSystem{
 	/** @var Level */
 	private $levelDefault = null;
 	
-	private $useAnimal;
-	private $animalLimit;
-	private $useMonster;
-	private $monsterLimit;
-	
-	public $packetMgr = null;
-	
-	private $spawnedEntity = [];
-	
-	private $unloadLevelQueue = [];
-	
-	private $serverPublicKey = "";
-	private $serverPrivateKey = "";
-	private $serverToken = "hksdYI3has";
-	
-	private $craftList = [];
-	
+		/** Advanced Config */
 	public $advancedConfig = null;
-	
+	public $weatherEnabled = true;
+	public $foodEnabled = true;
+	public $expEnabled = true;
 	public $keepInventory = false;
 	public $netherEnabled = false;
 	public $netherName = "nether";
 	public $netherLevel = null;
-	public $weatherEnabled = false;
 	public $weatherRandomDurationMin = 6000;
 	public $weatherRandomDurationMax = 12000;
 	public $lightningTime = 200;
 	public $lightningFire = false;
-	public $endEnabled = false;
-    public $endName = "end";
-    public $endLevel = null;
-    public $redstoneEnabled = false;
-	public $checkMovement = true;
-	public $antiFly = true;
-	public $allowInstabreak = false;
-	public $dbotBroadcast = false;
-	public $isCmdBlockEnable = true;
-	public $advancedFlyCheck = false;
-	public $forceResources = false;
-	public $resourceStack = [];
-	public $forceBehavior = false;
-	public $behaviorStack = [];
-	
-	function unlink(){
-		return true;
-	}
-	
-	public function addSpawnedEntity($entity){
-		if($entity instanceof Player){
-			return false;
-		}
-		
-		$this->spawnedEntity[$entity->getId()] = $entity;
-	}
+	public $version;
+	public $allowSnowGolem;
+	public $allowIronGolem;
+	public $autoClearInv = true;
+	public $dserverConfig = [];
+	public $dserverPlayers = 0;
+	public $dserverAllPlayers = 0;
+	public $redstoneEnabled = false;
+	public $allowFrequencyPulse = true;
+	public $anvilEnabled = false;
+	public $pulseFrequency = 20;
+	public $keepExperience = false;
+	public $limitedCreative = true;
+	public $chunkRadius = -1;
+	public $destroyBlockParticle = true;
+	public $allowSplashPotion = true;
+	public $fireSpread = false;
+	public $advancedCommandSelector = false;
+	public $enchantingTableEnabled = true;
+	public $countBookshelf = false;
+	public $allowInventoryCheats = false;
+	public $folderpluginloader = true;
+	public $loadIncompatibleAPI = true;
+	public $enderEnabled = true;
+	public $enderName = "ender";
+	public $enderLevel = null;
+	public $absorbWater = false;
 
-	public function removeSpawnedEntity($entity){
-		unset($this->spawnedEntity[$entity->getId()]);
-	}
-	
-	public function isUseAnimal(){
-		return $this->useAnimal;
-	}
-
-	public function getAnimalLimit(){
-		return $this->animalLimit;
-	}
-
-	public function isUseMonster(){
-		return $this->useMonster;
-	}
-
-	public function getMonsterLimit(){
-		return $this->monsterLimit;
-	}
-	
-	public function getName(){
-		/*$class = $this->getCallingClass();
-		if(strchr($class, "SpoonDetector")){
-			if(Translate::checkTurkish() === "yes"){
-				$this->konsol->debug($class . " İsimli Spoon Detektörü Engellendi!");
-			}else{
-				$this->konsol->debug("A Spoon Detector Blocked Called as (!): " . $class);
-			}
-			
-			return "PocketMine-MP";
-		}*/
-		
-		return "DarkSystem";
-	}
-	
-	/*private function getCallingClass(){
-		$trace = debug_backtrace();
-		$class = $trace[1]["class"];
-		for($i=1; $i < count($trace); $i++){
-			if(isset($trace[$i])){
-				if($class != $trace[$i]["class"]){
-					return $trace[$i]["class"];
-				}
-			}
-		}
-		
-		return "null";
-	}*/
-	
-	public function isRunning(){
-		return $this->isRunning === true;
-	}
-	
-	public function getDarkSystemVersion(){
-		return \pocketmine\VERSION;
-	}
-	
-	public function getPocketMineVersion(){
-		return \pocketmine\VERSION;
-	}
-	
-	public function getFormattedVersion($prefix = ""){
-		return (\pocketmine\VERSION !== "" ? $prefix . \pocketmine\VERSION : "");
-	}
-	
-	public function getSoftwareName(){
+	/**
+	 * @return string
+	 */
+	public function getName() : string{
 		return \pocketmine\NAME;
 	}
-	
-	public function getCodename(){
+
+	/**
+	 * @return bool
+	 */
+	public function isRunning() : bool{
+		return $this->isRunning === true;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getPocketMineVersion() : string{
+		return \pocketmine\VERSION;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getCodename() : string{
 		return \pocketmine\CODENAME;
 	}
-	
-	public function getVersion(){
+
+	/**
+	 * @return string
+	 */
+	public function getVersion() : string{
 		return ProtocolInfo::MINECRAFT_VERSION;
 	}
-	
-	public function getApiVersion(){
+
+	/**
+	 * @return string
+	 */
+	public function getApiVersion() : string{
 		return \pocketmine\API_VERSION;
 	}
+
+		/**
+	 * @return string
+	 */
+	public function getiTXApiVersion(){
+		return \pocketmine\GENISYS_API_VERSION;
+	}
 	
-	public function getFilePath(){
+	/**
+	 * @return string
+	 */
+	public function getGeniApiVersion(){
+		return \pocketmine\GENISYS_API_VERSION;
+	}
+		
+ 	/**
+ 	* @return string
+ 	*/
+ 	public function getGitCommit(){
+ 		return \pocketmine\GIT_COMMIT;
+ 	}
+ 	
+ 	/**
+ 	* @return string
+ 	*/
+	public function getShortGitCommit(){
+ 		return substr(\pocketmine\GIT_COMMIT, 0, 7);
+ 	}
+
+  
+	
+	/**
+	 * @return string
+	 */
+	public function getFilePath() : string{
 		return $this->filePath;
 	}
-	
-	public function getDataPath(){
+
+	/**
+	 * @return string
+	 */
+	public function getDataPath() : string{
 		return $this->dataPath;
 	}
-	
-	public function getPluginPath(){
+
+	/**
+	 * @return string
+	 */
+	public function getPluginPath() : string{
 		return $this->pluginPath;
 	}
-	
-	public function getMaxPlayers(){
+
+	/**
+	 * @return int
+	 */
+	public function getMaxPlayers() : int{
 		return $this->maxPlayers;
 	}
-	
-	public function getPort(){
+
+	/**
+	 * Returns whether the server requires that players be authenticated to Xbox Live. If true, connecting players who
+	 * are not logged into Xbox Live will be disconnected.
+	 *
+	 * @return bool
+	 */
+	public function getOnlineMode() : bool{
+		return $this->onlineMode;
+	}
+
+	/**
+	 * Alias of {@link #getOnlineMode()}.
+	 * @return bool
+	 */
+	public function requiresAuthentication() : bool{
+		return $this->getOnlineMode();
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getPort() : int{
 		return $this->getConfigInt("server-port", 19132);
 	}
-	
-	public function getViewDistance(){
-		return 72;
+
+	/**
+	 * @return int
+	 */
+	public function getViewDistance() : int{
+		return max(2, $this->getConfigInt("view-distance", 8));
 	}
-	
-	public function getIp(){
+
+	/**
+	 * Returns a view distance up to the currently-allowed limit.
+	 *
+	 * @param int $distance
+	 *
+	 * @return int
+	 */
+	public function getAllowedViewDistance(int $distance) : int{
+		return max(2, min($distance, $this->memoryManager->getViewDistance($this->getViewDistance())));
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getIp() : string{
 		return $this->getConfigString("server-ip", "0.0.0.0");
 	}
-	
+
+	/**
+	 * @return UUID
+	 */
 	public function getServerUniqueId(){
 		return $this->serverID;
 	}
-	
-	public function getStringTranslator(){
-		return $this->stranslator;
-	}
-	
-	public function getServerLanguage(){
-		if(!file_exists($this->getDataPath() . "sunucu.properties") && !file_exists($this->getDataPath() . "yoneticiler.json") && !file_exists($this->getDataPath() . "beyaz-liste.json")){
-			return Translate::ENG;
-		}else{
-			return Translate::TUR;
-		}
-	}
-	
-	public function getServerName(){
-		if(Translate::checkTurkish() === "yes"){
-			return $this->getConfigString("motd", $this->getCodename() . " Sunucusu");
-		}else{
-			return $this->getConfigString("motd", $this->getCodename() . " Server");
-		}
-	}
-	
-	public function getAutoSave(){
+
+	/**
+	 * @return bool
+	 */
+	public function getAutoSave() : bool{
 		return $this->autoSave;
 	}
-	
-	public function setAutoSave($value){
-		$this->autoSave = (bool) $value;
-		foreach($this->levels as $l){
-			$l->setAutoSave($this->autoSave);
+
+	/**
+	 * @param bool $value
+	 */
+	public function setAutoSave(bool $value){
+		$this->autoSave = $value;
+		foreach($this->getLevels() as $level){
+			$level->setAutoSave($this->autoSave);
 		}
 	}
-	
-	public function getAutoGenerate(){
-		return $this->autoGenerate;
-	}
-	
-	public function setAutoGenerate($value){
-		$this->autoGenerate = (bool) $value;
-	}
-	
-	public function getSavePlayerData(){
-		return $this->savePlayerData;
-	}
-	
-	public function setSavePlayerData($value){
-		$this->savePlayerData = (bool) $value;
-	}
-	
-	public function getOps(){
-		return $this->operators;
-	}
-	
-	public function getLevelType(){
+
+	/**
+	 * @return string
+	 */
+	public function getLevelType() : string{
 		return $this->getConfigString("level-type", "DEFAULT");
 	}
-	
-	public function getGenerateStructures(){
+
+	/**
+	 * @return bool
+	 */
+	public function getGenerateStructures() : bool{
 		return $this->getConfigBoolean("generate-structures", true);
 	}
-	
-	public function getGamemode(){
+
+	/**
+	 * @return int
+	 */
+	public function getGamemode() : int{
 		return $this->getConfigInt("gamemode", 0) & 0b11;
 	}
-	
-	public function getForceGamemode(){
-		return $this->getConfigBoolean("force-gamemode", true);
+
+	/**
+	 * @return bool
+	 */
+	public function getForceGamemode() : bool{
+		return $this->getConfigBoolean("force-gamemode", false);
 	}
-	
-	public static function getGamemodeString($mode){
-		switch((int) $mode){
+
+	/**
+	 * Returns the gamemode text name
+	 *
+	 * @param int $mode
+	 *
+	 * @return string
+	 */
+	public static function getGamemodeString(int $mode) : string{
+		switch($mode){
 			case Player::SURVIVAL:
 				return "%gameMode.survival";
 			case Player::CREATIVE:
@@ -486,388 +541,386 @@ class Server extends DarkSystem{
 				return "%gameMode.spectator";
 		}
 
-		return "BILINMEYEN";
+		return "UNKNOWN";
 	}
-	
-	public static function getGamemodeFromString($str){
+
+	public static function getGamemodeName(int $mode) : string{
+		switch($mode){
+			case Player::SURVIVAL:
+				return "Survival";
+			case Player::CREATIVE:
+				return "Creative";
+			case Player::ADVENTURE:
+				return "Adventure";
+			case Player::SPECTATOR:
+				return "Spectator";
+			default:
+				throw new \InvalidArgumentException("Invalid gamemode $mode");
+		}
+	}
+
+	/**
+	 * Parses a string and returns a gamemode integer, -1 if not found
+	 *
+	 * @param string $str
+	 *
+	 * @return int
+	 */
+	public static function getGamemodeFromString(string $str) : int{
 		switch(strtolower(trim($str))){
 			case (string) Player::SURVIVAL:
 			case "survival":
 			case "s":
 				return Player::SURVIVAL;
+
 			case (string) Player::CREATIVE:
 			case "creative":
 			case "c":
 				return Player::CREATIVE;
+
 			case (string) Player::ADVENTURE:
 			case "adventure":
 			case "a":
 				return Player::ADVENTURE;
+
 			case (string) Player::SPECTATOR:
 			case "spectator":
 			case "view":
 			case "v":
 				return Player::SPECTATOR;
 		}
-		
 		return -1;
 	}
-	
-	public static function getDifficultyFromString($str){
-		switch(strtolower(trim($str))){
-			case "0":
-			case "peaceful":
-			case "p":
-				return 0;
-			case "1":
-			case "easy":
-			case "e":
-				return 1;
-			case "2":
-			case "normal":
-			case "n":
-				return 2;
-			case "3":
-			case "hard":
-			case "h":
-				return 3;
-		}
-		
-		return -1;
+
+	/**
+	 * @deprecated Moved to {@link Level#getDifficultyFromString}
+	 *
+	 * @param string $str
+	 * @return int
+	 */
+	public static function getDifficultyFromString(string $str) : int{
+		return Level::getDifficultyFromString($str);
 	}
-	
-	public function getDifficulty(){
+
+	/**
+	 * Returns Server global difficulty. Note that this may be overridden in individual Levels.
+	 * @return int
+	 */
+	public function getDifficulty() : int{
 		return $this->getConfigInt("difficulty", 1);
 	}
-	
-	public function hasWhitelist(){
+
+	/**
+	 * @return bool
+	 */
+	public function hasWhitelist() : bool{
 		return $this->getConfigBoolean("white-list", false);
 	}
-	
-	public function getSpawnRadius(){
+
+	/**
+	 * @return int
+	 */
+	public function getSpawnRadius() : int{
 		return $this->getConfigInt("spawn-protection", 16);
 	}
-	
-	public function getAllowFlight(){
+
+	/**
+	 * @return bool
+	 */
+	public function getAllowFlight() : bool{
 		return $this->getConfigBoolean("allow-flight", false);
 	}
-	
-	public function isHardcore(){
+
+	/**
+	 * @return bool
+	 */
+	public function isHardcore() : bool{
 		return $this->getConfigBoolean("hardcore", false);
 	}
-	
-	public function getDefaultGamemode(){
+
+	/**
+	 * @return int
+	 */
+	public function getDefaultGamemode() : int{
 		return $this->getConfigInt("gamemode", 0) & 0b11;
 	}
-	
-	public function getMotd(){
-		if(Translate::checkTurkish() === "yes"){
-			return $this->getConfigString("motd", "DarkSystem Sunucusu");
-		}else{
-			return $this->getConfigString("motd", "DarkSystem Server");
-		}
+
+	/**
+	 * @return string
+	 */
+	public function getMotd() : string{
+		return $this->getConfigString("motd", \pocketmine\NAME . " Server");
 	}
-	
-	public function getDarkBot(){
-		return $this->dbot;
-	}
-	
-	public function getDarkBotPrefix(){
-		return DarkBot::PREFIX;
-	}
-	
+
+	/**
+	 * @return \ClassLoader
+	 */
 	public function getLoader(){
 		return $this->autoloader;
 	}
-	
+
+	/**
+	 * @return MainLogger
+	 */
 	public function getLogger(){
-		return $this->konsol;
+		return $this->logger;
 	}
-	
+
+	/**
+	 * @return EntityMetadataStore
+	 */
 	public function getEntityMetadata(){
 		return $this->entityMetadata;
 	}
-	
+
+	/**
+	 * @return PlayerMetadataStore
+	 */
 	public function getPlayerMetadata(){
 		return $this->playerMetadata;
 	}
-	
+
+	/**
+	 * @return LevelMetadataStore
+	 */
 	public function getLevelMetadata(){
 		return $this->levelMetadata;
 	}
-	
+
+	/**
+	 * @return AutoUpdater
+	 */
+	public function getUpdater(){
+		return $this->updater;
+	}
+
+	/**
+	 * @return PluginManager
+	 */
 	public function getPluginManager(){
-		return $this->pluginMgr;
+		return $this->pluginManager;
 	}
-	
+
+	/**
+	 * @return CraftingManager
+	 */
 	public function getCraftingManager(){
-		return $this->craftingMgr;
+		return $this->craftingManager;
 	}
-	
-	public function getResourcePackManager(){
-		return $this->resourceMgr;
+
+	/**
+	 * @return ResourcePackManager
+	 */
+	public function getResourceManager() : ResourcePackManager{
+		return $this->resourceManager;
 	}
-	
-	public function getBehaviorPackManager(){
-		return $this->behaviorMgr;
-	}
-	
-	public function getQueryInformation(){
-		return $this->queryRegenerator;
-	}
-	
+
+	/**
+	 * @return ServerScheduler
+	 */
 	public function getScheduler(){
 		return $this->scheduler;
 	}
-	
-	public function getTick(){
+
+	/**
+	 * @return int
+	 */
+	public function getTick() : int{
 		return $this->tickCounter;
 	}
-	
-	public function getTicksPerSecond(){
+
+	/**
+	 * Returns the last server TPS measure
+	 *
+	 * @return float
+	 */
+	public function getTicksPerSecond() : float{
+		return round($this->currentTPS, 2);
+	}
+
+	/**
+	 * Returns the last server TPS average measure
+	 *
+	 * @return float
+	 */
+	public function getTicksPerSecondAverage() : float{
 		return round(array_sum($this->tickAverage) / count($this->tickAverage), 2);
 	}
-	
-	public function getTickUsage(){
+
+	/**
+	 * Returns the TPS usage/load in %
+	 *
+	 * @return float
+	 */
+	public function getTickUsage() : float{
+		return round($this->currentUse * 100, 2);
+	}
+
+	/**
+	 * Returns the TPS usage/load average in %
+	 *
+	 * @return float
+	 */
+	public function getTickUsageAverage() : float{
 		return round((array_sum($this->useAverage) / count($this->useAverage)) * 100, 2);
 	}
-	
-	public function blockAddress($address, $timeout = 300){
-		$this->network->blockAddress($address, $timeout);
-	}
-	
-	public function sendPacket($address, $port, $payload){
-		$this->network->sendPacket($address, $port, $payload);
-	}
-	
-	public function getInterfaces(){
-		return $this->network->getInterfaces();
-	}
-	
-	public function addInterface(SourceInterface $interface){
-		$this->network->registerInterface($interface);
-	}
-	
-	public function removeInterface(SourceInterface $interface){
-		$interface->shutdown();
-		$this->network->unregisterInterface($interface);
-	}
-	
+
+	/**
+	 * @return SimpleCommandMap
+	 */
 	public function getCommandMap(){
-		return $this->cmdMap;
+		return $this->commandMap;
 	}
-	
-	public function getOnlinePlayers(){
+
+	/**
+	 * @return Player[]
+	 */
+	public function getLoggedInPlayers() : array{
+		return $this->loggedInPlayers;
+	}
+
+	/**
+	 * @return Player[]
+	 */
+	public function getOnlinePlayers() : array{
 		return $this->playerList;
 	}
 
 	public function addRecipe(Recipe $recipe){
-		$this->craftingMgr->registerRecipe($recipe);
+		$this->craftingManager->registerRecipe($recipe);
 	}
-	
-	public function getLanguage(){
-		return $this->language;
+
+	public function shouldSavePlayerData() : bool{
+		return (bool) $this->getProperty("player.save-player-data", true);
 	}
-	
-	public function isLanguageForced(){
-		return $this->forceLanguage;
-	}
-	
-	public function getNetwork(){
-		return $this->network;
-	}
-	
-	public function isCommandBlockEnable(){
-		return $this->isCmdBlockEnable;
-	}
-	
-	public function getTheme(){
-		return $this->getThemeManager()->getTheme();
-	}
-	
-	public function getThemeManager(){
-		return $this->themeManager;
-	}
-	
-	public function getServerPublicKey(){
-		return $this->serverPublicKey;
-	}
-	
-	public function getServerPrivateKey(){
-		return $this->serverPrivateKey;
-	}
-	
-	public function getServerToken(){
-		return $this->serverToken;
-	}
-	
-	public function getBuild(){
-		return $this->version->getBuild();
-	}
-	
-	public function getGameVersion(){
-		return $this->version->getRelease();
-	}
-	
-	public function isCreditsEnable(){
-		$isEnable = false; //TODO: Add config
-		switch($isEnable){
-			case true:
-			$result = 1;
-			break;
-			case false:
-			$result = 0;
-			break;
-		}
-		
-		return $result;
-	}
-	
-	public function isSupportProtocol($protocol){
-		if(in_array($protocol, ProtocolInfo::ACCEPTED_PROTOCOLS) || $protocol == ProtocolInfo::CURRENT_PROTOCOL){
-			return true;
-		}
-		
-		return false;
-	}
-	
-	public function clearChat(){
-		foreach($this->getOnlinePlayers() as $p){
-			$p->sendMessage(str_repeat(" \n", 60));
-		}
-	}
-	
-	public function getOfflinePlayer($name){
+
+	/**
+	 * @param string $name
+	 *
+	 * @return OfflinePlayer|Player
+	 */
+	public function getOfflinePlayer(string $name){
 		$name = strtolower($name);
 		$result = $this->getPlayerExact($name);
+
 		if($result === null){
 			$result = new OfflinePlayer($this, $name);
 		}
 
 		return $result;
 	}
-	
-	public function getOfflinePlayerData($name){
+
+	/**
+	 * @param string $name
+	 *
+	 * @return CompoundTag
+	 */
+	public function getOfflinePlayerData(string $name) : CompoundTag{
 		$name = strtolower($name);
-		
-		if(Translate::checkTurkish() === "yes"){
-		    $path = $this->getDataPath() . "oyuncular/";
-		}else{
-			$path = $this->getDataPath() . "players/";
-		}
-		
-		if(file_exists($path . "$name.dat")){
-			try{
-				$nbt = new NBT(NBT::BIG_ENDIAN);
-				$nbt->readCompressed(file_get_contents($path . "$name.dat"));
-				
-				return $nbt->getData();
-			}catch(\Exception $e){
-				rename($path . "$name.dat", $path . "$name.dat.bak");
-				$this->konsol->notice($this->getLanguage()->translateString("pocketmine.data.playerCorrupted", [$name]));
+		$path = $this->getDataPath() . "players/";
+		if($this->shouldSavePlayerData()){
+			if(file_exists($path . "$name.dat")){
+				try{
+					$nbt = new NBT(NBT::BIG_ENDIAN);
+					$nbt->readCompressed(file_get_contents($path . "$name.dat"));
+
+					return $nbt->getData();
+				}catch(\Throwable $e){ //zlib decode error / corrupt data
+					rename($path . "$name.dat", $path . "$name.dat.bak");
+					$this->logger->notice($this->getLanguage()->translateString("pocketmine.data.playerCorrupted", [$name]));
+				}
+			}else{
+				$this->logger->notice($this->getLanguage()->translateString("pocketmine.data.playerNotFound", [$name]));
 			}
-		}else{
-			$this->konsol->notice($this->getLanguage()->translateString("pocketmine.data.playerNotFound", [$name]));
 		}
-		
 		$spawn = $this->getDefaultLevel()->getSafeSpawn();
 		$nbt = new CompoundTag("", [
-			new LongTag("firstPlayed", floor(microtime(true) * 1000)),
-			new LongTag("lastPlayed", floor(microtime(true) * 1000)),
+			new LongTag("firstPlayed", (int) (microtime(true) * 1000)),
+			new LongTag("lastPlayed", (int) (microtime(true) * 1000)),
 			new ListTag("Pos", [
-				new DoubleTag(0, $spawn->x),
-				new DoubleTag(1, $spawn->y),
-				new DoubleTag(2, $spawn->z)
+				new DoubleTag("", $spawn->x),
+				new DoubleTag("", $spawn->y),
+				new DoubleTag("", $spawn->z)
 			]),
 			new StringTag("Level", $this->getDefaultLevel()->getName()),
+			//new StringTag("SpawnLevel", $this->getDefaultLevel()->getName()),
+			//new IntTag("SpawnX", (int) $spawn->x),
+			//new IntTag("SpawnY", (int) $spawn->y),
+			//new IntTag("SpawnZ", (int) $spawn->z),
+			//new ByteTag("SpawnForced", 1), //TODO
 			new ListTag("Inventory", []),
-			new ListTag("EnderChestInventory", []),
-			new ListTag("recipeBook", []),
 			new CompoundTag("Achievements", []),
-			new CompoundTag("EnderItems", []),
-			new IntTag("Score", 0),
-			new IntTag("ShoulderEntityLeft", 0),
-			new IntTag("ShoulderEntityRight", 0),
-			new IntTag("seenCredits", $this->isCreditsEnable()),
 			new IntTag("playerGameType", $this->getGamemode()),
 			new ListTag("Motion", [
-				new DoubleTag(0, 0.0),
-				new DoubleTag(1, 0.0),
-				new DoubleTag(2, 0.0)
+				new DoubleTag("", 0.0),
+				new DoubleTag("", 0.0),
+				new DoubleTag("", 0.0)
 			]),
 			new ListTag("Rotation", [
-				new FloatTag(0, 0.0),
-				new FloatTag(1, 0.0)
+				new FloatTag("", 0.0),
+				new FloatTag("", 0.0)
 			]),
 			new FloatTag("FallDistance", 0.0),
 			new ShortTag("Fire", 0),
 			new ShortTag("Air", 300),
 			new ByteTag("OnGround", 1),
 			new ByteTag("Invulnerable", 0),
-			new StringTag("NameTag", $name),
+			new StringTag("NameTag", $name)
 		]);
-		
 		$nbt->Pos->setTagType(NBT::TAG_Double);
 		$nbt->Inventory->setTagType(NBT::TAG_Compound);
-		$nbt->EnderChestInventory->setTagType(NBT::TAG_Compound);
 		$nbt->Motion->setTagType(NBT::TAG_Double);
 		$nbt->Rotation->setTagType(NBT::TAG_Float);
-		
+
 		return $nbt;
+
 	}
-	
-	public function saveOfflinePlayerData($name, CompoundTag $nbtTag, $async = false){
+
+	/**
+	 * @param string      $name
+	 * @param CompoundTag $nbtTag
+	 * @param bool        $async
+	 */
+	public function saveOfflinePlayerData(string $name, CompoundTag $nbtTag, bool $async = false){
 		$ev = new PlayerDataSaveEvent($nbtTag, $name);
-		$this->getPluginManager()->callEvent($ev);
-		
-		if($ev->isCancelled()){
-			if(Translate::checkTurkish() === "yes"){
-				$this->konsol->emergency("Oyuncu Bilgileri Kaydedilemedi!");
-			}else{
-				$this->konsol->emergency("Player Data Save Error!");
-			}
-		}
-		
-		$nbt = new NBT(NBT::BIG_ENDIAN);
-		
-		try{
-			$nbt->setData($nbtTag);
-			
-			if(Translate::checkTurkish() === "yes"){
-			    if($async){
-				    $this->scheduler->scheduleAsyncTask(new FileWriteTask($this->getDataPath() . "oyuncular/" . strtolower($name) . ".dat", $nbt->writeCompressed()));
-			    }else{
-				    file_put_contents($this->getDataPath() . "oyuncular/" . strtolower($name) . ".dat", $nbt->writeCompressed());
-			    }
-			}else{
-			    if($async){
-				    $this->scheduler->scheduleAsyncTask(new FileWriteTask($this->getDataPath() . "players/" . strtolower($name) . ".dat", $nbt->writeCompressed()));
-			    }else{
-				    file_put_contents($this->getDataPath() . "players/" . strtolower($name) . ".dat", $nbt->writeCompressed());
-			    }
-			}
-		}catch(\Exception $e){
-			$this->konsol->critical($this->getLanguage()->translateString("pocketmine.data.saveError", [$name, $e->getMessage()]));
-			if(\pocketmine\DEBUG > 1 && $this->konsol instanceof MainLogger){
-				$this->konsol->logException($e);
+		$ev->setCancelled(!$this->shouldSavePlayerData());
+
+		$this->pluginManager->callEvent($ev);
+
+		if(!$ev->isCancelled()){
+			$nbt = new NBT(NBT::BIG_ENDIAN);
+			try{
+				$nbt->setData($ev->getSaveData());
+
+				if($async){
+					$this->getScheduler()->scheduleAsyncTask(new FileWriteTask($this->getDataPath() . "players/" . strtolower($name) . ".dat", $nbt->writeCompressed()));
+				}else{
+					file_put_contents($this->getDataPath() . "players/" . strtolower($name) . ".dat", $nbt->writeCompressed());
+				}
+			}catch(\Throwable $e){
+				$this->logger->critical($this->getLanguage()->translateString("pocketmine.data.saveError", [$name, $e->getMessage()]));
+				$this->logger->logException($e);
 			}
 		}
 	}
-	
-	public function getPlayer($name){
+
+	/**
+	 * @param string $name
+	 *
+	 * @return Player|null
+	 */
+	public function getPlayer(string $name){
 		$found = null;
 		$name = strtolower($name);
 		$delta = PHP_INT_MAX;
-		foreach($this->getOnlinePlayers() as $p){
-			$playerName = strtolower($p->getName());
-			if(strpos($playerName, $name) === 0){
-				$curDelta = strlen($playerName) - strlen($name);
+		foreach($this->getOnlinePlayers() as $player){
+			if(stripos($player->getName(), $name) === 0){
+				$curDelta = strlen($player->getName()) - strlen($name);
 				if($curDelta < $delta){
-					$found = $p;
+					$found = $player;
 					$delta = $curDelta;
 				}
-				
-				if($curDelta == 0){
+				if($curDelta === 0){
 					break;
 				}
 			}
@@ -875,34 +928,46 @@ class Server extends DarkSystem{
 
 		return $found;
 	}
-	
-	public function getPlayerExact($name){
+
+	/**
+	 * @param string $name
+	 *
+	 * @return Player|null
+	 */
+	public function getPlayerExact(string $name){
 		$name = strtolower($name);
-		foreach($this->getOnlinePlayers() as $p){
-			if(strtolower($p->getName()) === $name){
-				return $p;
+		foreach($this->getOnlinePlayers() as $player){
+			if($player->getLowerCaseName() === $name){
+				return $player;
 			}
 		}
 
 		return null;
 	}
-	
-	public function matchPlayer($partialName){
+
+	/**
+	 * @param string $partialName
+	 *
+	 * @return Player[]
+	 */
+	public function matchPlayer(string $partialName) : array{
 		$partialName = strtolower($partialName);
 		$matchedPlayers = [];
-		foreach($this->getOnlinePlayers() as $p){
-			$playerName = strtolower($p->getName());
-			if($playerName === $partialName){
-				$matchedPlayers = [$p];
+		foreach($this->getOnlinePlayers() as $player){
+			if($player->getLowerCaseName() === $partialName){
+				$matchedPlayers = [$player];
 				break;
-			}elseif(strpos($playerName, $partialName) !== false){
-				$matchedPlayers[] = $p;
+			}elseif(stripos($player->getName(), $partialName) !== false){
+				$matchedPlayers[] = $player;
 			}
 		}
 
 		return $matchedPlayers;
 	}
-	
+
+	/**
+	 * @param Player $player
+	 */
 	public function removePlayer(Player $player){
 		if(isset($this->identifiers[$hash = spl_object_hash($player)])){
 			$identifier = $this->identifiers[$hash];
@@ -919,89 +984,130 @@ class Server extends DarkSystem{
 			}
 		}
 	}
-	
-	public function getLevels(){
+
+	/**
+	 * @return Level[]
+	 */
+	public function getLevels() : array{
 		return $this->levels;
 	}
-	
-	public function getDefaultLevel(){
+
+	/**
+	 * @return Level|null
+	 */
+	public function getDefaultLevel() : ?Level{
 		return $this->levelDefault;
 	}
-	
-	public function setDefaultLevel($level){
-		if($level === null || ($this->isLevelLoaded($level->getFolderName()) && $level !== $this->levelDefault)){
+
+	/**
+	 * Sets the default level to a different level
+	 * This won't change the level-name property,
+	 * it only affects the server on runtime
+	 *
+	 * @param Level|null $level
+	 */
+	public function setDefaultLevel(?Level $level) : void{
+		if($level === null or ($this->isLevelLoaded($level->getFolderName()) and $level !== $this->levelDefault)){
 			$this->levelDefault = $level;
 		}
 	}
-	
-	public function isLevelLoaded($name){
+
+	/**
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	public function isLevelLoaded(string $name) : bool{
 		return $this->getLevelByName($name) instanceof Level;
 	}
-	
-	public function getLevel($levelId){
-		if(isset($this->levels[$levelId])){
-			return $this->levels[$levelId];
-		}
 
-		return null;
+	/**
+	 * @param int $levelId
+	 *
+	 * @return Level|null
+	 */
+	public function getLevel(int $levelId) : ?Level{
+		return $this->levels[$levelId] ?? null;
 	}
-	
-	public function getLevelByName($name){
-		foreach($this->levels as $l){
-			if($l->getFolderName() === $name){
-				return $l;
+
+	/**
+	 * NOTE: This matches levels based on the FOLDER name, NOT the display name.
+	 *
+	 * @param string $name
+	 *
+	 * @return Level|null
+	 */
+	public function getLevelByName(string $name) : ?Level{
+		foreach($this->getLevels() as $level){
+			if($level->getFolderName() === $name){
+				return $level;
 			}
 		}
 
 		return null;
 	}
-	
-	public function unloadLevel(Level $level, $forceUnload = false, $direct = false){
-		if($direct){
-			if($level->unload($forceUnload) === true){
-				unset($this->levels[$level->getId()]);
-				return true;
-			}
-		}else{
-			$this->unloadLevelQueue[$level->getId()] = ["level" => $level, "force" => $forceUnload];
+
+	/**
+	 * @param Level $level
+	 * @param bool  $forceUnload
+	 *
+	 * @return bool
+	 *
+	 * @throws \InvalidStateException
+	 */
+	public function unloadLevel(Level $level, bool $forceUnload = false) : bool{
+		if($level === $this->getDefaultLevel() and !$forceUnload){
+			throw new \InvalidStateException("The default level cannot be unloaded while running, please switch levels.");
 		}
 
-		return false;
+		return $level->unload($forceUnload);
 	}
-	
-	public function loadLevel($name){
+
+	/**
+	 * @internal
+	 * @param Level $level
+	 */
+	public function removeLevel(Level $level) : void{
+		unset($this->levels[$level->getId()]);
+	}
+
+	/**
+	 * Loads a level from the data directory
+	 *
+	 * @param string $name
+	 *
+	 * @return bool
+	 *
+	 * @throws LevelException
+	 */
+	public function loadLevel(string $name) : bool{
 		if(trim($name) === ""){
-			throw new LevelException("Geçersiz Dünya İsmi!");
+			throw new LevelException("Invalid empty level name");
 		}
-		
 		if($this->isLevelLoaded($name)){
 			return true;
 		}elseif(!$this->isLevelGenerated($name)){
-			$this->konsol->notice($this->getLanguage()->translateString("pocketmine.level.notFound", [$name]));
+			$this->logger->notice($this->getLanguage()->translateString("pocketmine.level.notFound", [$name]));
+
 			return false;
 		}
-		
-		if(Translate::checkTurkish() === "yes"){
-		    $path = $this->getDataPath() . "dunyalar/" . $name . "/";
-		}else{
-			$path = $this->getDataPath() . "worlds/" . $name . "/";
-		}
-		
+
+		$path = $this->getDataPath() . "worlds/" . $name . "/";
+
 		$provider = LevelProviderManager::getProvider($path);
 
 		if($provider === null){
-			$this->konsol->error($this->getLanguage()->translateString("pocketmine.level.loadError", [$name, "Bilinmeyen Harita Yükleyici"]));
+			$this->logger->error($this->getLanguage()->translateString("pocketmine.level.loadError", [$name, "Unknown provider"]));
+
 			return false;
 		}
-		
+
 		try{
 			$level = new Level($this, $name, $path, $provider);
-		}catch(\Exception $e){
-			$this->konsol->error($this->getLanguage()->translateString("pocketmine.level.loadError", [$name, $e->getMessage()]));
-			if($this->konsol instanceof MainLogger){
-				$this->konsol->logException($e);
-			}
-			
+		}catch(\Throwable $e){
+
+			$this->logger->error($this->getLanguage()->translateString("pocketmine.level.loadError", [$name, $e->getMessage()]));
+			$this->logger->logException($e);
 			return false;
 		}
 
@@ -1009,86 +1115,102 @@ class Server extends DarkSystem{
 
 		$level->initLevel();
 
-		$this->pluginMgr->callEvent(new LevelLoadEvent($level));
-		
+		$this->getPluginManager()->callEvent(new LevelLoadEvent($level));
+
+		$level->setTickRate($this->baseTickRate);
+
 		return true;
 	}
-	
-	public function generateLevel($name, $seed = null, $options = []){
-		if(trim($name) === "" || $this->isLevelGenerated($name)){
+
+	/**
+	 * Generates a new level if it does not exists
+	 *
+	 * @param string      $name
+	 * @param int|null    $seed
+	 * @param string|null $generator Class name that extends pocketmine\level\generator\Noise
+	 * @param array       $options
+	 *
+	 * @return bool
+	 */
+	public function generateLevel(string $name, int $seed = null, $generator = null, array $options = []) : bool{
+		if(trim($name) === "" or $this->isLevelGenerated($name)){
 			return false;
 		}
 
-		$seed = $seed === null ? Binary::readInt(@Utils::getRandomBytes(4, false)) : (int) $seed;
+		$seed = $seed ?? Binary::readInt(random_bytes(4));
 
-		if(($provider = LevelProviderManager::getProviderByName($providerName = $this->getProperty("level-settings.default-format", "anvil"))) === null){
-			$provider = LevelProviderManager::getProviderByName($providerName = "anvil");
+		if(!isset($options["preset"])){
+			$options["preset"] = $this->getConfigString("generator-settings", "");
+		}
+
+		if(!($generator !== null and class_exists($generator, true) and is_subclass_of($generator, Generator::class))){
+			$generator = Generator::getGenerator($this->getLevelType());
+		}
+
+		if(($provider = LevelProviderManager::getProviderByName($providerName = $this->getProperty("level-settings.default-format", "pmanvil"))) === null){
+			$provider = LevelProviderManager::getProviderByName($providerName = "pmanvil");
 		}
 
 		try{
-			if(Translate::checkTurkish() === "yes"){
-			    $path = $this->getDataPath() . "dunyalar/" . $name . "/";
-			}else{
-				$path = $this->getDataPath() . "worlds/" . $name . "/";
-			}
-			
-			$provider::generate($path, $name, $seed, $options);
+			$path = $this->getDataPath() . "worlds/" . $name . "/";
+			/** @var LevelProvider $provider */
+			$provider::generate($path, $name, $seed, $generator, $options);
 
-			$level = new Level($this, $name, $path, $provider);
+			$level = new Level($this, $name, $path, (string) $provider);
 			$this->levels[$level->getId()] = $level;
 
 			$level->initLevel();
-		}catch(\Exception $e){
-			$this->konsol->error("Could not generate level \"" . $name . "\": " . $e->getMessage());
-			if($this->konsol instanceof MainLogger){
-				$this->konsol->logException($e);
-			}
-			
+
+			$level->setTickRate($this->baseTickRate);
+		}catch(\Throwable $e){
+			$this->logger->error($this->getLanguage()->translateString("pocketmine.level.generateError", [$name, $e->getMessage()]));
+			$this->logger->logException($e);
 			return false;
 		}
 
-		$this->pluginMgr->callEvent(new LevelInitEvent($level));
-		$this->pluginMgr->callEvent(new LevelLoadEvent($level));
+		$this->getPluginManager()->callEvent(new LevelInitEvent($level));
 
-		if($this->getAutoGenerate()){
-			$centerX = $level->getSpawnLocation()->getX() >> 4;
-			$centerZ = $level->getSpawnLocation()->getZ() >> 4;
+		$this->getPluginManager()->callEvent(new LevelLoadEvent($level));
 
-			$order = [];
+		$this->getLogger()->notice($this->getLanguage()->translateString("pocketmine.level.backgroundGeneration", [$name]));
 
-			for($X = -3; $X <= 3; ++$X){
-				for($Z = -3; $Z <= 3; ++$Z){
-					$distance = $X ** 2 + $Z ** 2;
-					$chunkX = $X + $centerX;
-					$chunkZ = $Z + $centerZ;
-					$index = Level::chunkHash($chunkX, $chunkZ);
-					$order[$index] = $distance;
-				}
+		$centerX = $level->getSpawnLocation()->getX() >> 4;
+		$centerZ = $level->getSpawnLocation()->getZ() >> 4;
+
+		$order = [];
+
+		for($X = -3; $X <= 3; ++$X){
+			for($Z = -3; $Z <= 3; ++$Z){
+				$distance = $X ** 2 + $Z ** 2;
+				$chunkX = $X + $centerX;
+				$chunkZ = $Z + $centerZ;
+				$index = Level::chunkHash($chunkX, $chunkZ);
+				$order[$index] = $distance;
 			}
+		}
 
-			asort($order);
+		asort($order);
 
-			foreach($order as $index => $distance){
-				Level::getXZ($index, $chunkX, $chunkZ);
-				$level->generateChunk($chunkX, $chunkZ, true);
-			}
+		foreach($order as $index => $distance){
+			Level::getXZ($index, $chunkX, $chunkZ);
+			$level->populateChunk($chunkX, $chunkZ, true);
 		}
 
 		return true;
 	}
-	
-	public function isLevelGenerated($name){
+
+	/**
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	public function isLevelGenerated(string $name) : bool{
 		if(trim($name) === ""){
 			return false;
 		}
-		
-		if(Translate::checkTurkish() === "yes"){
-		    $path = $this->getDataPath() . "dunyalar/" . $name . "/";
-		}else{
-			$path = $this->getDataPath() . "worlds/" . $name . "/";
-		}
-		
+		$path = $this->getDataPath() . "worlds/" . $name . "/";
 		if(!($this->getLevelByName($name) instanceof Level)){
+
 			if(LevelProviderManager::getProvider($path) === null){
 				return false;
 			}
@@ -1096,33 +1218,39 @@ class Server extends DarkSystem{
 
 		return true;
 	}
-	
-	public function findEntity($entityId, Level $expectedLevel = null){
+
+	/**
+	 * Searches all levels for the entity with the specified ID.
+	 * Useful for tracking entities across multiple worlds without needing strong references.
+	 *
+	 * @param int        $entityId
+	 * @param Level|null $expectedLevel Level to look in first for the target
+	 *
+	 * @return Entity|null
+	 */
+	public function findEntity(int $entityId, Level $expectedLevel = null){
 		$levels = $this->levels;
 		if($expectedLevel !== null){
 			array_unshift($levels, $expectedLevel);
 		}
 
-		foreach($levels as $l){
-			assert(!$l->isClosed());
-			if(($entity = $l->getEntity($entityId)) instanceof Entity){
+		foreach($levels as $level){
+			assert(!$level->isClosed());
+			if(($entity = $level->getEntity($entityId)) instanceof Entity){
 				return $entity;
 			}
 		}
 
 		return null;
 	}
-	
-	public function getConfigString($variable, $defaultValue = ""){
-		$v = getopt("", ["$variable::"]);
-		if(isset($v[$variable])){
-			return (string) $v[$variable];
-		}
 
-		return $this->properties->exists($variable) ? $this->properties->get($variable): $defaultValue;
-	}
-	
-	public function getProperty($variable, $defaultValue = null){
+	/**
+	 * @param string $variable
+	 * @param mixed  $defaultValue
+	 *
+	 * @return mixed
+	 */
+	public function getProperty(string $variable, $defaultValue = null){
 		if(!array_key_exists($variable, $this->propertyCache)){
 			$v = getopt("", ["$variable::"]);
 			if(isset($v[$variable])){
@@ -1132,38 +1260,72 @@ class Server extends DarkSystem{
 			}
 		}
 
-		return $this->propertyCache[$variable] === null ? $defaultValue : $this->propertyCache[$variable];
+		return $this->propertyCache[$variable] ?? $defaultValue;
 	}
-	
-	public function setConfigString($variable, $value){
+
+	/**
+	 * @param string $variable
+	 * @param string $defaultValue
+	 *
+	 * @return string
+	 */
+	public function getConfigString(string $variable, string $defaultValue = "") : string{
+		$v = getopt("", ["$variable::"]);
+		if(isset($v[$variable])){
+			return (string) $v[$variable];
+		}
+
+		return $this->properties->exists($variable) ? (string) $this->properties->get($variable) : $defaultValue;
+	}
+
+	/**
+	 * @param string $variable
+	 * @param string $value
+	 */
+	public function setConfigString(string $variable, string $value){
 		$this->properties->set($variable, $value);
 	}
-	
-	public function getConfigInt($variable, $defaultValue = 0){
+
+	/**
+	 * @param string $variable
+	 * @param int    $defaultValue
+	 *
+	 * @return int
+	 */
+	public function getConfigInt(string $variable, int $defaultValue = 0) : int{
 		$v = getopt("", ["$variable::"]);
 		if(isset($v[$variable])){
 			return (int) $v[$variable];
 		}
 
-		return $this->properties->exists($variable) ? (int) $this->properties->get($variable): (int) $defaultValue;
+		return $this->properties->exists($variable) ? (int) $this->properties->get($variable) : $defaultValue;
 	}
-	
-	public function setConfigInt($variable, $value){
-		$this->properties->set($variable, (int) $value);
+
+	/**
+	 * @param string $variable
+	 * @param int    $value
+	 */
+	public function setConfigInt(string $variable, int $value){
+		$this->properties->set($variable, $value);
 	}
-	
-	public function getConfigBoolean($variable, $defaultValue = false){
+
+	/**
+	 * @param string $variable
+	 * @param bool   $defaultValue
+	 *
+	 * @return bool
+	 */
+	public function getConfigBoolean(string $variable, bool $defaultValue = false) : bool{
 		$v = getopt("", ["$variable::"]);
 		if(isset($v[$variable])){
 			$value = $v[$variable];
 		}else{
-			$value = $this->properties->exists($variable) ? $this->properties->get($variable): $defaultValue;
+			$value = $this->properties->exists($variable) ? $this->properties->get($variable) : $defaultValue;
 		}
 
 		if(is_bool($value)){
 			return $value;
 		}
-		
 		switch(strtolower($value)){
 			case "on":
 			case "true":
@@ -1174,84 +1336,122 @@ class Server extends DarkSystem{
 
 		return false;
 	}
-	
-	public function setConfigBool($variable, $value){
+
+	/**
+	 * @param string $variable
+	 * @param bool   $value
+	 */
+	public function setConfigBool(string $variable, bool $value){
 		$this->properties->set($variable, $value == true ? "1" : "0");
 	}
-	
-	public function getPluginCommand($name){
-		if(($command = $this->cmdMap->getCommand($name)) instanceof PluginIdentifiableCommand){
+
+	/**
+	 * @param string $name
+	 *
+	 * @return PluginIdentifiableCommand|null
+	 */
+	public function getPluginCommand(string $name){
+		if(($command = $this->commandMap->getCommand($name)) instanceof PluginIdentifiableCommand){
 			return $command;
 		}else{
 			return null;
 		}
 	}
-	
-	public function getBans(){
-		return $this->banByName;
-	}
-	
+
+	/**
+	 * @return BanList
+	 */
 	public function getNameBans(){
 		return $this->banByName;
 	}
-	
+
+	/**
+	 * @return BanList
+	 */
 	public function getIPBans(){
 		return $this->banByIP;
 	}
-	
-	public function getCIDBans(){
-		return $this->banByCID;
-	}
-	
-	public function getUUIDBans(){
-		return $this->banByUUID;
-	}
-	
-	public function addOp($name){
+
+	/**
+	 * @param string $name
+	 */
+	public function addOp(string $name){
 		$this->operators->set(strtolower($name), true);
-		if(($player = $this->getPlayerExact($name)) instanceof Player){
+
+		if(($player = $this->getPlayerExact($name)) !== null){
 			$player->recalculatePermissions();
 		}
-		
-		$this->operators->save();
+		$this->operators->save(true);
 	}
-	
-	public function removeOp($name){
+
+	/**
+	 * @param string $name
+	 */
+	public function removeOp(string $name){
 		$this->operators->remove(strtolower($name));
-		if(($player = $this->getPlayerExact($name)) instanceof Player){
+
+		if(($player = $this->getPlayerExact($name)) !== null){
 			$player->recalculatePermissions();
 		}
-		
 		$this->operators->save();
 	}
-	
-	public function addWhitelist($name){
+
+	/**
+	 * @param string $name
+	 */
+	public function addWhitelist(string $name){
 		$this->whitelist->set(strtolower($name), true);
-		$this->whitelist->save();
+		$this->whitelist->save(true);
 	}
-	
-	public function removeWhitelist($name){
+
+	/**
+	 * @param string $name
+	 */
+	public function removeWhitelist(string $name){
 		$this->whitelist->remove(strtolower($name));
 		$this->whitelist->save();
 	}
-	
-	public function isWhitelisted($name){
-		return !$this->hasWhitelist() || $this->operators->exists($name, true) || $this->whitelist->exists($name, true);
+
+	/**
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	public function isWhitelisted(string $name) : bool{
+		return !$this->hasWhitelist() or $this->operators->exists($name, true) or $this->whitelist->exists($name, true);
 	}
-	
-	public function isOp($name){
+
+	/**
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	public function isOp(string $name) : bool{
 		return $this->operators->exists($name, true);
 	}
-	
+
+	/**
+	 * @return Config
+	 */
 	public function getWhitelisted(){
 		return $this->whitelist;
 	}
-	
+
+	/**
+	 * @return Config
+	 */
+	public function getOps(){
+		return $this->operators;
+	}
+
 	public function reloadWhitelist(){
 		$this->whitelist->reload();
 	}
-	
-	public function getCommandAliases(){
+
+	/**
+	 * @return string[]
+	 */
+	public function getCommandAliases() : array{
 		$section = $this->getProperty("aliases");
 		$result = [];
 		if(is_array($section)){
@@ -1269,115 +1469,58 @@ class Server extends DarkSystem{
 
 		return $result;
 	}
-	
-	public function createQuery($server, $host, $user, $pass, $dbname, $port = 19132, $connect){
-		$this->query = new MySQLManager($server, $host, $user, $pass, $dbname, $port = 19132);
-		
-		if($connect){
-			$this->query->Connect();
-		}
+
+	/**
+	 * @return Server
+	 */
+	public static function getInstance() : Server{
+		return self::$instance;
 	}
-	
-	public function connectQuery(){
-		if($this->query !== null){
-			$this->query->Connect();
-		}
-	}
-	
-	public function getCrashPath(){
-		if(Translate::checkTurkish() === "yes"){
-		    return $this->getDataPath() . "cokme-arsivleri/";
-		}else{
-			return $this->getDataPath() . "crashdumps/";
-		}
-	}
-	
-	public static function getInstance(){
-		return Server::$instance;
-	}
-	
-	public static function getServerId(){
-		return Server::$serverId;
-	}
-	
-	public static function microSleep($microseconds){
-		Server::$sleeper->synchronized(function($ms){
+
+	public static function microSleep(int $microseconds){
+		Server::$sleeper->synchronized(function(int $ms){
 			Server::$sleeper->wait($ms);
 		}, $microseconds);
 	}
 	
-	public function loadAdvancedConfig(){
-		$this->weatherEnabled = $this->getAdvancedProperty("level.weather", false);
-		$this->foodEnabled = $this->getAdvancedProperty("player.hunger", true);
-		$this->expEnabled = $this->getAdvancedProperty("player.experience", true);
-		$this->keepInventory = $this->getAdvancedProperty("player.keep-inventory", false);
-		$this->keepExperience = $this->getAdvancedProperty("player.keep-experience", false);
-		$this->netherEnabled = $this->getAdvancedProperty("level.allow-nether", false);
-		$this->netherName = $this->getAdvancedProperty("level.level-name", "nether");
-		$this->endEnabled = $this->getAdvancedProperty("level.allow-end", false);
-        $this->endName = $this->getAdvancedProperty("level.end-level-name", "end");
-        $this->redstoneEnabled = $this->getAdvancedProperty("redstone.enable", false);
-		$this->weatherRandomDurationMin = $this->getAdvancedProperty("level.weather-random-duration-min", 6000);
-		$this->weatherRandomDurationMax = $this->getAdvancedProperty("level.weather-random-duration-max", 12000);
-		$this->lightningTime = $this->getAdvancedProperty("level.lightning-time", 200);
-		$this->lightningFire = $this->getAdvancedProperty("level.lightning-fire", false);
-		$this->autoClearInv = $this->getAdvancedProperty("player.auto-clear-inventory", true);
-		$this->asyncChunkRequest = $this->getAdvancedProperty("server.async-chunk-request", true);
-		$this->limitedCreative = $this->getAdvancedProperty("server.limited-creative", true);
-		$this->chunkRadius = $this->getAdvancedProperty("player.chunk-radius", -1);
-		$this->allowSplashPotion = $this->getAdvancedProperty("server.allow-splash-potion", true);
-		$this->fireSpread = $this->getAdvancedProperty("level.fire-spread", false);
-		$this->advancedCommandSelector = $this->getAdvancedProperty("server.advanced-command-selector", false);
-		$this->anvilEnabled = $this->getAdvancedProperty("enchantment.enable-anvil", true);
-		$this->enchantingTableEnabled = $this->getAdvancedProperty("enchantment.enable-enchanting-table", true);
-		$this->countBookshelf = $this->getAdvancedProperty("enchantment.count-bookshelf", false);
-		$this->allowInventoryCheats = $this->getAdvancedProperty("inventory.allow-cheats", false);
-		$this->checkMovement = $this->getAdvancedProperty("anticheat.check-movement", true);
-		$this->allowInstabreak = $this->getAdvancedProperty("anticheat.allow-instabreak", true);
-		$this->antiFly = $this->getAdvancedProperty("anticheat.anti-fly", true);
-		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", false);
-		$this->useAnimal = $this->getAdvancedProperty("spawn-animals", false);
-		$this->animalLimit = $this->getAdvancedProperty("animals-limit", 0);
-		$this->useMonster = $this->getAdvancedProperty("spawn-mobs", false);
-		$this->monsterLimit = $this->getAdvancedProperty("mobs-limit", 0);
-		$this->forceResources = $this->getAdvancedProperty("packs.force-resources", false);
-		$this->resourceStack = $this->getAdvancedProperty("packs.resource-stack", []);
-		$this->forceBehavior = $this->getAdvancedProperty("packs.force-behavior", false);
-		$this->behaviorStack = $this->getAdvancedProperty("packs.behavior-stack", []);
+public function about(){
+		$string = "	
+Â§3Apollo Â§fis a fork of PocketMine-MP, made by Â§5Apollo-SoftwareTeamÂ§f.
+Version: Â§6" . $this->getPocketMineVersion() . ' (' . $this->getShortGitCommit() . ')Â§f
+Client Version: Â§b' . ProtocolInfo::MINECRAFT_VERSION . 'Â§f
+PHP Version: Â§e' . PHP_VERSION . 'Â§f
+OS: Â§6' . PHP_OS .'Â§f
+	';
+		
+		$this->getLogger()->info($string);
 	}
 	
-	public function __construct(\ClassLoader $autoloader, \ThreadedLogger $knsol, $filePath, $dataPath, $pluginPath, $defaultLang = "Bilinmeyen"){
-		Server::$instance = $this;
-		$this->autoloader = $autoloader;
-		$this->konsol = $knsol;
-		$this->filePath = $filePath;
-		$this->translate = new Translate($this);
-		$this->translate->prepareLang();
-		$this->dbot = new DarkBot($this);
-		$this->themeManager = new ThemeManager($this);
-		$this->core = new CoreStarter($this);
-		try{
-			if(Translate::checkTurkish() === "yes"){
-			if(!file_exists($dataPath . "dunyalar/")){
-				mkdir($dataPath . "dunyalar/", 0777);
-			}
+	public function loadAdvancedConfig(){
+		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
+		$this->netherEnabled = $this->getAdvancedProperty("nether.allow-nether", false);
+		$this->netherName = $this->getAdvancedProperty("nether.level-name", "nether");
+		$this->enderEnabled = $this->getAdvancedProperty("ender.allow-ender", false);
+		$this->enderName = $this->getAdvancedProperty("ender.level-name", "ender");
+		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", true);
+		$this->loadIncompatibleAPI = $this->getAdvancedProperty("developer.load-incompatible-api", true);
+	}
 
-			if(!file_exists($dataPath . "oyuncular/")){
-				mkdir($dataPath . "oyuncular/", 0777);
-			}
-			
-			if(!file_exists($dataPath . "cokme-arsivleri/")){
-				mkdir($dataPath . "cokme-arsivleri/", 0777);
-			}
-			
-			if(!file_exists($dataPath . "oyuncu-basarimlari/")){
-				mkdir($dataPath . "oyuncu-basarimlari/", 0777);
-			}
-			
-			if(!file_exists($pluginPath)){
-				mkdir($pluginPath, 0777);
-			}
-			}else{
+	/**
+	 * @param \ClassLoader    $autoloader
+	 * @param \ThreadedLogger $logger
+	 * @param string          $filePath
+	 * @param string          $dataPath
+	 * @param string          $pluginPath
+	 */
+	public function __construct(\ClassLoader $autoloader, \ThreadedLogger $logger, string $filePath, string $dataPath, string $pluginPath){
+		self::$instance = $this;
+		self::$sleeper = new \Threaded;
+		$this->autoloader = $autoloader;
+		$this->logger = $logger;
+
+		try{
+
+			$this->filePath = $filePath;
 			if(!file_exists($dataPath . "worlds/")){
 				mkdir($dataPath . "worlds/", 0777);
 			}
@@ -1385,211 +1528,114 @@ class Server extends DarkSystem{
 			if(!file_exists($dataPath . "players/")){
 				mkdir($dataPath . "players/", 0777);
 			}
-			
-			if(!file_exists($dataPath . "crashdumps/")){
-				mkdir($dataPath . "crashdumps/", 0777);
-			}
-			
-			if(!file_exists($dataPath . "achievements/")){
-				mkdir($dataPath . "achievements/", 0777);
-			}
-			
+
 			if(!file_exists($pluginPath)){
 				mkdir($pluginPath, 0777);
-			}
-			}
-			
-			if(\Phar::running(true) === ""){
-			   $packages = "src";
-			}else{
-				$packages = "phar";
 			}
 
 			$this->dataPath = realpath($dataPath) . DIRECTORY_SEPARATOR;
 			$this->pluginPath = realpath($pluginPath) . DIRECTORY_SEPARATOR;
-			
-			if(!file_exists($this->getDataPath() . "pocketmine.yml")){
-				if(file_exists($this->getDataPath() . "lang_cache.txt")){
-					$langFile = new Config($configPath = $this->getDataPath() . "lang_cache.txt", Config::ENUM, []);
-					$setupLang = null;
-					foreach($langFile->getAll(true) as $langName){
-						$setupLang = $langName;
+
+			$this->console = new CommandReader();
+
+			$version = new VersionString($this->getPocketMineVersion());
+
+
+			$this->logger->info("Loading properties and configuration...");
+			if(!file_exists($this->dataPath . "pocketmine.yml")){
+				if(file_exists($this->dataPath . "lang.txt")){
+					$langFile = new Config($configPath = $this->dataPath . "lang.txt", Config::ENUM, []);
+                    $wizardLang = null;
+					foreach ($langFile->getAll(true) as $langName) {
+						$wizardLang = $langName;
 						break;
 					}
-					
-					if(file_exists($this->filePath . "src/darksystem/resources/pocketmine_$setupLang.yml")){
-						$content1 = file_get_contents($file = $this->filePath . "src/darksystem/resources/pocketmine_$setupLang.yml");
+					if(file_exists($this->filePath . "src/pocketmine/resources/pocketmine_$wizardLang.yml")){
+						$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_$wizardLang.yml");
 					}else{
-						$content1 = file_get_contents($file = $this->filePath . "src/darksystem/resources/pocketmine_eng.yml");
+						$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_eng.yml");
 					}
 				}else{
-					$content1 = file_get_contents($file = $this->filePath . "src/darksystem/resources/pocketmine_eng.yml");
+					$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/pocketmine_eng.yml");
 				}
-				
-				@file_put_contents($this->getDataPath() . "pocketmine.yml", $content1);
+				@file_put_contents($this->dataPath . "pocketmine.yml", $content);
+			}
+			if(file_exists($this->dataPath . "lang.txt")){
+				unlink($this->dataPath . "lang.txt");
+			}
+			$this->config = new Config($configPath = $this->dataPath . "pocketmine.yml", Config::YAML, []);
+			//$nowLang = $this->getProperty("settings.language", "eng");[]);
+
+			define('pocketmine\DEBUG', (int) $this->getProperty("debug.level", 1));
+
+			if(((int) ini_get('zend.assertions')) > 0 and ((bool) $this->getProperty("debug.assertions.warn-if-enabled", true)) !== false){
+				$this->logger->warning("Debugging assertions are enabled, this may impact on performance. To disable them, set `zend.assertions = -1` in php.ini.");
+			}
+
+			ini_set('assert.exception', '1');
+
+			if($this->logger instanceof MainLogger){
+				$this->logger->setLogDebug(\pocketmine\DEBUG > 1);
 			}
 			
-			if(!file_exists($this->getDataPath() . "pocketmine-advanced.yml")){
-				if(file_exists($this->getDataPath() . "lang_cache.txt")){
-					$langFile = new Config($configPath = $this->getDataPath() . "lang_cache.txt", Config::ENUM, []);
-					$setupLang = null;
-					foreach($langFile->getAll(true) as $langName){
-						$setupLang = $langName;
-						break;
-					}
-					
-					if(file_exists($this->filePath . "src/darksystem/resources/pocketmine-advanced_$setupLang.yml")){
-						$content1 = file_get_contents($file = $this->filePath . "src/darksystem/resources/pocketmine-advanced_$setupLang.yml");
-					}else{
-						$content1 = file_get_contents($file = $this->filePath . "src/darksystem/resources/pocketmine-advanced_eng.yml");
-					}
-				}else{
-					$content1 = file_get_contents($file = $this->filePath . "src/darksystem/resources/pocketmine-advanced_eng.yml");
-				}
-				
-				@file_put_contents($this->getDataPath() . "pocketmine-advanced.yml", $content1);
-			}
-			
-			if(file_exists($this->getDataPath() . "lang_cache.txt")){
-				unlink($this->getDataPath() . "lang_cache.txt");
-			}
-			
-			if(!is_dir($this->pluginPath . $this->getName())){
-				mkdir($this->pluginPath . $this->getName());
-			}
-			
-			$this->config = new Config($configPath = $this->getDataPath() . "pocketmine.yml", Config::YAML, []);
-			$this->softConfig = new Config($this->getDataPath() . "pocketmine-advanced.yml", Config::YAML, []);
-			$this->cmdReader = new CommandReader($knsol);
-			
-			if(Translate::checkTurkish() === "yes"){
-			$this->properties = new Config($this->getDataPath() . "apollo.properties", Config::PROPERTIES, [
-				"motd" => $this->getSoftwareName() . " Sunucusu",
-				"server-ip" => "0.0.0.0",
-				"server-port" => 19132,
-				"memory-limit" => "256M",
-				"white-list" => false,
-				"announce-player-achievements" => false,
-				"spawn-protection" => 16,
-				"max-players" => 25,
-				"allow-flight" => false,
-				"spawn-animals" => true,
-				"animals-limit" => 0,
-				"spawn-mobs" => true,
-				"mobs-limit" => 0,
-				"gamemode" => 0,
-				"force-gamemode" => true,
-				"hardcore" => false,
-				"pvp" => true,
-				"difficulty" => 1,
-				"enable-command-block" => true,
-				"generator-settings" => "",
-				"level-name" => "world",
-				"level-seed" => "",
-				"level-type" => "DEFAULT",
-				"enable-query" => true,
-				"auto-query" => false,
-				"enable-rcon" => false,
-				"rcon.password" => substr(base64_encode(random_bytes(20)), 3, 10),
-				"auto-save" => true,
-				"auto-generate" => true,
-				"save-player-data" => true,
-				"time-update" => true,
-				"online-mode" => false,
-				"theme" => "classic",
-				"random-theme" => false,
-				"colorful-theme" => false
-			]);
+			$lang = $this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE);
+			if(file_exists($this->filePath . "src/pocketmine/resources/apollo_$lang.yml")){
+				$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/apollo_$lang.yml");
 			}else{
-			$this->properties = new Config($this->getDataPath() . "server.properties", Config::PROPERTIES, [
-				"motd" => $this->getSoftwareName() . " Server",
-				"server-ip" => "0.0.0.0",
-				"server-port" => 19132,
-				"memory-limit" => "256M",
-				"white-list" => false,
-				"announce-player-achievements" => false,
-				"spawn-protection" => 16,
-				"max-players" => 25,
-				"allow-flight" => false,
-				"spawn-animals" => true,
-				"animals-limit" => 0,
-				"spawn-mobs" => true,
-				"mobs-limit" => 0,
-				"gamemode" => 0,
-				"force-gamemode" => true,
-				"hardcore" => false,
-				"pvp" => true,
-				"difficulty" => 1,
-				"enable-command-block" => true,
-				"generator-settings" => "",
-				"level-name" => "world",
-				"level-seed" => "",
-				"level-type" => "DEFAULT",
-				"enable-query" => true,
-				"auto-query" => false,
-				"enable-rcon" => false,
-				"rcon.password" => substr(base64_encode(random_bytes(20)), 3, 10),
-				"auto-save" => true,
-				"auto-generate" => true,
-				"save-player-data" => true,
-				"time-update" => true,
-				"online-mode" => false,
-				"theme" => "classic",
-				"random-theme" => false,
-				"colorful-theme" => false
-			]);
+				$content = file_get_contents($file = $this->filePath . "src/pocketmine/resources/apollo_eng.yml");
 			}
 			
-			if($this->getMotd() == "schudoz" || $this->getMotd() == "devlrs"){ //Easter egg
-				$random = substr(base64_encode(random_bytes(20)), 3, 10);
-				$this->konsol->directSend("\n" . "§" . mt_rand(1, 9) . "" . $random);
-			}
-			
-			$this->konsol->directSend($this->getLogo());
-			
-			//if(count($this->pluginMgr->getPlugins()) > 0){
-				if(Translate::checkTurkish() === "yes"){
-					$this->konsol->info("§aEklentiler Yükleniyor...");
-				}else{
-					$this->konsol->info("§aEnabling Plugins...");
-				}
-			//}
-			
-			if(Translate::checkTurkish() === "yes"){
-				$lang = Translate::TUR;
-			}else{
-				$lang = $this->getProperty("settings.language", Language::FALLBACK_LANGUAGE);
-			}
-			
-			if($defaultLang !== "Bilinmeyen" && $lang !== $defaultLang){
-				@file_put_contents($configPath, str_replace('language: "' . $lang . '"', 'language: "' . $defaultLang . '"', file_get_contents($configPath)));
-				$this->config->reload();
-				unset($this->propertyCache["settings.language"]);
-			}
-			
-			if(file_exists($this->filePath . "src/darksystem/resources/darksystem_$lang.yml")){
-				$content3 = file_get_contents($file = $this->filePath . "src/darksystem/resources/apollo$lang.yml");
-			}else{
-				$content3 = file_get_contents($file = $this->filePath . "src/darksystem/resources/apollo_eng.yml");
-			}
-			
-			if(!file_exists($this->getDataPath() . "apollo.yml")){
-				@file_put_contents($this->getDataPath() . "apollo.yml", $content3);
+			if(!file_exists($this->dataPath . "apollo.yml")){
+				@file_put_contents($this->dataPath . "apollo.yml", $content);
 			}
 			
 			$internelConfig = new Config($file, Config::YAML, []);
-			$this->advancedConfig = new Config($this->getDataPath() . "apollo.yml", Config::YAML, []);
+			$this->advancedConfig = new Config($this->dataPath . "apollo.yml", Config::YAML, []);
+			$cfgVer = $this->getAdvancedProperty("config.version", 0, $internelConfig);
+			$advVer = $this->getAdvancedProperty("config.version", 0);
 			
 			$this->loadAdvancedConfig();
-			
-			$this->forceLanguage = $this->getProperty("settings.force-language", true);
-			$this->language = new Language($this->getProperty("settings.language", Language::FALLBACK_LANGUAGE));
-			
-			$this->stranslator = new StringTranslator($this->getProperty("settings.language", Language::FALLBACK_LANGUAGE));
-			
+
+			$this->logger->info("Loading server properties...");
+			$this->properties = new Config($this->dataPath . "server.properties", Config::PROPERTIES, [
+				"motd" => \pocketmine\NAME . " Server",
+				"server-port" => 19132,
+				"white-list" => false,
+				"announce-player-achievements" => true,
+				"spawn-protection" => 16,
+				"max-players" => 20,
+				"allow-flight" => false,
+				"spawn-animals" => true,
+				"spawn-mobs" => true,
+				"gamemode" => 0,
+				"force-gamemode" => false,
+				"hardcore" => false,
+				"pvp" => true,
+				"difficulty" => 1,
+				"generator-settings" => "",
+				"level-name" => "world",
+				"level-seed" => "",
+				"level-type" => "DEFAULT",
+				"enable-query" => true,
+				"enable-rcon" => false,
+				"rcon.password" => substr(base64_encode(random_bytes(20)), 3, 10),
+				"auto-save" => true,
+				"view-distance" => 8,
+				"xbox-auth" => true
+			]);
+
+			$this->forceLanguage = $this->getProperty("settings.force-language", false);
+			$this->baseLang = new BaseLang($this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE));
+			$this->logger->info($this->getLanguage()->translateString("language.selected", [$this->getLanguage()->getName(), $this->getLanguage()->getLang()]));
+
+			$this->memoryManager = new MemoryManager($this);
+
+			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.start", [TextFormat::AQUA . $this->getVersion() . TextFormat::RESET]));
+
 			if(($poolSize = $this->getProperty("settings.async-workers", "auto")) === "auto"){
 				$poolSize = ServerScheduler::$WORKERS;
 				$processors = Utils::getCoreCount() - 2;
+
 				if($processors > 0){
 					$poolSize = max(1, $processors);
 				}
@@ -1602,8 +1648,12 @@ class Server extends DarkSystem{
 			}else{
 				Network::$BATCH_THRESHOLD = -1;
 			}
-			
+
 			$this->networkCompressionLevel = $this->getProperty("network.compression-level", 7);
+			if($this->networkCompressionLevel < 1 or $this->networkCompressionLevel > 9){
+				$this->logger->warning("Invalid network compression level $this->networkCompressionLevel set, setting to default 7");
+				$this->networkCompressionLevel = 7;
+			}
 			$this->networkCompressionAsync = $this->getProperty("network.async-compression", true);
 
 			$this->autoTickRate = (bool) $this->getProperty("level-settings.auto-tick-rate", true);
@@ -1611,733 +1661,701 @@ class Server extends DarkSystem{
 			$this->alwaysTickPlayers = (int) $this->getProperty("level-settings.always-tick-players", false);
 			$this->baseTickRate = (int) $this->getProperty("level-settings.base-tick-rate", 1);
 
+			$this->doTitleTick = (bool) $this->getProperty("console.title-tick", true);
+
 			$this->scheduler = new ServerScheduler();
-			
-			if($this->getConfigBoolean("enable-rcon", false)){
-				$this->rcon = new RCON($this, $this->getConfigString("rcon.password", ""), $this->getConfigInt("rcon.port", $this->getPort()), ($ip = $this->getIp()) !== "" ? $ip : "0.0.0.0", $this->getConfigInt("rcon.threads", 1), $this->getConfigInt("rcon.clients-per-thread", 50));
+
+			if($this->getConfigBoolean("enable-rcon", false) === true){
+				try{
+					$this->rcon = new RCON(
+						$this,
+						$this->getConfigString("rcon.password", ""),
+						$this->getConfigInt("rcon.port", $this->getPort()),
+						($ip = $this->getIp()) != "" ? $ip : "0.0.0.0",
+						$this->getConfigInt("rcon.threads", 1),
+						$this->getConfigInt("rcon.clients-per-thread", 50)
+					);
+				}catch(\Throwable $e){
+					$this->getLogger()->critical("RCON can't be started: " . $e->getMessage());
+				}
 			}
-			
-			$data = [];
-			if($this->getConfigBoolean("auto-query", false)){
-				$data[$server] = $this->getProperty("query.server", "test");
-				$data[$host] = $this->getProperty("query.host", "0.0.0.0");
-				$data[$user] = $this->getProperty("query.user", "root");
-				$data[$pass] = $this->getProperty("query.pass", "admin");
-				$data[$dbname] = $this->getProperty("query.dbname", "test");
-				$data[$port] = $this->getProperty("query.port", "19132");
-				
-				$this->createQuery($data[$server], $data[$host], $data[$user], $data[$pass], $data[$dbname], $data[$port]);
-			}
-			
+
 			$this->entityMetadata = new EntityMetadataStore();
 			$this->playerMetadata = new PlayerMetadataStore();
 			$this->levelMetadata = new LevelMetadataStore();
-			
-			if(Translate::checkTurkish() === "yes"){
-			$this->operators = new Config($this->getDataPath() . "yoneticiler.json", Config::JSON);
-			$this->whitelist = new Config($this->getDataPath() . "beyaz-liste.json", Config::JSON);
-			if(file_exists($this->getDataPath() . "engelli.txt") && !file_exists($this->getDataPath() . "engelli-oyuncular.txt")){
-				@rename($this->getDataPath() . "engelli.txt", $this->getDataPath() . "engelli-oyuncular.txt");
+
+			$this->operators = new Config($this->dataPath . "ops.txt", Config::ENUM);
+			$this->whitelist = new Config($this->dataPath . "white-list.txt", Config::ENUM);
+			if(file_exists($this->dataPath . "banned.txt") and !file_exists($this->dataPath . "banned-players.txt")){
+				@rename($this->dataPath . "banned.txt", $this->dataPath . "banned-players.txt");
 			}
-			
-			@touch($this->getDataPath() . "engelli-oyuncular.txt");
-			$this->banByName = new BanList($this->getDataPath() . "engelli-oyuncular.txt");
+			@touch($this->dataPath . "banned-players.txt");
+			$this->banByName = new BanList($this->dataPath . "banned-players.txt");
 			$this->banByName->load();
-			@touch($this->getDataPath() . "engelli-IPler.txt");
-			$this->banByIP = new BanList($this->getDataPath() . "engelli-IPler.txt");
+			@touch($this->dataPath . "banned-ips.txt");
+			$this->banByIP = new BanList($this->dataPath . "banned-ips.txt");
 			$this->banByIP->load();
-			@touch($this->getDataPath() . "engelli-CIDler.txt");
-			$this->banByCID = new BanList($this->getDataPath() . "engelli-CIDler.txt");
-			$this->banByCID->load();
-			@touch($this->getDataPath() . "engelli-UUIDler.txt");
-			$this->banByUUID = new BanList($this->getDataPath() . "engelli-UUIDler.txt");
-			$this->banByUUID->load();
-			}else{
-			$this->operators = new Config($this->getDataPath() . "ops.json", Config::JSON);
-			$this->whitelist = new Config($this->getDataPath() . "white-list.json", Config::JSON);
-			if(file_exists($this->getDataPath() . "banned.txt") && !file_exists($this->getDataPath() . "banned-players.txt")){
-				@rename($this->getDataPath() . "banned.txt", $this->getDataPath() . "banned-players.txt");
-			}
-			@touch($this->getDataPath() . "banned-players.txt");
-			$this->banByName = new BanList($this->getDataPath() . "banned-players.txt");
-			$this->banByName->load();
-			@touch($this->getDataPath() . "banned-ips.txt");
-			$this->banByIP = new BanList($this->getDataPath() . "banned-ips.txt");
-			$this->banByIP->load();
-			@touch($this->getDataPath() . "banned-cids.txt");
-			$this->banByCID = new BanList($this->getDataPath() . "banned-cids.txt");
-			$this->banByCID->load();
-			@touch($this->getDataPath() . "banned-uuids.txt");
-			$this->banByUUID = new BanList($this->getDataPath() . "banned-uuids.txt");
-			$this->banByUUID->load();
-			}
-			
-			$this->maxPlayers = $this->getConfigInt("max-players", 25);
+
+			$this->maxPlayers = $this->getConfigInt("max-players", 20);
 			$this->setAutoSave($this->getConfigBoolean("auto-save", true));
-			$this->setAutoGenerate($this->getConfigBoolean("auto-generate", true));
-			$this->setSavePlayerData($this->getConfigBoolean("save-player-data", true));
-			
-			$this->useAnimal = $this->getConfigBoolean("spawn-animals", false);
-			$this->animalLimit = $this->getConfigInt("animals-limit", 0);
-			$this->useMonster = $this->getConfigBoolean("spawn-mobs", false);
-			$this->monsterLimit = $this->getConfigInt("mobs-limit", 0);
-			$this->isCmdBlockEnable = $this->getConfigBoolean("enable-command-block", true);
-			
-			//New properties here
-			$this->advancedFlyCheck = $this->getProperty("player.advanced-fly-check", false);
-			
-			if($this->getConfigBoolean("hardcore", false) === true && $this->getDifficulty() < 3){
-				$this->setConfigInt("difficulty", 3);
-			}
-			
-			define("pocketmine\\DEBUG", (int) $this->getProperty("debug.level", 1));
-			if($this->konsol instanceof MainLogger){
-				$this->konsol->setLogDebug(\pocketmine\DEBUG > 1);
-			}
-			
-			define("advanced_cache", $this->getProperty("settings.advanced-cache", true));
-			
-			if(\pocketmine\DEBUG >= 0){
-				@cli_set_process_title($this->getName() . TF::SPACE . $this->getDarkSystemVersion());
-			}
-			
-			define("BOOTUP_RANDOM", Utils::getRandomBytes(16));
-			
-			$this->serverID = Utils::getMachineUniqueId($this->getIp() . $this->getPort());
-			
-			if(Translate::checkTurkish() === "yes"){
-				$this->konsol->debug("Sunucu ID: " . $this->getServerUniqueId());
-				$this->konsol->debug("Makine ID: " . Utils::getMachineUniqueId());
+
+			$this->onlineMode = $this->getConfigBoolean("xbox-auth", true);
+			if($this->onlineMode){
+				$this->logger->notice($this->getLanguage()->translateString("pocketmine.server.auth", ["enabled", "will"]));
+				$this->logger->notice($this->getLanguage()->translateString("pocketmine.server.authProperty", ["disable", "false"]));
 			}else{
-				$this->konsol->debug("Server ID: " . $this->getServerUniqueId());
-				$this->konsol->debug("Machine ID: " . Utils::getMachineUniqueId());
+				$this->logger->warning($this->getLanguage()->translateString("pocketmine.server.auth", ["disabled", "will not"]));
+				$this->logger->warning($this->getLanguage()->translateString("pocketmine.server.authWarning"));
+				$this->logger->warning($this->getLanguage()->translateString("pocketmine.server.authProperty", ["enable", "true"]));
 			}
-			
+
+			if($this->getConfigBoolean("hardcore", false) === true and $this->getDifficulty() < Level::DIFFICULTY_HARD){
+				$this->setConfigInt("difficulty", Level::DIFFICULTY_HARD);
+			}
+
+			if(\pocketmine\DEBUG >= 0){
+				@cli_set_process_title($this->getName() . " " . $this->getPocketMineVersion());
+			}
+
+			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.networkStart", [$this->getIp() === "" ? "*" : $this->getIp(), $this->getPort()]));
+			define("BOOTUP_RANDOM", random_bytes(16));
+			$this->serverID = Utils::getMachineUniqueId($this->getIp() . $this->getPort());
+
+			$this->getLogger()->debug("Server unique id: " . $this->getServerUniqueId());
+			$this->getLogger()->debug("Machine unique id: " . Utils::getMachineUniqueId());
+
 			$this->network = new Network($this);
 			$this->network->setName($this->getMotd());
 
-            Timings::init();
+
+			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.info", [
+				$this->getName(),
+				($version->isDev() ? TextFormat::YELLOW : "") . $version->get(true) . TextFormat::WHITE,
+				$this->getCodename(),
+				$this->getApiVersion()
+			]));
+			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.license", [$this->getName()]));
+
+
+			Timings::init();
 
 			$this->consoleSender = new ConsoleCommandSender();
-			$this->cmdMap = new SimpleCommandMap($this);
-			
-			Registerer::registerAll();
-			
-			InventoryType::init();
-			Block::init();
-			Enchantment::init();
-			Item::init();
-			Biome::init();
-			TextWrapper::init();
-			MetadataConvertor::init();
-			
-			$this->craftingMgr = new CraftingManager();
-			
-			if(Translate::checkTurkish() === "yes"){
-				$this->resourceMgr = new ResourcePackManager($this, $this->getDataPath() . "doku_paketleri" . DIRECTORY_SEPARATOR);
-				$this->behaviorMgr = new BehaviorPackManager($this, $this->getDataPath() . "behavior_paketleri" . DIRECTORY_SEPARATOR);
-			}else{
-				$this->resourceMgr = new ResourcePackManager($this, $this->getDataPath() . "resource_packs" . DIRECTORY_SEPARATOR);
-				$this->behaviorMgr = new BehaviorPackManager($this, $this->getDataPath() . "behavior_packs" . DIRECTORY_SEPARATOR);
-			}
-			
-			$this->pluginMgr = new PluginManager($this, $this->cmdMap);
-			$this->pluginMgr->subscribeToPermission(Server::BROADCAST_CHANNEL_ADMINISTRATIVE, $this->consoleSender);
-			$this->pluginMgr->setUseTimings($this->getProperty("settings.enable-profiling", false));
-			$this->profilingTickRate = (float) $this->getProperty("settings.profile-report-trigger", 20);
-			$this->pluginMgr->registerInterface(PharPluginLoader::class);
-			$this->pluginMgr->registerInterface(FolderPluginLoader::class);
-			$this->pluginMgr->registerInterface(ScriptPluginLoader::class);
-			
-			//\set_exception_handler([$this, "exceptionHandler"]);
-			
-			register_shutdown_function([$this, "crashReport"]);
+			$this->commandMap = new SimpleCommandMap($this);
 
-			$this->queryRegenerator = new QueryRegenerateEvent($this, 5);
-			
-			$this->crossplatform = new CrossPlatform($this);
-			
-			$this->pluginMgr->loadPlugins($this->pluginPath);
+			Entity::init();
+			Tile::init();
+			BlockFactory::init();
+			Enchantment::init();
+			ItemFactory::init();
+			Biome::init();
+			Effect::init();
+			Attribute::init();
+			$this->craftingManager = new CraftingManager();
+
+			$this->resourceManager = new ResourcePackManager($this, $this->getDataPath() . "resource_packs" . DIRECTORY_SEPARATOR);
+
+			$this->pluginManager = new PluginManager($this, $this->commandMap);
+			$this->pluginManager->subscribeToPermission(Server::BROADCAST_CHANNEL_ADMINISTRATIVE, $this->consoleSender);
+			$this->pluginManager->setUseTimings($this->getProperty("settings.enable-profiling", false));
+			$this->profilingTickRate = (float) $this->getProperty("settings.profile-report-trigger", 20);
+			$this->pluginManager->registerInterface(PharPluginLoader::class);
+			if($this->folderpluginloader === true) {
+                        $this->pluginManager->registerInterface(FolderPluginLoader::class);
+                        }
+			$this->pluginManager->registerInterface(ScriptPluginLoader::class);
+
+			register_shutdown_function([$this, "crashDump"]);
+
+			$this->queryRegenerateTask = new QueryRegenerateEvent($this, 5);
+
+			$this->pluginManager->loadPlugins($this->pluginPath);
+
+			$this->updater = new AutoUpdater($this, $this->getProperty("auto-updater.host", "update.pmmp.io"));
+
 			$this->enablePlugins(PluginLoadOrder::STARTUP);
-			$this->network->registerInterface(new RakNetInterface($this));
-			
-			LevelProviderManager::addProvider($this, Anvil::class);
-			//LevelProviderManager::addProvider($this, PMAnvil::class);
-			LevelProviderManager::addProvider($this, McRegion::class);
-			
+
+			$this->network->registerInterface(new RakLibInterface($this));
+
+
+			LevelProviderManager::addProvider(Anvil::class);
+			LevelProviderManager::addProvider(McRegion::class);
+			LevelProviderManager::addProvider(PMAnvil::class);
+			if(extension_loaded("leveldb")){
+				$this->logger->debug($this->getLanguage()->translateString("pocketmine.debug.enable"));
+				LevelProviderManager::addProvider(LevelDB::class);
+			}
+
+
 			Generator::addGenerator(Flat::class, "flat");
 			Generator::addGenerator(Normal::class, "normal");
-			Generator::addGenerator(Normal::class, "default");
-			Generator::addGenerator(Normal2::class, "normal2");
-			//Generator::addGenerator(Void::class, "void");
+			Generator::addGenerator(Normal2::class, "default");
 			Generator::addGenerator(Nether::class, "hell");
 			Generator::addGenerator(Nether::class, "nether");
 			Generator::addGenerator(Ender::class, "ender");
-			
-			foreach((array) $this->getProperty("worlds", []) as $name => $worldSetting){
-				if(!$this->loadLevel($name)){
+
+
+			foreach((array) $this->getProperty("worlds", []) as $name => $options){
+				if($this->loadLevel($name) === false){
 					$seed = $options["seed"] ?? time();
-					$options = explode(":", $this->getProperty("worlds.$name.generator", Generator::getGenerator("default")));
-					$generator = Generator::getGenerator(array_shift($options));
-					if(count($options) > 0){
-						$options = [
-							"preset" => implode(":", $options),
-						];
-					}else{
-						$options = [];
+					if(is_string($seed) and !is_numeric($seed)){
+						$seed = Utils::javaStringHash($seed);
+					}elseif(!is_int($seed)){
+						$seed = (int) $seed;
 					}
+
+					if(isset($options["generator"])){
+						$generatorOptions = explode(":", $options["generator"]);
+						$generator = Generator::getGenerator(array_shift($generatorOptions));
+						if(count($options) > 0){
+							$options["preset"] = implode(":", $generatorOptions);
+						}
+					}else{
+						$generator = Generator::getGenerator("default");
+					}
+
+					$this->generateLevel($name, $seed, $generator, $options);
 				}
-				
-				$this->generateLevel($name, $seed, $options);
 			}
-			
+
 			if($this->getDefaultLevel() === null){
 				$default = $this->getConfigString("level-name", "world");
 				if(trim($default) == ""){
-					if(Translate::checkTurkish() === "yes"){
-						$this->konsol->warning("level-name Boş Olamaz!");
-					}else{
-						$this->konsol->warning("level-name Cannot be null, Using Default");
-					}
-					
+					$this->getLogger()->warning("level-name cannot be null, using default");
 					$default = "world";
 					$this->setConfigString("level-name", "world");
 				}
-				
-				if(!$this->loadLevel($default)){
-					$seed = $this->getConfigInt("level-seed", time());
+				if($this->loadLevel($default) === false){
+					$seed = getopt("", ["level-seed::"])["level-seed"] ?? $this->properties->get("level-seed", time());
+					if(!is_numeric($seed) or bccomp($seed, "9223372036854775807") > 0){
+						$seed = Utils::javaStringHash($seed);
+					}elseif(PHP_INT_SIZE === 8){
+						$seed = (int) $seed;
+					}
 					$this->generateLevel($default, $seed === 0 ? time() : $seed);
 				}
-				
+
 				$this->setDefaultLevel($this->getLevelByName($default));
 			}
-			
-			$this->properties->save();
-			
-			if(!$this->getDefaultLevel() instanceof Level){
-				$this->konsol->emergency($this->getLanguage()->translateString("pocketmine.level.defaultError"));
+
+
+			$this->properties->save(true);
+
+			if(!($this->getDefaultLevel() instanceof Level)){
+				$this->getLogger()->emergency($this->getLanguage()->translateString("pocketmine.level.defaultError"));
 				$this->forceShutdown();
-				return false;
+
+				return;
 			}
-		
-			if($this->netherEnabled){
+
+			if($this->getProperty("ticks-per.autosave", 6000) > 0){
+				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
+			}
+			
+						if($this->netherEnabled){
 				if(!$this->loadLevel($this->netherName)){
 					$this->generateLevel($this->netherName, time(), Generator::getGenerator("nether"));
 				}
-				
 				$this->netherLevel = $this->getLevelByName($this->netherName);
 			}
-			
-			if($this->endEnabled){
-				if(!$this->loadLevel($this->endName)){
-					$this->generateLevel($this->endName, time(), Generator::getGenerator("ender"));
+			if($this->enderEnabled){
+				if(!$this->loadLevel($this->enderName)){
+					$this->generateLevel($this->enderName, time(), Generator::getGenerator("ender"));
 				}
-				
-				$this->endLevel = $this->getLevelByName($this->endName);
+				$this->enderLevel = $this->getLevelByName($this->enderName);
 			}
 			
 			if($this->getProperty("ticks-per.autosave", 6000) > 0){
-				$this->autoSaveTicks = $this->getProperty("ticks-per.autosave", 6000);
+				$this->autoSaveTicks = (int) $this->getProperty("ticks-per.autosave", 6000);
+			}
+
+			if($cfgVer > $advVer){
+				$this->logger->notice("Your apollo.yml needs update");
+				$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
 			}
 
 			$this->enablePlugins(PluginLoadOrder::POSTWORLD);
-			
-			$this->run();
+
+			$this->start();
 		}catch(\Throwable $e){
 			$this->exceptionHandler($e);
 		}
 	}
-	
-	public function run(){
-		DataPacket::initializePackets();
-		
-		if($this->getConfigBoolean("enable-query", true) === true){
-			$this->queryHandler = new QueryHandler();
-		}
 
-		foreach($this->getIPBans()->getEntries() as $ent){
-			$this->network->blockAddress($ent->getName(), -1);
-		}
-		
-		$this->tickCounter = 0;
-		
-		Effect::init();
-		
-		switch(strtolower($this->getCodename())){
-			case "priv":
-			case "private":
-				if(Translate::checkTurkish() === "yes"){
-					$this->konsol->notice("------------------ BILDIRIM ------------------");
-					$this->konsol->notice("Şuanda DarkSystem'in GIZLI Bir Sürümünü Kullanıyorsunuz.");
-					$this->konsol->notice("------------------ BILDIRIM ------------------");
-				}else{
-					$this->konsol->notice("------------------ NOTICE ------------------");
-					$this->konsol->notice("You're running a PRIVATE version of DarkSystem.");
-					$this->konsol->notice("------------------ NOTICE ------------------");
-				}
-				break;
-			case "dev":
-			case "developer":
-				if(Translate::checkTurkish() === "yes"){
-					$this->konsol->notice("--------------------- BILDIRIM ---------------------");
-					$this->konsol->notice("Şuanda DarkSystem GELIŞTIRICI'sinin Sürümünü Kullanıyorsunuz.");
-					$this->konsol->notice("            BU URUNU KULLANMAYINIZ              ");
-					$this->konsol->notice("--------------------- BILDIRIM ---------------------");
-				}else{
-					$this->konsol->notice("--------------------- NOTICE ---------------------");
-					$this->konsol->notice("You're running a DEVELOPER's version of DarkSystem.");
-					$this->konsol->notice("            DO NOT use in production              ");
-					$this->konsol->notice("--------------------- NOTICE ---------------------");
-				}
-				break;
-			case "exp":
-			case "experimental":
-				if(Translate::checkTurkish() === "yes"){
-					$this->konsol->notice("--------------------- BILDIRIM ---------------------");
-					$this->konsol->notice("Şuanda DarkSystem'in DENEYSEL Sürümünü Kullanıyorsunuz.");
-					$this->konsol->notice("            BU URUNU KULLANMAYINIZ              ");
-					$this->konsol->notice("--------------------- BILDIRIM ---------------------");
-				}else{
-					$this->konsol->notice("--------------------- NOTICE ---------------------");
-					$this->konsol->notice("You're running an EXPERIMENTAL version of DarkSystem.");
-					$this->konsol->notice("            DO NOT use in production              ");
-					$this->konsol->notice("--------------------- NOTICE ---------------------");
-				}
-				break;
-				default;
-				break;
-		}
-		
-		$this->konsol->info($this->getLanguage()->translateString("pocketmine.server.startFinished", [round(microtime(true) - \pocketmine\START_TIME, 3)]));
-
-		$this->packetMgr = new PacketManager($this->getLoader());
-		
-		$this->tickAverage = [];
-		$this->useAverage = [];
-		for($i = 0; $i < 1200; $i++){
-			$this->tickAverage[] = 20;
-			$this->useAverage[] = 0;
-		}
-
-		$this->tickProcessor();
-		$this->forceShutdown();
-
-		\gc_collect_cycles();
-	}
-	
-	protected function getLogo(){
-		$version = $this->getFormattedVersion();
-		$this->version = $version;
-		$mcpe = $this->getVersion();
-		$protocol = ProtocolInfo::CURRENT_PROTOCOL;
-		$codename = $this->getCodename();
-		
-		$splash = $this->getSplash();
-		
-		return $this->getThemeManager()->getLogoTheme($version, $mcpe, $protocol, $codename, $splash);
-	}
-	
-	protected function getSplash(){
-		if(Translate::checkTurkish() === "yes"){
-			$messages = [
-				"Hızlı!",
-				"Kod Düzenleyicisi Tarafından Yapıldı!",
-				"MCPE İçin!",
-				"DarkBot Tarafından Destekleniyor!",
-				"Temiz!",
-				"Güvenli!",
-				"Lagsız!",
-				"Türkiye'de Yapıldı!"
-			];
-		}else{
-			$messages = [
-				"Fast!",
-				"Made by Code Editor!",
-				"For MCPE!",
-				"Sponsored by DarkBot!",
-				"Clean!",
-				"Safe!",
-				"No-lag!",
-				"Made in Turkey!"
-			];
-		}
-		
-		$result = "§" . mt_rand(1, 9) . $messages[array_rand($messages)];
-		
-		if(strlen($result) > 15){
-			return str_repeat(TF::SPACE, 4) . "\n" . $result;
-		}
-		
-		return $result;
-	}
-	
-	public function broadcastMessage($message, $recipients = null){
-		/*if(strpos($message, $this->getDarkBotPrefix())){
-			foreach($this->getOnlinePlayers() as $p){
-				$p->sendMessage($message);
-				return true;
-			}
-		}*/
-		
+	/**
+	 * @param TextContainer|string $message
+	 * @param Player[]             $recipients
+	 *
+	 * @return int
+	 */
+	public function broadcastMessage($message, array $recipients = null) : int{
 		if(!is_array($recipients)){
-			return $this->broadcast($message, Server::BROADCAST_CHANNEL_USERS);
+			return $this->broadcast($message, self::BROADCAST_CHANNEL_USERS);
 		}
-		
-		foreach($recipients as $r){
-			$r->sendMessage($message);
+
+		/** @var Player[] $recipients */
+		foreach($recipients as $recipient){
+			$recipient->sendMessage($message);
 		}
 
 		return count($recipients);
 	}
-	
-	public function broadcastTip($tip, $recipients = null){
+
+	/**
+	 * @param string   $tip
+	 * @param Player[] $recipients
+	 *
+	 * @return int
+	 */
+	public function broadcastTip(string $tip, array $recipients = null) : int{
 		if(!is_array($recipients)){
+			/** @var Player[] $recipients */
 			$recipients = [];
-			foreach($this->pluginMgr->getPermissionSubscriptions(Server::BROADCAST_CHANNEL_USERS) as $permissible){
-				if($permissible instanceof Player && $permissible->hasPermission(Server::BROADCAST_CHANNEL_USERS)){
-					$recipients[spl_object_hash($permissible)] = $permissible;
+			foreach($this->pluginManager->getPermissionSubscriptions(self::BROADCAST_CHANNEL_USERS) as $permissible){
+				if($permissible instanceof Player and $permissible->hasPermission(self::BROADCAST_CHANNEL_USERS)){
+					$recipients[spl_object_hash($permissible)] = $permissible; // do not send messages directly, or some might be repeated
 				}
 			}
 		}
-		
-		foreach($recipients as $r){
-			$r->sendTip($tip);
+
+		/** @var Player[] $recipients */
+		foreach($recipients as $recipient){
+			$recipient->sendTip($tip);
 		}
 
 		return count($recipients);
 	}
-	
-	public function broadcastPopup($popup, $recipients = null){
+
+	/**
+	 * @param string   $popup
+	 * @param Player[] $recipients
+	 *
+	 * @return int
+	 */
+	public function broadcastPopup(string $popup, array $recipients = null) : int{
 		if(!is_array($recipients)){
+			/** @var Player[] $recipients */
 			$recipients = [];
-			foreach($this->pluginMgr->getPermissionSubscriptions(Server::BROADCAST_CHANNEL_USERS) as $permissible){
-				if($permissible instanceof Player && $permissible->hasPermission(Server::BROADCAST_CHANNEL_USERS)){
-					$recipients[spl_object_hash($permissible)] = $permissible;
+
+			foreach($this->pluginManager->getPermissionSubscriptions(self::BROADCAST_CHANNEL_USERS) as $permissible){
+				if($permissible instanceof Player and $permissible->hasPermission(self::BROADCAST_CHANNEL_USERS)){
+					$recipients[spl_object_hash($permissible)] = $permissible; // do not send messages directly, or some might be repeated
 				}
 			}
 		}
-		
-		foreach($recipients as $r){
-			$r->sendPopup($popup);
+
+		/** @var Player[] $recipients */
+		foreach($recipients as $recipient){
+			$recipient->sendPopup($popup);
 		}
 
 		return count($recipients);
 	}
-	
-	public function broadcastTitle($title, $subtitle = "", $fadeIn = -1, $stay = -1, $fadeOut = -1, $recipients = null){
+
+	/**
+	 * @param string $title
+	 * @param string $subtitle
+	 * @param int    $fadeIn Duration in ticks for fade-in. If -1 is given, client-sided defaults will be used.
+	 * @param int    $stay Duration in ticks to stay on screen for
+	 * @param int    $fadeOut Duration in ticks for fade-out.
+	 * @param Player[]|null $recipients
+	 *
+	 * @return int
+	 */
+	public function broadcastTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1, array $recipients = null) : int{
 		if(!is_array($recipients)){
+			/** @var Player[] $recipients */
 			$recipients = [];
-			foreach($this->pluginMgr->getPermissionSubscriptions(Server::BROADCAST_CHANNEL_USERS) as $permissible){
-				if($permissible instanceof Player && $permissible->hasPermission(Server::BROADCAST_CHANNEL_USERS)){
-					$recipients[spl_object_hash($permissible)] = $permissible;
+
+			foreach($this->pluginManager->getPermissionSubscriptions(self::BROADCAST_CHANNEL_USERS) as $permissible){
+				if($permissible instanceof Player and $permissible->hasPermission(self::BROADCAST_CHANNEL_USERS)){
+					$recipients[spl_object_hash($permissible)] = $permissible; // do not send messages directly, or some might be repeated
 				}
 			}
 		}
-		
-		foreach($recipients as $r){
-			$r->sendTitle($title, $subtitle, $fadeIn, $stay, $fadeOut);
+
+		/** @var Player[] $recipients */
+		foreach($recipients as $recipient){
+			$recipient->addTitle($title, $subtitle, $fadeIn, $stay, $fadeOut);
 		}
 
 		return count($recipients);
 	}
-	
-	public function broadcast($message, $permissions){
+
+	/**
+	 * @param TextContainer|string $message
+	 * @param string               $permissions
+	 *
+	 * @return int
+	 */
+	public function broadcast($message, string $permissions) : int{
+		/** @var CommandSender[] $recipients */
 		$recipients = [];
 		foreach(explode(";", $permissions) as $permission){
-			foreach($this->pluginMgr->getPermissionSubscriptions($permission) as $permissible){
-				if($permissible instanceof CommandSender && $permissible->hasPermission($permission)){
-					$recipients[spl_object_hash($permissible)] = $permissible;
+			foreach($this->pluginManager->getPermissionSubscriptions($permission) as $permissible){
+				if($permissible instanceof CommandSender and $permissible->hasPermission($permission)){
+					$recipients[spl_object_hash($permissible)] = $permissible; // do not send messages directly, or some might be repeated
 				}
 			}
 		}
 
-		foreach($recipients as $r){
-			$r->sendMessage($message);
+		foreach($recipients as $recipient){
+			$recipient->sendMessage($message);
 		}
 
 		return count($recipients);
 	}
-	
-	public static function broadcastPacket($players, DataPacket $packet){
-		foreach($players as $p){
-			$p->dataPacket($packet);
-		}
-		
-		if(isset($packet->__encapsulatedPacket)){
-			unset($packet->__encapsulatedPacket);
-		}
+
+	/**
+	 * Broadcasts a Minecraft packet to a list of players
+	 *
+	 * @param Player[]   $players
+	 * @param DataPacket $packet
+	 */
+	public function broadcastPacket(array $players, DataPacket $packet){
+		$packet->encode();
+		$this->batchPackets($players, [$packet], false);
 	}
-	
-	public function batchPackets($players, $packets){
+
+	/**
+	 * Broadcasts a list of packets in a batch to a list of players
+	 *
+	 * @param Player[]     $players
+	 * @param DataPacket[] $packets
+	 * @param bool         $forceSync
+	 * @param bool         $immediate
+	 */
+	public function batchPackets(array $players, array $packets, bool $forceSync = false, bool $immediate = false){
+		Timings::$playerNetworkTimer->startTiming();
+
 		$targets = [];
-		$neededProtocol = [];
-		$neededSubClientsId = [];
 		foreach($players as $p){
-			$protocol = $p->getPlayerProtocol();
-			$subClientId = $p->getSubClientId();
-			$playerIdentifier = $p->getIdentifier();
-			if($subClientId > 0 && ($parent = $p->getParent()) !== null){
-				$playerIdentifier = $parent->getIdentifier();
+			if($p->isConnected()){
+				$targets[] = $this->identifiers[spl_object_hash($p)];
 			}
-			$targets[$playerIdentifier] = [$playerIdentifier, $protocol];
-			$neededProtocol[$protocol] = $protocol;
-			$neededSubClientsId[$subClientId] = $subClientId;
 		}
-		$protocolsCount = count($neededProtocol);
-		$newPackets = [];
-		foreach($packets as $p){
-			foreach($neededProtocol as $protocol){
-				if($p instanceof DataPacket){
-					if($protocol >= ProtocolInfo::PROTOCOL_120){
-						foreach($neededSubClientsId as $subClientId){
-							$p->senderSubClientID = $subClientId;
-							$p->encode($protocol);
-							$newPackets[$protocol][] = $p->buffer;
-						}
-					}else{
-						if(!$p->isEncoded || $protocolsCount > 1){
-							$p->senderSubClientID = 0;
-							$p->encode($protocol);
-						}
-						$newPackets[$protocol][] = $p->buffer;
-					}
-				}elseif($protocolsCount == 1){
-					$newPackets[$protocol][] = $p;
+
+		if(count($targets) > 0){
+			$pk = new BatchPacket();
+
+			foreach($packets as $p){
+				$pk->addPacket($p);
+			}
+
+			if(Network::$BATCH_THRESHOLD >= 0 and strlen($pk->payload) >= Network::$BATCH_THRESHOLD){
+				$pk->setCompressionLevel($this->networkCompressionLevel);
+			}else{
+				$pk->setCompressionLevel(0); //Do not compress packets under the threshold
+				$forceSync = true;
+			}
+
+			if(!$forceSync and !$immediate and $this->networkCompressionAsync){
+				$task = new CompressBatchedTask($pk, $targets);
+				$this->getScheduler()->scheduleAsyncTask($task);
+			}else{
+				$this->broadcastPacketsCallback($pk, $targets, $immediate);
+			}
+		}
+
+		Timings::$playerNetworkTimer->stopTiming();
+	}
+
+	public function broadcastPacketsCallback(BatchPacket $pk, array $identifiers, bool $immediate = false){
+		if(!$pk->isEncoded){
+			$pk->encode();
+		}
+
+		if($immediate){
+			foreach($identifiers as $i){
+				if(isset($this->players[$i])){
+					$this->players[$i]->directDataPacket($pk);
+				}
+			}
+		}else{
+			foreach($identifiers as $i){
+				if(isset($this->players[$i])){
+					$this->players[$i]->dataPacket($pk);
 				}
 			}
 		}
-		
-		$data = [];
-		$data["packets"] = $newPackets;
-		$data["targets"] = $targets;
-		$data["networkCompressionLevel"] = $this->networkCompressionLevel;
-		$data["isBatch"] = true;
-		
-		$this->packetMgr->pushMainToThreadPacket(serialize($data));
+
 	}
-	
-	/*public function batchPackets($players, $packets){
-		$targets = [];
-		$neededProtocol = [];
-		foreach($players as $p){
-			$targets[] = array($p->getIdentifier(), $p->getPlayerProtocol());
-			$neededProtocol[$p->getPlayerProtocol()] = $p->getPlayerProtocol();
-		}
-		
-		$newPackets = [];
-		foreach($packets as $p){
-			foreach($neededProtocol as $protocol){
-				if($p instanceof DataPacket){
-					if(!$p->isEncoded || count($neededProtocol) > 1){
-						$p->encode($protocol);
-					}
-					
-					$newPackets[$protocol][] = $p->buffer;
-				}elseif(count($neededProtocol) == 1){
-					$newPackets[$protocol][] = $p;
-				}
+
+
+	/**
+	 * @param int $type
+	 */
+	public function enablePlugins(int $type){
+		foreach($this->pluginManager->getPlugins() as $plugin){
+			if(!$plugin->isEnabled() and $plugin->getDescription()->getOrder() === $type){
+				$this->enablePlugin($plugin);
 			}
 		}
-		
-		$data = [];
-		$data["packets"] = $newPackets;
-		$data["targets"] = $targets;
-		$data["networkCompressionLevel"] = $this->networkCompressionLevel;
-		$data["isBatch"] = true;
-		
-		$this->packetMgr->pushMainToThreadPacket(serialize($data));
-	}*/
-	
-	public function enablePlugins($type){
-		foreach($this->pluginMgr->getPlugins() as $pl){
-			if(!$pl->isEnabled() && $pl->getDescription()->getOrder() === $type){
-				$this->enablePlugin($pl);
-			}
-		}
+
 		if($type === PluginLoadOrder::POSTWORLD){
-			$this->cmdMap->registerServerAliases();
+			$this->commandMap->registerServerAliases();
 			DefaultPermissions::registerCorePermissions();
 		}
 	}
-	
+
+	/**
+	 * @param Plugin $plugin
+	 */
 	public function enablePlugin(Plugin $plugin){
-		$this->pluginMgr->enablePlugin($plugin);
-	}
-	
-	public function loadPlugin(Plugin $plugin){
-		$this->enablePlugin($plugin);
+		$this->pluginManager->enablePlugin($plugin);
 	}
 
 	public function disablePlugins(){
-		$this->pluginMgr->disablePlugins();
+		$this->pluginManager->disablePlugins();
 	}
 
 	public function checkConsole(){
-		if(($line = $this->cmdReader->getLine()) !== null){
-			$this->pluginMgr->callEvent($ev = new ServerCommandEvent($this->consoleSender, $line));
+		Timings::$serverCommandTimer->startTiming();
+		if(($line = $this->console->getLine()) !== null){
+			$this->pluginManager->callEvent($ev = new ServerCommandEvent($this->consoleSender, $line));
 			if(!$ev->isCancelled()){
 				$this->dispatchCommand($ev->getSender(), $ev->getCommand());
 			}
 		}
+		Timings::$serverCommandTimer->stopTiming();
 	}
-	
-	public function dispatchCommand(CommandSender $sender, $commandLine){
-		if(!$sender instanceof CommandSender){
-			throw new ServerException("CommandSender Geçerli Değil!");
-		}
-		if($this->cmdMap->dispatch($sender, $commandLine)){
+
+	/**
+	 * Executes a command from a CommandSender
+	 *
+	 * @param CommandSender $sender
+	 * @param string        $commandLine
+	 *
+	 * @return bool
+	 */
+	public function dispatchCommand(CommandSender $sender, string $commandLine) : bool{
+		if($this->commandMap->dispatch($sender, $commandLine)){
 			return true;
 		}
-		if($sender instanceof Player){
-			$message = $this->getSoftConfig("messages.unknown-command", "Unknown Command!");
-			if(is_string($message) && strlen($message) > 0){
-				$sender->sendMessage(TF::RED . $message);
-			}
-		}else{
-			$sender->sendMessage(TF::RED . "Unknown Command!");
-		}
+
+
+		$sender->sendMessage(new TranslationContainer(TextFormat::GOLD . "%commands.generic.notFound"));
+
 		return false;
 	}
 
 	public function reload(){
-		foreach($this->levels as $l){
-			$l->save();
+		$this->logger->info("Saving levels...");
+
+		foreach($this->levels as $level){
+			$level->save();
 		}
 
-		$this->pluginMgr->disablePlugins();
-		$this->pluginMgr->clearPlugins();
-		$this->cmdMap->clearCommands();
-		
-		if(Translate::checkTurkish() === "yes"){
-			$this->konsol->info("Ayarlar Yeniden Yükleniyor...");
-		}else{
-			$this->konsol->info("Reloading Properties...");
-		}
-		
+		$this->pluginManager->disablePlugins();
+		$this->pluginManager->clearPlugins();
+		$this->commandMap->clearCommands();
+
+		$this->logger->info("Reloading properties...");
 		$this->properties->reload();
 		$this->advancedConfig->reload();
 		$this->loadAdvancedConfig();
-		$this->maxPlayers = $this->getConfigInt("max-players", 25);
-		
-		$this->banByName->load();
-		$this->banByIP->load();
-		$this->banByCID->load();
-		$this->banByUUID->load();
-		$this->reloadWhitelist();
-		$this->operators->reload();
-		
-		foreach($this->getIPBans()->getEntries() as $ent){
-			$this->blockAddress($ent->getName(), -1);
+		$this->maxPlayers = $this->getConfigInt("max-players", 20);
+
+		if($this->getConfigBoolean("hardcore", false) === true and $this->getDifficulty() < Level::DIFFICULTY_HARD){
+			$this->setConfigInt("difficulty", Level::DIFFICULTY_HARD);
 		}
 
-		$this->pluginMgr->registerInterface(PharPluginLoader::class);
-		$this->pluginMgr->loadPlugins($this->pluginPath);
+		$this->banByIP->load();
+		$this->banByName->load();
+		$this->reloadWhitelist();
+		$this->operators->reload();
+
+		foreach($this->getIPBans()->getEntries() as $entry){
+			$this->getNetwork()->blockAddress($entry->getName(), -1);
+		}
+
+		$this->pluginManager->registerInterface(PharPluginLoader::class);
+		$this->pluginManager->registerInterface(ScriptPluginLoader::class);
+		$this->pluginManager->loadPlugins($this->pluginPath);
 		$this->enablePlugins(PluginLoadOrder::STARTUP);
 		$this->enablePlugins(PluginLoadOrder::POSTWORLD);
 		TimingsHandler::reload();
 	}
-	
-	public function shutdown($msg = ""){
-		if($msg !== ""){
-			$this->propertyCache["settings.shutdown-message"] = $msg;
-		}
-		
+
+	/**
+	 * Shutdowns the server correctly
+	 */
+	public function shutdown(){
 		$this->isRunning = false;
-		
-		\gc_collect_cycles();
 	}
-	
+
 	public function forceShutdown(){
 		if($this->hasStopped){
-			return false;
+			return;
 		}
-		
+
 		try{
+			if(!$this->isRunning()){
+				$this->sendUsage(SendUsageTask::TYPE_CLOSE);
+			}
+
 			$this->hasStopped = true;
-			foreach($this->players as $p){
-				$p->close($this->getProperty("settings.shutdown-message", "Sunucu Durduruldu"));
-			}
-			
-			foreach($this->network->getInterfaces() as $int){
-				$int->shutdown();
-				$this->network->unregisterInterface($int);
-			}
-			
+
 			$this->shutdown();
-			$this->dbot->shutdown();
-			
-			//if(count($this->pluginMgr->getPlugins()) > 0){
-				if(Translate::checkTurkish() === "yes"){
-					$this->konsol->info("§cEklentiler Devre Dışı Bırakılıyor...");
-				}else{
-					$this->konsol->info("§cDisabling Plugins...");
-				}
-			//}
-			
 			if($this->rcon instanceof RCON){
 				$this->rcon->stop();
 			}
-			
-			$this->pluginMgr->disablePlugins();
-			
-			foreach($this->levels as $l){
-				$l->save();
-				$this->unloadLevel($l, true, true);
+
+			if($this->getProperty("network.upnp-forwarding", false) === true){
+				$this->logger->info("[UPnP] Removing port forward...");
+				UPnP::RemovePortForward($this->getPort());
 			}
-			
+
+			if($this->pluginManager instanceof PluginManager){
+				$this->getLogger()->debug("Disabling all plugins");
+				$this->pluginManager->disablePlugins();
+			}
+
+			foreach($this->players as $player){
+				$player->close($player->getLeaveMessage(), $this->getProperty("settings.shutdown-message", "Server closed"));
+			}
+
+			$this->getLogger()->debug("Unloading all levels");
+			foreach($this->getLevels() as $level){
+				$this->unloadLevel($level, true);
+			}
+
+			$this->getLogger()->debug("Removing event handlers");
 			HandlerList::unregisterAll();
-			$this->scheduler->cancelAllTasks();
-			$this->scheduler->mainThreadHeartbeat(PHP_INT_MAX);
-			$this->properties->save();
-			$this->cmdReader->shutdown();
-			$this->cmdReader->notify();
-			
-			\gc_collect_cycles();
-		}catch(\Exception $e){
-			if(Translate::checkTurkish() === "yes"){
-				$this->konsol->emergency("Sunucu Çöktü, Tüm Görevler Durduruluyor!");
-			}else{
-				$this->konsol->emergency("Server Crashed, Stopping All Threads...");
+
+			if($this->scheduler instanceof ServerScheduler){
+				$this->getLogger()->debug("Stopping all tasks");
+				$this->scheduler->cancelAllTasks();
+				$this->scheduler->mainThreadHeartbeat(PHP_INT_MAX);
 			}
-			
+
+			$this->getLogger()->debug("Saving properties");
+			$this->properties->save();
+
+			$this->getLogger()->debug("Closing console");
+			$this->console->shutdown();
+			$this->console->notify();
+
+			if($this->network instanceof Network){
+				$this->getLogger()->debug("Stopping network interfaces");
+				foreach($this->network->getInterfaces() as $interface){
+					$interface->shutdown();
+					$this->network->unregisterInterface($interface);
+				}
+			}
+
+			gc_collect_cycles();
+		}catch(\Throwable $e){
+			$this->logger->logException($e);
+			$this->logger->emergency("Crashed while crashing, killing process");
 			@kill(getmypid());
-			exit(1);
 		}
+
 	}
-	
+
+	/**
+	 * @return QueryRegenerateEvent
+	 */
+	public function getQueryInformation(){
+		return $this->queryRegenerateTask;
+	}	
+ 	
+ 	/**
+ 	 * @param             $variable
+ 	 * @param null        $defaultValue
+ 	 * @param Config|null $cfg
+ 	 * @return bool|mixed|null
+ 	 */
+ 	public function getAdvancedProperty($variable, $defaultValue = null, Config $cfg = null){
+		$vars = explode(".", $variable);
+ 		$base = array_shift($vars);
+ 		if($cfg == null) $cfg = $this->advancedConfig;
+ 		if($cfg->exists($base)){
+ 			$base = $cfg->get($base);
+ 		}else{
+ 			return $defaultValue;
+ 		}
+ 
+ 		while(count($vars) > 0){
+ 			$baseKey = array_shift($vars);
+ 			if(is_array($base) and isset($base[$baseKey])){
+ 				$base = $base[$baseKey];
+ 			}else{
+ 				return $defaultValue;
+ 			}
+ 		}
+ 
+ 		return $base;
+ 	}
+
+	/**
+	 * Starts the PocketMine-MP server and starts processing ticks and packets
+	 */
+	public function start(){
+		if($this->getConfigBoolean("enable-query", true) === true){
+			$this->queryHandler = new QueryHandler();
+		}
+
+		foreach($this->getIPBans()->getEntries() as $entry){
+			$this->network->blockAddress($entry->getName(), -1);
+		}
+
+		if($this->getProperty("settings.send-usage", true)){
+			$this->sendUsageTicker = 6000;
+			$this->sendUsage(SendUsageTask::TYPE_OPEN);
+		}
+
+
+		if($this->getProperty("network.upnp-forwarding", false)){
+			$this->logger->info("[UPnP] Trying to port forward...");
+			UPnP::PortForward($this->getPort());
+		}
+
+		$this->tickCounter = 0;
+
+		if(function_exists("pcntl_signal")){
+			pcntl_signal(SIGTERM, [$this, "handleSignal"]);
+			pcntl_signal(SIGINT, [$this, "handleSignal"]);
+			pcntl_signal(SIGHUP, [$this, "handleSignal"]);
+			$this->dispatchSignals = true;
+		}
+
+		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.defaultGameMode", [self::getGamemodeString($this->getGamemode())]));
+
+		$this->logger->info($this->getLanguage()->translateString("pocketmine.server.startFinished", [round(microtime(true) - \pocketmine\START_TIME, 3)]));
+
+		$this->tickProcessor();
+		$this->forceShutdown();
+	}
+
 	public function handleSignal($signo){
-		if($signo === SIGTERM || $signo === SIGINT || $signo === SIGHUP){
+		if($signo === SIGTERM or $signo === SIGINT or $signo === SIGHUP){
 			$this->shutdown();
-			return false;
 		}
 	}
-	
+
 	public function exceptionHandler(\Throwable $e, $trace = null){
 		if($e === null){
-			return false;
+			return;
 		}
 
 		global $lastError;
-		
+
 		if($trace === null){
 			$trace = $e->getTrace();
 		}
-		
+
 		$errstr = $e->getMessage();
 		$errfile = $e->getFile();
 		$errno = $e->getCode();
 		$errline = $e->getLine();
 
-		$type = ($errno === E_ERROR || $errno === E_USER_ERROR) ? \LogLevel::ERROR : (($errno === E_USER_WARNING || $errno === E_WARNING) ? \LogLevel::WARNING : \LogLevel::NOTICE);
-		if(($pos = strpos($errstr, "\n")) !== false){
-			$errstr = substr($errstr, 0, $pos);
-		}
+		$type = ($errno === E_ERROR or $errno === E_USER_ERROR) ? \LogLevel::ERROR : (($errno === E_USER_WARNING or $errno === E_WARNING) ? \LogLevel::WARNING : \LogLevel::NOTICE);
+
+		$errstr = preg_replace('/\s+/', ' ', trim($errstr));
 
 		$errfile = cleanPath($errfile);
 
-		if($this->konsol instanceof MainLogger){
-			$this->konsol->logException($e, $trace);
-		}
+		$this->logger->logException($e, $trace);
 
 		$lastError = [
 			"type" => $type,
@@ -2345,44 +2363,84 @@ class Server extends DarkSystem{
 			"fullFile" => $e->getFile(),
 			"file" => $errfile,
 			"line" => $errline,
-			"trace" => @getTrace(1, $trace)
+			"trace" => getTrace(0, $trace)
 		];
 
 		global $lastExceptionError, $lastError;
 		$lastExceptionError = $lastError;
-		$this->crashReport();
+		$this->crashDump();
 	}
 
-	public function crashReport(){
+	public function crashDump(){
 		if($this->isRunning === false){
-			return false;
+			return;
 		}
-		
-		$this->isRunning = false;
+		if($this->sendUsageTicker > 0){
+			$this->sendUsage(SendUsageTask::TYPE_CLOSE);
+		}
 		$this->hasStopped = false;
 
-		ini_set("error_reporting", 0);
-		ini_set("memory_limit", -1);
-		
-		$this->konsol->emergency($this->getLanguage()->translateString("pocketmine.crash.create"));
-		
+		ini_set("error_reporting", '0');
+		ini_set("memory_limit", '-1'); //Fix error dump not dumped on memory problems
+		$this->logger->emergency($this->getLanguage()->translateString("pocketmine.crash.create"));
 		try{
-		    $report = new CrashReport($this);
-		}catch(\Exception $e){
-			$this->konsol->critical($this->getLanguage()->translateString("pocketmine.crash.error", $e->getMessage()));
-			return false;
+			$dump = new CrashDump($this);
+
+			$this->logger->emergency($this->getLanguage()->translateString("pocketmine.crash.submit", [$dump->getPath()]));
+
+			if($this->getProperty("auto-report.enabled", true) !== false){
+				$report = true;
+				$plugin = $dump->getData()["plugin"];
+				if(is_string($plugin)){
+					$p = $this->pluginManager->getPlugin($plugin);
+					if($p instanceof Plugin and !($p->getPluginLoader() instanceof PharPluginLoader)){
+						$report = false;
+					}
+				}
+
+				if($dump->getData()["error"]["type"] === "E_PARSE" or $dump->getData()["error"]["type"] === "E_COMPILE_ERROR"){
+					$report = false;
+				}
+
+				if(strrpos(\pocketmine\GIT_COMMIT, "-dirty") !== false or \pocketmine\GIT_COMMIT === str_repeat("00", 20)){
+					$this->logger->debug("Not sending crashdump due to locally modified");
+					$report = false; //Don't send crashdumps for locally modified builds
+				}
+
+				if($report){
+					$url = ($this->getProperty("auto-report.use-https", true) ? "https" : "http") . "://" . $this->getProperty("auto-report.host", "crash.pmmp.io") . "/submit/api";
+					$reply = Utils::postURL($url, [
+						"report" => "yes",
+						"name" => $this->getName() . " " . $this->getPocketMineVersion(),
+						"email" => "crash@pocketmine.net",
+						"reportPaste" => base64_encode($dump->getEncodedData())
+					]);
+
+					if($reply !== false and ($data = json_decode($reply)) !== null and isset($data->crashId) and isset($data->crashUrl)){
+						$reportId = $data->crashId;
+						$reportUrl = $data->crashUrl;
+						$this->logger->emergency($this->getLanguage()->translateString("pocketmine.crash.archive", [$reportUrl, $reportId]));
+					}
+				}
+			}
+		}catch(\Throwable $e){
+			$this->logger->logException($e);
+			$this->logger->critical($this->getLanguage()->translateString("pocketmine.crash.error", [$e->getMessage()]));
 		}
 
-		$this->konsol->emergency($this->getLanguage()->translateString("pocketmine.crash.submit", [$report->getPath()]));
-		
-		$this->saveEverything();
-		
-		//$this->shutdown();
+		//$this->checkMemory();
+		//$dump .= "Memory Usage Tracking: \r\n" . chunk_split(base64_encode(gzdeflate(implode(";", $this->memoryStats), 9))) . "\r\n";
+
 		$this->forceShutdown();
+		$this->isRunning = false;
 		@kill(getmypid());
 		exit(1);
 	}
-	
+
+	public function __debugInfo(){
+		return [];
+	}
+
 	private function tickProcessor(){
 		$this->nextTick = microtime(true);
 		while($this->isRunning){
@@ -2392,275 +2450,339 @@ class Server extends DarkSystem{
 				try{
 					@time_sleep_until($next);
 				}catch(\Throwable $e){
+					//Sometimes $next is less than the current time. High load?
 				}
 			}
 		}
 	}
 
-	public function addOnlinePlayer(Player $player){
-		$this->playerList[$player->getRawUniqueId()] = $player;
+	public function onPlayerLogin(Player $player){
+		if($this->sendUsageTicker > 0){
+			$this->uniquePlayers[$player->getRawUniqueId()] = $player->getRawUniqueId();
+		}
+
+		$this->loggedInPlayers[$player->getRawUniqueId()] = $player;
 	}
 
-	public function removeOnlinePlayer(Player $player){
-		if(isset($this->playerList[$player->getRawUniqueId()])){
-			unset($this->playerList[$player->getRawUniqueId()]);
-			$pk = new PlayerListPacket();
-			$pk->type = PlayerListPacket::TYPE_REMOVE;
-			$pk->entries[] = [$player->getUniqueId()];
-			Server::broadcastPacket($this->playerList, $pk);
-		}
-	}
-	
-	public function updatePlayerListData(UUID $uuid, $entityId, $name, $skinName, /*$skinId, */$skinData, $skinGeometryName, /*$skinGeometryId, */$skinGeometryData, $capeData, $xuid, array $players = null){
-		$pk = new PlayerListPacket();
-		$pk->type = PlayerListPacket::TYPE_ADD;
-		$pk->entries[] = [$uuid, $entityId, $name, $skinName, /*$skinId, */$skinData, $skinGeometryName, /*$skinGeometryId, */$skinGeometryData, $capeData, $xuid];
-		$readyPackets = [];
-		foreach($players === null ? $this->playerList : $players as $p){
-			$protocol = $p->getPlayerProtocol();
-			if(!isset($readyPackets[$protocol])){
-				$pk->encode($protocol, $p->getSubClientId());
-				//$pk->encode($protocol);
-				$batch = new BatchPacket();
-				$batch->payload = zlib_encode(Binary::writeVarInt(strlen($pk->getBuffer())) . $pk->getBuffer(), ZLIB_ENCODING_DEFLATE, 7);
-				$readyPackets[$protocol] = $batch;
-			}
-			$p->dataPacket($readyPackets[$protocol]);
-		}
+	public function onPlayerCompleteLoginSequence(Player $player){
+		$this->sendFullPlayerListData($player);
+		$player->dataPacket($this->craftingManager->getCraftingDataPacket());
 	}
 
-	public function removePlayerListData(UUID $uuid, array $players = null){
-		$pk = new PlayerListPacket();
-		$pk->type = PlayerListPacket::TYPE_REMOVE;
-		$pk->entries[] = [$uuid];
-		foreach($players === null ? $this->playerList : $players as $p){
-			$p->dataPacket($pk);
-		}
-	}
-	
-	public function sendRecipeList(Player $p){
-		if(!isset($this->craftList[$p->getPlayerProtocol()])){
-			$pk = new CraftingDataPacket();
-			$pk->cleanRecipes = true;
-			foreach($this->getCraftingManager()->getRecipes() as $r){
-				if($r instanceof ShapedRecipe){
-					$pk->addShapedRecipe($r);
-				}elseif($r instanceof ShapelessRecipe){
-					$pk->addShapelessRecipe($r);
-				}
-			}
-
-			foreach($this->getCraftingManager()->getFurnaceRecipes() as $r){
-				$pk->addFurnaceRecipe($r);
-			}
-			
-			$pk->encode($p->getPlayerProtocol(), $p->getSubClientId());
-			//$pk->encode($p->getPlayerProtocol());
-			$pk->isEncoded = true;
-			$this->craftList[$p->getPlayerProtocol()] = $pk;
-		}
-		
-		$this->batchPackets([$p], [$this->craftList[$p->getPlayerProtocol()]]);
+	public function onPlayerLogout(Player $player){
+		unset($this->loggedInPlayers[$player->getRawUniqueId()]);
 	}
 
 	public function addPlayer($identifier, Player $player){
 		$this->players[$identifier] = $player;
 		$this->identifiers[spl_object_hash($player)] = $identifier;
 	}
-	
-	public function saveEverything(){
-		if($this->getSavePlayerData()){
-			foreach($this->getOnlinePlayers() as $index => $p){
-				if($p->isOnline()){
-					$p->save();
-				}elseif(!$p->isConnected()){
-					$this->removePlayer($p);
-				}
-			}
-		}
-			
-		foreach($this->levels as $l){
-			$l->save();
-		}
+
+	public function addOnlinePlayer(Player $player){
+		$this->updatePlayerListData($player->getUniqueId(), $player->getId(), $player->getDisplayName(), $player->getSkin());
+
+		$this->playerList[$player->getRawUniqueId()] = $player;
 	}
-	
-	public function doAutoSave(){
-		if($this->getAutoSave()){
-			$this->saveEverything();
+
+	public function removeOnlinePlayer(Player $player){
+		if(isset($this->playerList[$player->getRawUniqueId()])){
+			unset($this->playerList[$player->getRawUniqueId()]);
+
+			$this->removePlayerListData($player->getUniqueId());
 		}
 	}
 
-	public function doLevelGC(){
-		foreach($this->levels as $l){
-			$l->doChunkGarbageCollection();
-		}
+	/**
+	 * @param UUID          $uuid
+	 * @param int           $entityId
+	 * @param string        $name
+	 * @param Skin          $skin
+	 * @param Player[]|null $players
+	 */
+	public function updatePlayerListData(UUID $uuid, int $entityId, string $name, Skin $skin, array $players = null){
+		$pk = new PlayerListPacket();
+		$pk->type = PlayerListPacket::TYPE_ADD;
+
+		$pk->entries[] = PlayerListEntry::createAdditionEntry($uuid, $entityId, $name, $skin);
+		$this->broadcastPacket($players ?? $this->playerList, $pk);
 	}
-	
-	public function handlePacket($address, $port, $payload){
-		try{
-			if(strlen($payload) > 2 && substr($payload, 0, 2) === "\xfe\xfd" && $this->queryHandler instanceof QueryHandler){
-				$this->queryHandler->handle($address, $port, $payload);
-			}
-		}catch(\Exception $e){
-			if(\pocketmine\DEBUG > 1){
-				if($this->konsol instanceof MainLogger){
-					$this->konsol->logException($e);
-				}
-			}
-			$this->getNetwork()->blockAddress($address, 600);
-		}
+
+	/**
+	 * @param UUID          $uuid
+	 * @param Player[]|null $players
+	 */
+	public function removePlayerListData(UUID $uuid, array $players = null){
+		$pk = new PlayerListPacket();
+		$pk->type = PlayerListPacket::TYPE_REMOVE;
+		$pk->entries[] = PlayerListEntry::createRemovalEntry($uuid);
+		$this->broadcastPacket($players ?? $this->playerList, $pk);
 	}
-	
-	public function getSoftConfig($variable, $defaultValue = null){
-		$vars = explode(".", $variable);
-		$base = array_shift($vars);
-		if($this->softConfig->exists($base)){
-			$base = $this->softConfig->get($base);
-		}else{
-			return $defaultValue;
+
+	/**
+	 * @param Player $p
+	 */
+	public function sendFullPlayerListData(Player $p){
+		$pk = new PlayerListPacket();
+		$pk->type = PlayerListPacket::TYPE_ADD;
+		foreach($this->playerList as $player){
+			$pk->entries[] = PlayerListEntry::createAdditionEntry($player->getUniqueId(), $player->getId(), $player->getDisplayName(), $player->getSkin());
 		}
 
-		while(count($vars) > 0){
-			$baseKey = array_shift($vars);
-			if(is_array($base) && isset($base[$baseKey])){
-				$base = $base[$baseKey];
-			}else{
-				return $defaultValue;
-			}
-		}
-
-		return $base;
+		$p->dataPacket($pk);
 	}
-	
-	public function getAdvancedProperty($variable, $defaultValue = null, Config $cfg = null){
-		$vars = explode(".", $variable);
-		$base = array_shift($vars);
-		if($this->advancedConfig->exists($base)){
-			$base = $this->advancedConfig->get($base);
-		}else{
-			return $defaultValue;
-		}
 
-		while(count($vars) > 0){
-			$baseKey = array_shift($vars);
-			if(is_array($base) && isset($base[$baseKey])){
-				$base = $base[$baseKey];
-			}else{
-				return $defaultValue;
+	private function checkTickUpdates($currentTick, $tickTime){
+		foreach($this->players as $p){
+			if(!$p->loggedIn and ($tickTime - $p->creationTime) >= 10){
+				$p->close("", "Login timeout");
+			}elseif($this->alwaysTickPlayers and $p->joined){
+				$p->onUpdate($currentTick);
 			}
 		}
 
-		return $base;
-	}
-	
-	private function tick(){
-		$tickTime = microtime(true);
-		$dbotcheck = $this->dbot->check();
-		//if(($tickTime - $this->nextTick) < -0.025){
-		if($tickTime < $this->nextTick){
-			return false;
-		}
-		++$this->tickCounter;
-		$this->checkConsole();
-		/*foreach($this->unloadLevelQueue as $levelForUnload){
-			$this->unloadLevel($levelForUnload["level"], $levelForUnload["force"], true);
-		}*/
-		/*if(($this->tickCounter % 200) === 0){
-			foreach($this->levels as $l){
-				$l->clearCache();
+		//Do level ticks
+		foreach($this->getLevels() as $level){
+			if($level->getTickRate() > $this->baseTickRate and --$level->tickRateCounter > 0){
+				continue;
 			}
-			$this->saveEverything();
-		}*/
-		if(($this->tickCounter % 1925) === 0){
-			foreach($this->levels as $l){
-				foreach($l->getEntities() as $e){
-					if($e instanceof DroppedItem || $e instanceof Arrow){
-						$e->close();
+			try{
+				$levelTime = microtime(true);
+				$level->doTick($currentTick);
+				$tickMs = (microtime(true) - $levelTime) * 1000;
+				$level->tickRateTime = $tickMs;
+
+				if($this->autoTickRate){
+					if($tickMs < 50 and $level->getTickRate() > $this->baseTickRate){
+						$level->setTickRate($r = $level->getTickRate() - 1);
+						if($r > $this->baseTickRate){
+							$level->tickRateCounter = $level->getTickRate();
+						}
+						$this->getLogger()->debug("Raising level \"{$level->getName()}\" tick rate to {$level->getTickRate()} ticks");
+					}elseif($tickMs >= 50){
+						if($level->getTickRate() === $this->baseTickRate){
+							$level->setTickRate(max($this->baseTickRate + 1, min($this->autoTickRateLimit, (int) floor($tickMs / 50))));
+							$this->getLogger()->debug(sprintf("Level \"%s\" took %gms, setting tick rate to %d ticks", $level->getName(), (int) round($tickMs, 2), $level->getTickRate()));
+						}elseif(($tickMs / $level->getTickRate()) >= 50 and $level->getTickRate() < $this->autoTickRateLimit){
+							$level->setTickRate($level->getTickRate() + 1);
+							$this->getLogger()->debug(sprintf("Level \"%s\" took %gms, setting tick rate to %d ticks", $level->getName(), (int) round($tickMs, 2), $level->getTickRate()));
+						}
+						$level->tickRateCounter = $level->getTickRate();
 					}
 				}
+			}catch(\Throwable $e){
+				$this->logger->critical($this->getLanguage()->translateString("pocketmine.level.tickError", [$level->getName(), $e->getMessage()]));
+				$this->logger->logException($e);
 			}
 		}
-		if($this->autoSave && ++$this->autoSaveTicker >= $this->autoSaveTicks){
+	}
+
+	public function doAutoSave(){
+		if($this->getAutoSave()){
+			Timings::$worldSaveTimer->startTiming();
+			foreach($this->players as $index => $player){
+				if($player->joined){
+					$player->save(true);
+				}elseif(!$player->isConnected()){
+					$this->removePlayer($player);
+				}
+			}
+
+			foreach($this->getLevels() as $level){
+				$level->save(false);
+			}
+			Timings::$worldSaveTimer->stopTiming();
+		}
+	}
+
+	public function sendUsage($type = SendUsageTask::TYPE_STATUS){
+		if((bool) $this->getProperty("anonymous-statistics.enabled", true)){
+			$this->scheduler->scheduleAsyncTask(new SendUsageTask($this, $type, $this->uniquePlayers));
+		}
+		$this->uniquePlayers = [];
+	}
+
+
+	/**
+	 * @return BaseLang
+	 */
+	public function getLanguage(){
+		return $this->baseLang;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isLanguageForced() : bool{
+		return $this->forceLanguage;
+	}
+
+	/**
+	 * @return Network
+	 */
+	public function getNetwork(){
+		return $this->network;
+	}
+
+	/**
+	 * @return MemoryManager
+	 */
+	public function getMemoryManager(){
+		return $this->memoryManager;
+	}
+
+	private function titleTick(){
+		Timings::$titleTickTimer->startTiming();
+		$d = Utils::getRealMemoryUsage();
+
+		$u = Utils::getMemoryUsage(true);
+		$usage = sprintf("%g/%g/%g/%g MB @ %d threads", round(($u[0] / 1024) / 1024, 2), round(($d[0] / 1024) / 1024, 2), round(($u[1] / 1024) / 1024, 2), round(($u[2] / 1024) / 1024, 2), Utils::getThreadCount());
+
+		echo "\x1b]0;" . $this->getName() . " " .
+			$this->getPocketMineVersion() .
+			" | Online " . count($this->players) . "/" . $this->getMaxPlayers() .
+			" | Memory " . $usage .
+			" | U " . round($this->network->getUpload() / 1024, 2) .
+			" D " . round($this->network->getDownload() / 1024, 2) .
+			" kB/s | TPS " . $this->getTicksPerSecondAverage() .
+			" | Load " . $this->getTickUsageAverage() . "%\x07";
+
+		$this->network->resetStatistics();
+
+		Timings::$titleTickTimer->stopTiming();
+	}
+
+	/**
+	 * @param string $address
+	 * @param int    $port
+	 * @param string $payload
+	 *
+	 * TODO: move this to Network
+	 */
+	public function handlePacket(string $address, int $port, string $payload){
+		try{
+			if(strlen($payload) > 2 and substr($payload, 0, 2) === "\xfe\xfd" and $this->queryHandler instanceof QueryHandler){
+				$this->queryHandler->handle($address, $port, $payload);
+			}
+		}catch(\Throwable $e){
+			if(\pocketmine\DEBUG > 1){
+				$this->logger->logException($e);
+			}
+
+			$this->getNetwork()->blockAddress($address, 600);
+		}
+		//TODO: add raw packet events
+	}
+
+
+	/**
+	 * Tries to execute a server tick
+	 */
+	private function tick() : bool{
+		$tickTime = microtime(true);
+		if(($tickTime - $this->nextTick) < -0.025){ //Allow half a tick of diff
+			return false;
+		}
+
+		Timings::$serverTickTimer->startTiming();
+
+		++$this->tickCounter;
+
+		$this->checkConsole();
+
+		Timings::$connectionTimer->startTiming();
+		$this->network->processInterfaces();
+
+		if($this->rcon !== null){
+			$this->rcon->check();
+		}
+
+		Timings::$connectionTimer->stopTiming();
+
+		Timings::$schedulerTimer->startTiming();
+		$this->scheduler->mainThreadHeartbeat($this->tickCounter);
+		Timings::$schedulerTimer->stopTiming();
+
+		$this->checkTickUpdates($this->tickCounter, $tickTime);
+
+		foreach($this->players as $player){
+			$player->checkNetwork();
+		}
+
+		if(($this->tickCounter & 0b1111) === 0){
+			if($this->doTitleTick and Terminal::hasFormattingCodes()){
+				$this->titleTick();
+			}
+			$this->currentTPS = 20;
+			$this->currentUse = 0;
+
+			if(($this->tickCounter & 0b111111111) === 0){
+				try{
+					$this->getPluginManager()->callEvent($this->queryRegenerateTask = new QueryRegenerateEvent($this, 5));
+					if($this->queryHandler !== null){
+						$this->queryHandler->regenerateInfo();
+					}
+				}catch(\Throwable $e){
+					$this->logger->logException($e);
+				}
+			}
+
+			$this->getNetwork()->updateName();
+		}
+
+		if($this->autoSave and ++$this->autoSaveTicker >= $this->autoSaveTicks){
 			$this->autoSaveTicker = 0;
 			$this->doAutoSave();
 		}
-		$this->unloadLevelQueue = [];
-		while(strlen($str = $this->packetMgr->readThreadToMainPacket()) > 0){
-			$data = unserialize($str);
-			if(isset($this->players[$data["identifier"]])){
-				$player = $this->players[$data["identifier"]];
-				$player->getInterface()->putReadyPacket($player, $data["buffer"]);
+
+		if($this->sendUsageTicker > 0 and --$this->sendUsageTicker === 0){
+			$this->sendUsageTicker = 6000;
+			$this->sendUsage(SendUsageTask::TYPE_STATUS);
+		}
+
+		if(($this->tickCounter % 100) === 0){
+			foreach($this->levels as $level){
+				$level->clearCache();
+			}
+
+			if($this->getTicksPerSecondAverage() < 12){
+				$this->logger->warning($this->getLanguage()->translateString("pocketmine.server.tickOverload"));
 			}
 		}
-		$this->network->processInterfaces();
-		$this->scheduler->mainThreadHeartbeat($this->tickCounter);
-		foreach($this->levels as $l){
-			$l->doTick($this->tickCounter);
+
+		if($this->dispatchSignals and $this->tickCounter % 5 === 0){
+			pcntl_signal_dispatch();
 		}
-		if(($this->tickCounter & 0b1111) === 0){
-			if($this->queryHandler !== null && ($this->tickCounter & 0b111111111) === 0){
-				try{
-					$this->queryHandler->regenerateInfo();
-				}catch(\Exception $e){
-					if($this->konsol instanceof MainLogger){
-						$this->konsol->logException($e);
-					}
-				}
-			}
-		}
-		if(($this->tickCounter % 2975) === 0 && $dbotcheck = "§aAktif" && $this->dbotBroadcast){
-			if(Translate::checkTurkish() === "yes"){
-				switch(mt_rand(1, 5)){
-					case 1:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aSunucu Benimle Güvende!");
-					break;
-					case 2:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aBu Sunucu Güvencem Altındadır!");
-					break;
-					case 3:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aYakında Oyuna Bende Katılacağım!");
-					break;
-					case 4:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aBen Sadece Bir Robot Değilim!");
-					break;
-					case 5:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aGüvenlik Önemlidir!");
-					break;
-					default;
-					break;
-				}
-			}else{
-				switch(mt_rand(1, 5)){
-					case 1:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aServer is safe with me!");
-					break;
-					case 2:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aThis server is in protection of me!");
-					break;
-					case 3:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aI will join game soon!");
-					break;
-					case 4:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aI am not just a robot!");
-					break;
-					case 5:
-					$this->broadcastMessage($this->getDarkBotPrefix() . "§aProtection is important!");
-					break;
-					default;
-					break;
-				}
-			}
-		}
+
+		$this->getMemoryManager()->check();
+
+		Timings::$serverTickTimer->stopTiming();
+
 		$now = microtime(true);
+		$this->currentTPS = min(20, 1 / max(0.001, $now - $tickTime));
+		$this->currentUse = min(1, ($now - $tickTime) / 0.05);
+
+		TimingsHandler::tick($this->currentTPS <= $this->profilingTickRate);
+
 		array_shift($this->tickAverage);
-		$tickDiff = $now - $tickTime;
-		$this->tickAverage[] = ($tickDiff <= 0.05) ? 20 : 1 / $tickDiff;
+		$this->tickAverage[] = $this->currentTPS;
 		array_shift($this->useAverage);
-		$this->useAverage[] = min(1, $tickDiff * 20);
+		$this->useAverage[] = $this->currentUse;
+
 		if(($this->nextTick - $tickTime) < -1){
 			$this->nextTick = $tickTime;
+		}else{
+			$this->nextTick += 0.05;
 		}
-		$this->nextTick += 0.05;
+
 		return true;
+	}
+
+	/**
+	 * Called when something attempts to serialize the server instance.
+	 *
+	 * @throws \BadMethodCallException because Server instances cannot be serialized
+	 */
+	public function __sleep(){
+		throw new \BadMethodCallException("Cannot serialize Server instance");
 	}
 }

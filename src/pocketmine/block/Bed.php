@@ -1,69 +1,60 @@
 <?php
 
-#______           _    _____           _                  
-#|  _  \         | |  /  ___|         | |                 
-#| | | |__ _ _ __| | _\ `--. _   _ ___| |_ ___ _ __ ___   
-#| | | / _` | '__| |/ /`--. \ | | / __| __/ _ \ '_ ` _ \  
-#| |/ / (_| | |  |   </\__/ / |_| \__ \ ||  __/ | | | | | 
-#|___/ \__,_|_|  |_|\_\____/ \__, |___/\__\___|_| |_| |_| 
-#                             __/ |                       
-#                            |___/
+/*
+ *
+ *  ____            _        _   __  __ _                  __  __ ____
+ * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
+ * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
+ * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
+ * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @author PocketMine Team
+ * @link http://www.pocketmine.net/
+ *
+ *
+*/
+
+declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\event\TranslationContainer;
 use pocketmine\item\Item;
-use pocketmine\level\Explosion;
+use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\nbt\tag\ByteTag;
-use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\IntTag;
-use pocketmine\nbt\tag\StringTag;
+use pocketmine\math\Vector3;
+use pocketmine\Player;
 use pocketmine\tile\Bed as TileBed;
 use pocketmine\tile\Tile;
-use pocketmine\Translate;
-use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
 class Bed extends Transparent{
+	public const BITFLAG_OCCUPIED = 0x04;
+	public const BITFLAG_HEAD = 0x08;
 
-	/**
-	 * @var int
-	 */
 	protected $id = self::BED_BLOCK;
 
-	/**
-	 * @param int $meta
-	 */
-	public function __construct($meta = 0){
+	protected $itemId = Item::BED;
+
+	public function __construct(int $meta = 0){
 		$this->meta = $meta;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function canBeActivated(){
-		return true;
+	public function getHardness() : float{
+		return 0.2;
 	}
 
-	/**
-	 * @return float
-	 */
-	public function getHardness(){
-		return 0.3;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getName(){
+	public function getName() : string{
 		return "Bed Block";
 	}
 
-	/**
-	 * @return AxisAlignedBB
-	 */
-	protected function recalculateBoundingBox(){
+	protected function recalculateBoundingBox() : ?AxisAlignedBB{
 		return new AxisAlignedBB(
 			$this->x,
 			$this->y,
@@ -74,109 +65,123 @@ class Bed extends Transparent{
 		);
 	}
 
-	/**
-	 * @param Item        $item
-	 * @param Player|null $player
-	 *
-	 * @return bool
-	 */
-	public function onActivate(Item $item, Player $player = null){
-		$time = $this->getLevel()->getTime() % Level::TIME_FULL;
-
-		$isNight = ($time >= Level::TIME_NIGHT and $time < Level::TIME_SUNRISE);
-
-		if($player instanceof Player and !$isNight){
-			if(Translate::checkTurkish() === "yes"){
-				$player->sendMessage(TextFormat::GRAY . "Sadece Geceleri Uyuyabilirsiniz");
-			}else{
-				$player->sendMessage(TextFormat::GRAY . "You can only sleep at night");
-			}
-			
-			return true;
-		}
-
-		$blockNorth = $this->getSide(2);
-		$blockSouth = $this->getSide(3);
-		$blockEast = $this->getSide(5);
-		$blockWest = $this->getSide(4);
-		if(($this->meta & 0x08) === 0x08){
-			$b = $this;
-		}else{
-			if($blockNorth->getId() === $this->id and ($blockNorth->meta & 0x08) === 0x08){
-				$b = $blockNorth;
-			}elseif($blockSouth->getId() === $this->id and ($blockSouth->meta & 0x08) === 0x08){
-				$b = $blockSouth;
-			}elseif($blockEast->getId() === $this->id and ($blockEast->meta & 0x08) === 0x08){
-				$b = $blockEast;
-			}elseif($blockWest->getId() === $this->id and ($blockWest->meta & 0x08) === 0x08){
-				$b = $blockWest;
-			}else{
-				if($player instanceof Player){
-					if(Translate::checkTurkish() === "yes"){
-						$player->sendMessage(TextFormat::GRAY . "Yatak Tam Değil");
-					}else{
-						$player->sendMessage(TextFormat::GRAY . "This bed is incomplete");
-					}
-				}
-
-				return true;
-			}
-		}
-
-		if($player instanceof Player and $player->sleepOn($b) === false){
-			if(Translate::checkTurkish() === "yes"){
-				$player->sendMessage(TextFormat::GRAY . "Yatak Dolu");
-			}else{
-				$player->sendMessage(TextFormat::GRAY . "This bed is occupied");
-			}
-		}
-
-		return true;
+	public function isHeadPart() : bool{
+		return ($this->meta & self::BITFLAG_HEAD) !== 0;
 	}
 
 	/**
-	 * @param Item        $item
-	 * @param Block       $block
-	 * @param Block       $target
-	 * @param int         $face
-	 * @param float       $fx
-	 * @param float       $fy
-	 * @param float       $fz
-	 * @param Player|null $player
-	 *
 	 * @return bool
 	 */
-	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
-		$down = $this->getSide(0);
-		if($down->isTransparent() === false){
-			$faces = [
-				0 => 3,
-				1 => 4,
-				2 => 2,
-				3 => 5,
-			];
-			
-			$d = $player instanceof Player ? $player->getDirection() : 0;
-			$next = $this->getSide($faces[(($d + 3) % 4)]);
-			$downNext = $this->getSide(0);
-			if($next->canBeReplaced() === true and $downNext->isTransparent() === false){
-				$meta = (($d + 3) % 4) & 0x03;
-				$this->getLevel()->setBlock($block, Block::get($this->id, $meta), true, true);
-				$this->getLevel()->setBlock($next, Block::get($this->id, $meta | 0x08), true, true);
+	public function isOccupied() : bool{
+		return ($this->meta & self::BITFLAG_OCCUPIED) !== 0;
+	}
 
-				$nbt = new CompoundTag("", [
-					new StringTag("id", Tile::BED),
-					new ByteTag("color", $item->getDamage() & 0x0f),
-					new IntTag("x", $block->x),
-					new IntTag("y", $block->y),
-					new IntTag("z", $block->z),
-				]);
-				
-				$nbt2 = clone $nbt;
-				$nbt2["x"] = $next->x;
-				$nbt2["z"] = $next->z;
-				Tile::createTile(Tile::BED, $this->getLevel(), $nbt);
-				Tile::createTile(Tile::BED, $this->getLevel(), $nbt2);
+	public function setOccupied(bool $occupied = true){
+		if($occupied){
+			$this->meta |= self::BITFLAG_OCCUPIED;
+		}else{
+			$this->meta &= ~self::BITFLAG_OCCUPIED;
+		}
+
+		$this->getLevel()->setBlock($this, $this, false, false);
+
+		if(($other = $this->getOtherHalf()) !== null and !$other->isOccupied()){
+			$other->setOccupied($occupied);
+		}
+	}
+
+	/**
+	 * @param int  $meta
+	 * @param bool $isHead
+	 *
+	 * @return int
+	 */
+	public static function getOtherHalfSide(int $meta, bool $isHead = false) : int{
+		$rotation = $meta & 0x03;
+		$side = -1;
+
+		switch($rotation){
+			case 0x00: //South
+				$side = Vector3::SIDE_SOUTH;
+				break;
+			case 0x01: //West
+				$side = Vector3::SIDE_WEST;
+				break;
+			case 0x02: //North
+				$side = Vector3::SIDE_NORTH;
+				break;
+			case 0x03: //East
+				$side = Vector3::SIDE_EAST;
+				break;
+		}
+
+		if($isHead){
+			$side = Vector3::getOppositeSide($side);
+		}
+
+		return $side;
+	}
+
+	/**
+	 * @return Bed|null
+	 */
+	public function getOtherHalf() : ?Bed{
+		$other = $this->getSide(self::getOtherHalfSide($this->meta, $this->isHeadPart()));
+		if($other instanceof Bed and $other->getId() === $this->getId() and $other->isHeadPart() !== $this->isHeadPart() and (($other->getDamage() & 0x03) === ($this->getDamage() & 0x03))){
+			return $other;
+		}
+
+		return null;
+	}
+
+	public function onActivate(Item $item, Player $player = null) : bool{
+		if($player !== null){
+			$other = $this->getOtherHalf();
+			if($other === null){
+				$player->sendMessage(TextFormat::GRAY . "This bed is incomplete");
+
+				return true;
+			}elseif($player->distanceSquared($this) > 4 and $player->distanceSquared($other) > 4){
+				$player->sendMessage(new TranslationContainer(TextFormat::GRAY . "%tile.bed.tooFar"));
+				return true;
+			}
+
+			$time = $this->getLevel()->getTime() % Level::TIME_FULL;
+
+			$isNight = ($time >= Level::TIME_NIGHT and $time < Level::TIME_SUNRISE);
+
+			if(!$isNight){
+				$player->sendMessage(new TranslationContainer(TextFormat::GRAY . "%tile.bed.noSleep"));
+
+				return true;
+			}
+
+			$b = ($this->isHeadPart() ? $this : $other);
+
+			if($b->isOccupied()){
+				$player->sendMessage(new TranslationContainer(TextFormat::GRAY . "%tile.bed.occupied"));
+
+				return true;
+			}
+
+			$player->sleepOn($b);
+		}
+
+		return true;
+
+	}
+
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
+		$down = $this->getSide(Vector3::SIDE_DOWN);
+		if(!$down->isTransparent()){
+			$meta = (($player instanceof Player ? $player->getDirection() : 0) - 1) & 0x03;
+			$next = $this->getSide(self::getOtherHalfSide($meta));
+			if($next->canBeReplaced() === true and !$next->getSide(Vector3::SIDE_DOWN)->isTransparent()){
+				$this->getLevel()->setBlock($blockReplace, BlockFactory::get($this->id, $meta), true, true);
+				$this->getLevel()->setBlock($next, BlockFactory::get($this->id, $meta | self::BITFLAG_HEAD), true, true);
+
+				Tile::createTile(Tile::BED, $this->getLevel(), TileBed::createNBT($this, $face, $item, $player));
+				Tile::createTile(Tile::BED, $this->getLevel(), TileBed::createNBT($next, $face, $item, $player));
 
 				return true;
 			}
@@ -185,63 +190,30 @@ class Bed extends Transparent{
 		return false;
 	}
 
-	/**
-	 * @param Item $item
-	 *
-	 * @return bool
-	 */
-	public function onBreak(Item $item){
-		$sides = [
-			0 => 3,
-			1 => 4,
-			2 => 2,
-			3 => 5,
-			8 => 2,
-			9 => 5,
-			10 => 3,
-			11 => 4,
-		];
-
-		if(($this->meta & 0x08) === 0x08){
-			$next = $this->getSide($sides[$this->meta]);
-			if($next->getId() === $this->id and ($next->meta | 0x08) === $this->meta){
-				$this->getLevel()->setBlock($next, new Air(), true, true);
-			}
-		}else{
-			$next = $this->getSide($sides[$this->meta]);
-			if($next->getId() === $this->id and $next->meta === ($this->meta | 0x08)){
-				$this->getLevel()->setBlock($next, new Air(), true, true);
-			}
+	public function onBreak(Item $item, Player $player = null) : bool{
+		$this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), true, true);
+		if(($other = $this->getOtherHalf()) !== null){
+			$this->getLevel()->useBreakOn($other, $item, null, $player !== null); //make sure tiles get removed
 		}
-		
-		$this->getLevel()->setBlock($this, new Air(), true, true);
 
 		return true;
 	}
 
-	/**
-	 * @param Item $item
-	 *
-	 * @return array
-	 */
-	public function getDrops(Item $item) : array{
-		$tile = $this->getLevel()->getTile($this);
-		if($tile instanceof TileBed){
-			return [
-				[Item::BED, $tile->getColor(), 1]
-			];
-		}else{
-			return [
-				[Item::BED, 14, 1]
-			];
+	public function getDropsForCompatibleTool(Item $item) : array{
+		if($this->isHeadPart()){
+			$tile = $this->getLevel()->getTile($this);
+			if($tile instanceof TileBed){
+				return [
+					ItemFactory::get($this->getItemId(), $tile->getColor())
+				];
+			}else{
+				return [
+					ItemFactory::get($this->getItemId(), 14) //Red
+				];
+			}
 		}
-	}
 
-	/**
-	 * @return int
-	 */
-	public function getVariantBitmask(){
-		return 0x08;
+		return [];
 	}
 
 }
