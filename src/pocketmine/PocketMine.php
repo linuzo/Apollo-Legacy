@@ -132,14 +132,16 @@ namespace pocketmine {
 	//define('pocketmine\COMPOSER_AUTOLOADER_PATH', \pocketmine\PATH . 'vendor/autoload.php'); COMPOSER
 
 
-	if(!class_exists(RakLib::class)){
-		composer_error_die("Unable to find the RakLib library.");
+	
+ 	if(!class_exists(RakLib::class)){
+ 		echo "[CRITICAL] Unable to find the RakLib library." . PHP_EOL;
+ 		echo "[CRITICAL] Please use provided builds or clone the repository recursively." . PHP_EOL;
+ 		exit(1);
+
 	}
-	if(version_compare(RakLib::VERSION, "0.9.0") < 0){ //TODO: remove this check (it's managed by Composer now)
-		composer_error_die("RakLib version 0.9.0 is required, while you have version " . RakLib::VERSION . ".");
-	}
-	if(!class_exists(\BaseClassLoader::class)){
-		composer_error_die("Unable to find the PocketMine-SPL library.");
+	if(!class_exists("ClassLoader", false)){
+ 		require_once(\pocketmine\PATH . "src/spl/ClassLoader.php");
+ 		require_once(\pocketmine\PATH . "src/spl/BaseClassLoader.php");
 	}
 
 	/*
