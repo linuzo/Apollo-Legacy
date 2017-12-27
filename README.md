@@ -57,7 +57,7 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 - [ ] fix any bugs that are left
 
-- [ ] inplament xp
+- [ ] implement xp and more xp things
 
 
  If you have epic ideas, create an issue and tell us the idea!
