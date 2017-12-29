@@ -16,7 +16,9 @@ Apollo is for all. Anyone can copy-paste generator and other features.
 
 **CircleCI** [![CircleCI](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy.svg?style=svg)](https://circleci.com/gh/Apollo-SoftwareTeam/Apollo-Legacy)
 
+## Known Bugs
 
+- right now none
 
 ## Credits
 
