@@ -1,5 +1,3 @@
-# wip brach php 7.0 and 32bit support
-
 ![Apollo](http://i.imgur.com/KBlbnkp.png)
 
 
